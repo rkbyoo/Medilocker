@@ -1,25 +1,114 @@
-# NFC Healthcare Management System - Backend
+# Final Year Project - JECSmart Patient Health Card System
 
-A production-grade authentication and authorization backend for an NFC-based healthcare management system where hospitals, doctors, staff, and patients interact securely.
+A secure NFC-enabled health card linked with a cloud backend that stores patient medical history, prescriptions, reports, and scans. Provides offline access via card and cross-hospital portability with desktop & mobile apps.
 
-## 🏗️ Architecture
+## 🧑‍💻 Members
+- **Nitish Kumar Das**
+- **Rakib Hussain** 
+- **Tushar Haloi**
+- **Sarlongki Teron**
 
-This backend follows a modular architecture with clear separation of concerns:
+## ✨ Features
 
-- **Modules**: Feature-based organization (auth, user)
-- **Middlewares**: Authentication, validation, error handling
-- **Utils**: Reusable utilities (JWT, bcrypt, logging, response)
-- **Config**: Environment and database configuration
-- **Types**: TypeScript type definitions
+### 💾 Smart NFC Card
+- Stores essential patient data offline
 
-## 🚀 Features
+### ☁️ Cloud Sync  
+- Prescriptions, reports, bills & scans stored online
 
-- **Authentication**: JWT-based auth with access and refresh tokens
-- **Authorization**: Role-based access control (RBAC)
-- **Security**: bcrypt password hashing, secure token management
-- **Logging**: Comprehensive access logging for audit trails
-- **Validation**: Request validation using Zod
-- **Database**: PostgreSQL with connection pooling
+### 🖥️ Hospital Desktop App
+- Read/write card data & sync with backend
+
+### 📱 Patient Mobile App
+- View and manage personal medical data
+
+### 🔒 Secure Authentication
+- JWT/OAuth2 with role-based access
+
+### 🌍 Cross-Hospital Access
+- Works across hospitals with NFC readers
+
+### 📊 Central Backend
+- FastAPI + PostgreSQL + S3 for structured & unstructured data management
+
+### 🛡️ Data Privacy
+- Encrypted storage
+
+### Additional Features
+- 💵 Payment Gateway
+- 📈 User Statistics and Analytics
+
+## 🏗️ Architecture (HLD)
+
+```mermaid
+flowchart TD
+    subgraph Patient["Patient"]
+        A1["Smart Health Card (NFC)"]
+        A2["Android App"]
+    end
+    
+    subgraph Hospital["Hospital"]
+        B1["Desktop App (C#)"]
+        B2["NFC Reader"]
+    end
+    
+    subgraph Cloud["Cloud"]
+        C1["FastAPI Backend (Python)"]
+        C2["PostgreSQL - Patient Data"]
+        C3["S3 / Blob Storage - Scans & Images"]
+        C4["Auth Service - JWT/OAuth2"]
+    end
+    
+    B1 --> C4
+    A2 --> C4
+    B1 -- JWT Token --> C1
+    A2 -- JWT Token --> C1
+    C1 --> C2 & C3
+    A1 <--> B2
+    B2 --> B1
+```
+
+## 💻 Tech Stack
+
+### 💳 Smart Card
+- NFC-enabled health cards for offline data storage
+
+### 🔌 Card Reader
+- NFC Reader/Writer (USB/Bluetooth)
+
+### 🖥️ Desktop App
+- C# (.NET) for hospital-side access
+
+### 📱 Mobile App
+- Android (Flutter) for patient access
+
+### ⚡ Backend API
+- Python FastAPI
+
+### 🗄️ Database
+- PostgreSQL (structured patient data)
+
+### 🗂️ File Storage
+- S3/Blob Storage (scans, reports, bills)
+
+### 🔒 Authentication
+- OAuth2 / JWT (secure token-based access)
+
+## 📚 Documentation
+
+Comprehensive module-wise documentation is available in the [docs](./docs/) directory:
+
+- [📖 Documentation Overview](./docs/README.md)
+- [🔐 Authentication Module](./docs/auth.md) - JWT-based authentication and authorization
+- [👥 User Management](./docs/user-management.md) - User profiles and role management  
+- [💳 NFC Card Module](./docs/nfc-card.md) - Smart health card operations
+- [🖥️ Hospital Desktop App](./docs/hospital-desktop.md) - C# desktop application for hospitals
+- [📱 Patient Mobile App](./docs/patient-mobile.md) - Flutter mobile app for patients
+- [⚡ Backend API](./docs/backend-api.md) - FastAPI backend services
+- [🗄️ Database Schema](./docs/database.md) - PostgreSQL database structure
+- [🗂️ File Storage](./docs/file-storage.md) - S3/Blob storage for medical files
+- [🛡️ Security](./docs/security.md) - Security implementation and best practices
+- [🚀 Deployment](./docs/deployment.md) - Production deployment guide
 
 ## 📋 Prerequisites
 
