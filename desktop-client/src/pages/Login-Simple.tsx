@@ -46,13 +46,13 @@ const LoginSimple: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-4">
-      <Card className="w-full max-w-xl shadow-lg border-2">
+    <div className="w-screen h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-0 overflow-hidden">
+      <Card className="w-full max-w-lg shadow-lg border-2 mx-4">
         <CardHeader className="space-y-3 text-center bg-gradient-to-r from-accent to-accent/50">
           <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-md">
             <Stethoscope className="w-8 h-8 text-primary-foreground" />
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Medical Management System
           </CardTitle>
           <CardDescription>Sign in to access your dashboard</CardDescription>

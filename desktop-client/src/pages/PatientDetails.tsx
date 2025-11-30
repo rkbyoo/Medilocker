@@ -70,10 +70,10 @@ const PatientDetails = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="w-screen h-screen bg-background flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p>Loading patient details...</p>
+                    <p className="font-medium">Loading patient details...</p>
                 </div>
             </div>
         );
@@ -81,10 +81,10 @@ const PatientDetails = () => {
 
     if (!patient) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="w-screen h-screen bg-background flex items-center justify-center">
                 <div className="text-center">
-                    <p className="text-lg text-muted-foreground">Patient not found</p>
-                    <Button onClick={() => navigate('/existing-patient')} className="mt-4">
+                    <p className="text-lg text-muted-foreground font-medium">Patient not found</p>
+                    <Button onClick={() => navigate('/existing-patient')} className="mt-4 font-medium">
                         Back to Search
                     </Button>
                 </div>
@@ -93,25 +93,25 @@ const PatientDetails = () => {
     }
 
     return (
-        <div className="min-h-screen bg-background">
-            <header className="border-b bg-gradient-to-r from-primary to-secondary shadow-lg sticky top-0 z-10 backdrop-blur-sm">
-                <div className="container mx-auto px-6 py-4 flex items-center">
-                    <Button variant="ghost" onClick={() => navigate('/existing-patient')} className="mr-4 text-primary-foreground hover:bg-white/20">
-                        <ArrowLeft className="w-5 h-5" />
+        <div className="w-screen h-screen bg-background flex flex-col overflow-hidden">
+            <header className="border-b bg-gradient-to-r from-primary to-secondary shadow-lg flex-shrink-0 backdrop-blur-sm">
+                <div className="w-full px-4 py-3 flex items-center">
+                    <Button variant="ghost" onClick={() => navigate('/existing-patient')} className="mr-4 text-primary-foreground hover:bg-white/20 font-medium">
+                        <ArrowLeft className="w-4 h-4" />
                     </Button>
-                    <h1 className="text-2xl font-bold text-primary-foreground">Patient Details</h1>
+                    <h1 className="text-xl font-medium text-primary-foreground">Patient Details</h1>
                 </div>
             </header>
 
-            <main className="container mx-auto px-6 py-8">
-                <div className="max-w-4xl mx-auto space-y-8">
+            <main className="flex-1 px-4 py-6 overflow-auto">
+                <div className="w-full max-w-6xl mx-auto space-y-6">
                     {/* Patient Information */}
                     <PatientInfoCard patient={patient} />
 
                     {/* Appointment Booking Form */}
                     <Card className="shadow-lg border-2">
                         <CardHeader className="bg-gradient-to-r from-accent to-accent/50">
-                            <CardTitle className="text-xl">Schedule Appointment</CardTitle>
+                            <CardTitle className="text-lg font-medium">Schedule Appointment</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-6">
                             <form onSubmit={handleScheduleAppointment} className="space-y-4">
@@ -182,7 +182,7 @@ const PatientDetails = () => {
                                     <Button type="button" variant="outline" onClick={() => navigate('/existing-patient')} className="flex-1">
                                         Back to Search
                                     </Button>
-                                    <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md">
+                                    <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md font-medium">
                                         <Calendar className="w-4 h-4 mr-2" />
                                         Schedule Appointment
                                     </Button>

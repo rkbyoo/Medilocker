@@ -28,51 +28,117 @@ const PatientInfoCard = ({ patient, variant = "detailed", showExpandableDetails 
   const calculateAge = patientsApi.calculateAge;
 
   return (
-    <Card className="bg-white border rounded-xl shadow-sm max-w-2xl mx-auto overflow-hidden">
+    <Card className="bg-white border rounded-xl shadow-sm w-full h-full overflow-hidden flex flex-col">
 
       {/* Header */}
-      <div className="px-6 py-5 border-b bg-gray-50 text-center">
-        <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-white border shadow-sm flex items-center justify-center">
-          <User className="w-10 h-10 text-primary" />
-        </div>
-
-        <h2 className="text-xl font-bold text-gray-900">{patient.name}</h2>
-        <p className="text-sm text-muted-foreground">{patient.id}</p>
-
-        <div className="flex justify-center gap-2 mt-2">
-          <Badge variant="secondary">
-            {calculateAge(patient.dateOfBirth)} yrs • {patient.gender}
-          </Badge>
-          {patient.bloodGroup && <Badge variant="outline" className="font-semibold">{patient.bloodGroup}</Badge>}
+      <div className="px-6 py-4 border-b bg-gray-50">
+        <div className="flex items-center gap-4">
+          {/* Smaller Profile Picture */}
+          <div className="w-16 h-16 rounded-full bg-white border shadow-sm flex items-center justify-center flex-shrink-0">
+            <User className="w-8 h-8 text-primary" />
+          </div>
+          
+          {/* Basic Info */}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-bold text-gray-900 truncate">{patient.name}</h2>
+            <p className="text-sm text-muted-foreground mb-2">ID: {patient.id}</p>
+            
+            {/* Key Details */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-3 text-sm">
+                <span className="text-gray-600">Age:</span>
+                <span className="font-medium">{calculateAge(patient.dateOfBirth)} years</span>
+                <span className="text-gray-400">•</span>
+                <span className="text-gray-600">Gender:</span>
+                <span className="font-medium">{patient.gender}</span>
+              </div>
+              
+              <div className="flex items-center gap-3 text-sm">
+                <Phone className="w-3 h-3 text-gray-400" />
+                <span className="font-medium">{patient.phoneNumber}</span>
+                {patient.bloodGroup && (
+                  <>
+                    <span className="text-gray-400">•</span>
+                    <Badge variant="outline" className="text-xs font-semibold">{patient.bloodGroup}</Badge>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
 
       {/* Content */}
-      <CardContent className="px-6 py-6 space-y-6">
+      <CardContent className="px-6 py-6 space-y-6 flex-1 overflow-auto">
 
         {/* Basic Section */}
         <SectionTitle title="Patient Information" />
 
         <DetailsGrid>
-          <Detail label="Phone" value={patient.phoneNumber} icon={<Phone />} />
-          <Detail label="DOB" value={new Date(patient.dateOfBirth).toLocaleDateString()} icon={<Calendar />} />
+          <Detail label="Date of Birth" value={new Date(patient.dateOfBirth).toLocaleDateString()} icon={<Calendar />} />
           <Detail label="Address" value={patient.address} icon={<MapPin />} fullWidth />
         </DetailsGrid>
 
-        {/* Expandable */}
-        {variant === "detailed" && showExpandableDetails && (
+        {/* Additional Details */}
+        {variant === "detailed" && (
           <>
-            <Collapsible open={expanded} onOpenChange={setExpanded}>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="w-full justify-between px-0 text-sm font-medium">
-                  View Additional Details
-                  {expanded ? <ChevronUp /> : <ChevronDown />}
-                </Button>
-              </CollapsibleTrigger>
+            {showExpandableDetails ? (
+              <Collapsible open={expanded} onOpenChange={setExpanded}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between px-0 text-sm font-medium">
+                    View Additional Details
+                    {expanded ? <ChevronUp /> : <ChevronDown />}
+                  </Button>
+                </CollapsibleTrigger>
 
-              <CollapsibleContent className="pt-4 space-y-6">
+                <CollapsibleContent className="pt-4 space-y-6">
+                  <SectionTitle title="Personal Profile" />
 
+                  <DetailsGrid>
+                    <Detail label="Guardian Phone" value={patient.guardianPhone} icon={<UserRoundSearch />} />
+                    <Detail label="Marital Status" value={patient.maritalStatus} />
+                    {patient.spouseName && <Detail label="Spouse Name" value={patient.spouseName} />}
+                    <Detail label="Nationality" value={patient.nationality} />
+                    <Detail label="Religion" value={patient.religion} />
+                    <Detail label="Caste" value={patient.caste} />
+
+                    <Detail
+                      label="Emergency Contact"
+                      value={`${patient.emergencyContactName} (${patient.emergencyContactNumber})`}
+                      icon={<Phone />}
+                      fullWidth
+                    />
+                  </DetailsGrid>
+
+                  {/* Allergies */}
+                  {patient.allergies.length > 0 && (
+                    <>
+                      <SectionTitle title="Allergies" />
+                      <BadgeBlock icon={<AlertCircle className="text-red-500" />}>
+                        {patient.allergies.map((a, i) => (
+                          <Badge key={i} variant="destructive">{a}</Badge>
+                        ))}
+                      </BadgeBlock>
+                    </>
+                  )}
+
+                  {/* Chronic Conditions */}
+                  {patient.chronicConditions.length > 0 && (
+                    <>
+                      <SectionTitle title="Chronic Conditions" />
+                      <BadgeBlock icon={<Activity className="text-blue-600" />}>
+                        {patient.chronicConditions.map((c, i) => (
+                          <Badge key={i} variant="secondary">{c}</Badge>
+                        ))}
+                      </BadgeBlock>
+                    </>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+            ) : (
+              // Show all details without collapsible when showExpandableDetails is false
+              <div className="space-y-6">
                 <SectionTitle title="Personal Profile" />
 
                 <DetailsGrid>
@@ -90,7 +156,6 @@ const PatientInfoCard = ({ patient, variant = "detailed", showExpandableDetails 
                     fullWidth
                   />
                 </DetailsGrid>
-
 
                 {/* Allergies */}
                 {patient.allergies.length > 0 && (
@@ -115,9 +180,8 @@ const PatientInfoCard = ({ patient, variant = "detailed", showExpandableDetails 
                     </BadgeBlock>
                   </>
                 )}
-
-              </CollapsibleContent>
-            </Collapsible>
+              </div>
+            )}
           </>
         )}
       </CardContent>

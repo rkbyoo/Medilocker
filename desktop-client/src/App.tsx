@@ -27,7 +27,7 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
-          <div className="app">
+          <div className="app w-screen h-screen overflow-hidden">
             <AppRouter />
             <Toaster />
             <Sonner />

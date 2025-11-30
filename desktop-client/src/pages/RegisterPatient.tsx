@@ -61,228 +61,237 @@ const RegisterPatient = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-gradient-to-r from-primary to-secondary shadow-lg sticky top-0 z-10 backdrop-blur-sm">
-        <div className="container mx-auto px-6 py-4 flex items-center">
-          <Button variant="ghost" onClick={() => navigate('/receptionist')} className="mr-4 text-primary-foreground hover:bg-white/20">
+    <div className="w-screen h-screen bg-background flex flex-col overflow-hidden">
+      <header className="border-b bg-gradient-to-r from-primary to-secondary shadow-lg flex-shrink-0 backdrop-blur-sm">
+        <div className="w-full px-8 py-4 flex items-center">
+          <Button variant="ghost" onClick={() => navigate('/receptionist')} className="mr-4 text-primary-foreground hover:bg-white/20 font-medium">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-bold text-primary-foreground">Register New Patient</h1>
+          <h1 className="text-2xl font-medium text-primary-foreground">Register New Patient</h1>
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-8">
-        <Card className="max-w-4xl mx-auto shadow-lg border-2">
-          <CardHeader className="bg-gradient-to-r from-accent to-accent/50">
-            <CardTitle className="text-2xl">Patient Information</CardTitle>
+      <main className="flex-1 px-8 py-6 overflow-hidden">
+        <Card className="w-full h-full max-w-7xl mx-auto shadow-lg border-2 flex flex-col">
+          <CardHeader className="bg-gradient-to-r from-accent to-accent/50 flex-shrink-0">
+            <CardTitle className="text-xl font-medium">Patient Information</CardTitle>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="grid grid-cols-3 gap-4 items-center">
-                  <Label htmlFor="name" className="text-right">Full Name *</Label>
-                  <Input
-                    id="name"
-                    className="col-span-2"
-                    value={formData.name}
-                    onChange={(e) => updateField('name', e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 items-center">
-                  <Label htmlFor="dob" className="text-right">Date of Birth *</Label>
-                  <Input
-                    id="dob"
-                    type="date"
-                    className="col-span-2"
-                    value={formData.dateOfBirth}
-                    onChange={(e) => updateField('dateOfBirth', e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 items-center">
-                  <Label htmlFor="gender" className="text-right">Gender *</Label>
-                  <Select value={formData.gender} onValueChange={(value) => updateField('gender', value)}>
-                    <SelectTrigger className="col-span-2">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Male">Male</SelectItem>
-                      <SelectItem value="Female">Female</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 items-center">
-                  <Label htmlFor="bloodGroup" className="text-right">Blood Group *</Label>
-                  <Select value={formData.bloodGroup} onValueChange={(value) => updateField('bloodGroup', value)}>
-                    <SelectTrigger className="col-span-2">
-                      <SelectValue placeholder="Select blood group" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="A+">A+</SelectItem>
-                      <SelectItem value="A-">A-</SelectItem>
-                      <SelectItem value="B+">B+</SelectItem>
-                      <SelectItem value="B-">B-</SelectItem>
-                      <SelectItem value="AB+">AB+</SelectItem>
-                      <SelectItem value="AB-">AB-</SelectItem>
-                      <SelectItem value="O+">O+</SelectItem>
-                      <SelectItem value="O-">O-</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 items-center">
-                  <Label htmlFor="phone" className="text-right">Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    className="col-span-2"
-                    value={formData.phoneNumber}
-                    onChange={(e) => updateField('phoneNumber', e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 items-center">
-                  <Label htmlFor="guardianPhone" className="text-right">Guardian Phone *</Label>
-                  <Input
-                    id="guardianPhone"
-                    type="tel"
-                    className="col-span-2"
-                    value={formData.guardianPhone}
-                    onChange={(e) => updateField('guardianPhone', e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 items-center">
-                  <Label htmlFor="maritalStatus" className="text-right">Marital Status *</Label>
-                  <Select value={formData.maritalStatus} onValueChange={(value) => updateField('maritalStatus', value)}>
-                    <SelectTrigger className="col-span-2">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Single">Single</SelectItem>
-                      <SelectItem value="Married">Married</SelectItem>
-                      <SelectItem value="Divorced">Divorced</SelectItem>
-                      <SelectItem value="Widowed">Widowed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {formData.maritalStatus === 'Married' && (
-                  <div className="grid grid-cols-3 gap-4 items-center">
-                    <Label htmlFor="spouseName" className="text-right">Spouse Name</Label>
+          <CardContent className="flex-1 p-8 overflow-hidden">
+            <form onSubmit={handleSubmit} className="h-full flex flex-col">
+              <div className="flex-1 grid grid-cols-3 gap-x-10 gap-y-4 overflow-hidden px-2">
+                {/* Column 1 - Basic Information */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-base font-medium">Full Name *</Label>
                     <Input
-                      id="spouseName"
-                      className="col-span-2"
-                      value={formData.spouseName}
-                      onChange={(e) => updateField('spouseName', e.target.value)}
+                      id="name"
+                      className="text-base h-10"
+                      value={formData.name}
+                      onChange={(e) => updateField('name', e.target.value)}
+                      required
                     />
                   </div>
-                )}
 
-                <div className="grid grid-cols-3 gap-4 items-center">
-                  <Label htmlFor="nationality" className="text-right">Nationality *</Label>
-                  <Input
-                    id="nationality"
-                    className="col-span-2"
-                    value={formData.nationality}
-                    onChange={(e) => updateField('nationality', e.target.value)}
-                    required
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="dob" className="text-base font-medium">Date of Birth *</Label>
+                    <Input
+                      id="dob"
+                      type="date"
+                      className="text-base h-10"
+                      value={formData.dateOfBirth}
+                      onChange={(e) => updateField('dateOfBirth', e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="gender" className="text-base font-medium">Gender *</Label>
+                    <Select value={formData.gender} onValueChange={(value) => updateField('gender', value)}>
+                      <SelectTrigger className="text-base h-10">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Male" className="text-base">Male</SelectItem>
+                        <SelectItem value="Female" className="text-base">Female</SelectItem>
+                        <SelectItem value="Other" className="text-base">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bloodGroup" className="text-base font-medium">Blood Group *</Label>
+                    <Select value={formData.bloodGroup} onValueChange={(value) => updateField('bloodGroup', value)}>
+                      <SelectTrigger className="text-base h-10">
+                        <SelectValue placeholder="Select blood group" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="A+" className="text-base">A+</SelectItem>
+                        <SelectItem value="A-" className="text-base">A-</SelectItem>
+                        <SelectItem value="B+" className="text-base">B+</SelectItem>
+                        <SelectItem value="B-" className="text-base">B-</SelectItem>
+                        <SelectItem value="AB+" className="text-base">AB+</SelectItem>
+                        <SelectItem value="AB-" className="text-base">AB-</SelectItem>
+                        <SelectItem value="O+" className="text-base">O+</SelectItem>
+                        <SelectItem value="O-" className="text-base">O-</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-base font-medium">Phone Number *</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      className="text-base h-10"
+                      value={formData.phoneNumber}
+                      onChange={(e) => updateField('phoneNumber', e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="guardianPhone" className="text-base font-medium">Guardian Phone *</Label>
+                    <Input
+                      id="guardianPhone"
+                      type="tel"
+                      className="text-base h-10"
+                      value={formData.guardianPhone}
+                      onChange={(e) => updateField('guardianPhone', e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4 items-center">
-                  <Label htmlFor="religion" className="text-right">Religion</Label>
-                  <Input
-                    id="religion"
-                    className="col-span-2"
-                    value={formData.religion}
-                    onChange={(e) => updateField('religion', e.target.value)}
-                  />
+                {/* Column 2 - Personal Details */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="maritalStatus" className="text-base font-medium">Marital Status *</Label>
+                    <Select value={formData.maritalStatus} onValueChange={(value) => updateField('maritalStatus', value)}>
+                      <SelectTrigger className="text-base h-10">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Single" className="text-base">Single</SelectItem>
+                        <SelectItem value="Married" className="text-base">Married</SelectItem>
+                        <SelectItem value="Divorced" className="text-base">Divorced</SelectItem>
+                        <SelectItem value="Widowed" className="text-base">Widowed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {formData.maritalStatus === 'Married' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="spouseName" className="text-base font-medium">Spouse Name</Label>
+                      <Input
+                        id="spouseName"
+                        className="text-base h-10"
+                        value={formData.spouseName}
+                        onChange={(e) => updateField('spouseName', e.target.value)}
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="nationality" className="text-base font-medium">Nationality *</Label>
+                    <Input
+                      id="nationality"
+                      className="text-base h-10"
+                      value={formData.nationality}
+                      onChange={(e) => updateField('nationality', e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="religion" className="text-base font-medium">Religion</Label>
+                    <Input
+                      id="religion"
+                      className="text-base h-10"
+                      value={formData.religion}
+                      onChange={(e) => updateField('religion', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="caste" className="text-base font-medium">Caste</Label>
+                    <Input
+                      id="caste"
+                      className="text-base h-10"
+                      value={formData.caste}
+                      onChange={(e) => updateField('caste', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="emergencyName" className="text-base font-medium">Emergency Contact Name *</Label>
+                    <Input
+                      id="emergencyName"
+                      className="text-base h-10"
+                      value={formData.emergencyContactName}
+                      onChange={(e) => updateField('emergencyContactName', e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="emergencyNumber" className="text-base font-medium">Emergency Contact Number *</Label>
+                    <Input
+                      id="emergencyNumber"
+                      type="tel"
+                      className="text-base h-10"
+                      value={formData.emergencyContactNumber}
+                      onChange={(e) => updateField('emergencyContactNumber', e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4 items-center">
-                  <Label htmlFor="caste" className="text-right">Caste</Label>
-                  <Input
-                    id="caste"
-                    className="col-span-2"
-                    value={formData.caste}
-                    onChange={(e) => updateField('caste', e.target.value)}
-                  />
-                </div>
+                {/* Column 3 - Additional Information */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="address" className="text-base font-medium">Address *</Label>
+                    <Textarea
+                      id="address"
+                      className="text-base resize-none"
+                      value={formData.address}
+                      onChange={(e) => updateField('address', e.target.value)}
+                      rows={3}
+                      required
+                    />
+                  </div>
 
-                <div className="grid grid-cols-3 gap-4 items-center">
-                  <Label htmlFor="emergencyName" className="text-right">Emergency Contact Name *</Label>
-                  <Input
-                    id="emergencyName"
-                    className="col-span-2"
-                    value={formData.emergencyContactName}
-                    onChange={(e) => updateField('emergencyContactName', e.target.value)}
-                    required
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="allergies" className="text-base font-medium">Allergies</Label>
+                    <Textarea
+                      id="allergies"
+                      className="text-base resize-none"
+                      value={allergiesText}
+                      onChange={(e) => setAllergiesText(e.target.value)}
+                      placeholder="e.g., Penicillin, Peanuts, Latex"
+                      rows={2}
+                    />
+                  </div>
 
-                <div className="grid grid-cols-3 gap-4 items-center">
-                  <Label htmlFor="emergencyNumber" className="text-right">Emergency Contact Number *</Label>
-                  <Input
-                    id="emergencyNumber"
-                    type="tel"
-                    className="col-span-2"
-                    value={formData.emergencyContactNumber}
-                    onChange={(e) => updateField('emergencyContactNumber', e.target.value)}
-                    required
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="conditions" className="text-base font-medium">Chronic Conditions</Label>
+                    <Textarea
+                      id="conditions"
+                      className="text-base resize-none"
+                      value={conditionsText}
+                      onChange={(e) => setConditionsText(e.target.value)}
+                      placeholder="e.g., Diabetes, Hypertension, Asthma"
+                      rows={2}
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-4 gap-4 items-start">
-                <Label htmlFor="address" className="text-right pt-2">Address *</Label>
-                <Textarea
-                  id="address"
-                  className="col-span-3"
-                  value={formData.address}
-                  onChange={(e) => updateField('address', e.target.value)}
-                  rows={3}
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-4 gap-4 items-start">
-                <Label htmlFor="allergies" className="text-right pt-2">Allergies (comma-separated)</Label>
-                <Textarea
-                  id="allergies"
-                  className="col-span-3"
-                  value={allergiesText}
-                  onChange={(e) => setAllergiesText(e.target.value)}
-                  placeholder="e.g., Penicillin, Peanuts, Latex"
-                  rows={2}
-                />
-              </div>
-
-              <div className="grid grid-cols-4 gap-4 items-start">
-                <Label htmlFor="conditions" className="text-right pt-2">Chronic Conditions (comma-separated)</Label>
-                <Textarea
-                  id="conditions"
-                  className="col-span-3"
-                  value={conditionsText}
-                  onChange={(e) => setConditionsText(e.target.value)}
-                  placeholder="e.g., Diabetes, Hypertension, Asthma"
-                  rows={2}
-                />
-              </div>
-
-              <div className="flex gap-4 pt-4">
-                <Button type="button" variant="outline" onClick={() => navigate('/receptionist')} className="flex-1">
+              <div className="flex gap-6 pt-6 border-t flex-shrink-0">
+                <Button type="button" variant="outline" onClick={() => navigate('/receptionist')} className="flex-1 text-base font-medium h-11">
                   Cancel
                 </Button>
-                <Button type="submit" className="flex-1">
-                  <Save className="w-4 h-4 mr-2" />
+                <Button type="submit" className="flex-1 text-base font-medium h-11">
+                  <Save className="w-5 h-5 mr-2" />
                   Register Patient
                 </Button>
               </div>

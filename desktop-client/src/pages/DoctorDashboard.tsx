@@ -40,44 +40,45 @@ const DoctorDashboard: React.FC = () => {
     : [];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="w-screen h-screen bg-background flex flex-col overflow-hidden">
       
       {/* ---- Header ---- */}
-      <header className="border-b bg-gradient-to-r from-primary to-secondary shadow-lg backdrop-blur-sm">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-white">Doctor Dashboard</h1>
-          <Button variant="ghost" onClick={handleLogout} className="text-white hover:bg-white/20">
+      <header className="border-b bg-gradient-to-r from-primary to-secondary shadow-lg backdrop-blur-sm flex-shrink-0">
+        <div className="w-full px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-medium text-white">Doctor Dashboard</h1>
+            {currentUser && (
+              <>
+                <span className="text-white/70">•</span>
+                <p className="text-sm font-medium text-white/90">Welcome, {currentUser.name}</p>
+                <Badge variant="secondary" className="text-xs px-2 py-0.5 rounded-md bg-white/20 text-white border-white/30">
+                  Doctor
+                </Badge>
+              </>
+            )}
+          </div>
+          <Button variant="ghost" onClick={handleLogout} className="text-white hover:bg-white/20 font-medium">
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
         </div>
       </header>
 
-      {/* ---- Welcome Section ---- */}
-      {currentUser && (
-        <div className="container mx-auto px-6 py-5 flex items-center gap-3">
-          <p className="text-lg font-medium text-gray-800">Welcome, {currentUser.name}</p>
-          <Badge variant="secondary" className="text-[11px] px-2 py-0.5 rounded-md">
-            Doctor
-          </Badge>
-        </div>
-      )}
-
       {/* ---- Content ---- */}
-      <main className="container mx-auto px-6 pb-12">
+      <main className="flex-1 px-4 py-6 overflow-hidden">
         
-        <div className="grid lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-2 gap-4 h-full">
 
           {/* ---- Today's Appointments ---- */}
-          <Card className="shadow-sm border">
-            <CardHeader className="bg-gray-100 border-b">
-              <CardTitle className="flex items-center gap-2 text-gray-800">
+          <Card className="shadow-sm border h-full flex flex-col">
+            <CardHeader className="bg-gray-100 border-b flex-shrink-0">
+              <CardTitle className="flex items-center gap-2 text-gray-800 font-medium">
                 <Clock className="w-5 h-5 text-primary" />
                 Today's Appointments ({todaysAppointments.length})
               </CardTitle>
             </CardHeader>
 
-            <CardContent className="py-5 space-y-3">
+            <CardContent className="py-4 space-y-3 flex-1 overflow-auto">
               {todaysAppointments.length === 0 ? (
                 <div className="text-center py-6">
                   <Calendar className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
@@ -87,13 +88,13 @@ const DoctorDashboard: React.FC = () => {
                 todaysAppointments.map((apt) => (
                   <div
                     key={apt.id}
-                    className="p-4 border rounded-md hover:bg-primary/10 hover:border-primary transition cursor-pointer space-y-2"
+                    className="p-3 border rounded-md hover:bg-primary/10 hover:border-primary transition cursor-pointer space-y-2"
                     onClick={() => navigate(`/doctor/consultation/${apt.patientId}`)}
                   >
                     {/* header */}
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="font-semibold text-lg">{apt.patientName}</h3>
+                        <h3 className="font-medium text-base">{apt.patientName}</h3>
                       </div>
                       <Badge variant="outline" className="text-xs px-2 py-0.5">
                         {formatTime(apt.dateTime)}
@@ -103,7 +104,7 @@ const DoctorDashboard: React.FC = () => {
                     {/* aligned reason */}
                     <div className="text-left">
                       <p className="text-sm text-gray-700">
-                        <span className="font-semibold">Reason:</span> {apt.reason}
+                        <span className="font-medium">Reason:</span> {apt.reason}
                       </p>
                     </div>
                   </div>
@@ -114,15 +115,15 @@ const DoctorDashboard: React.FC = () => {
 
 
           {/* ---- Recently Visited Patients ---- */}
-          <Card className="shadow-sm border">
-            <CardHeader className="bg-gray-100 border-b">
-              <CardTitle className="flex items-center gap-2 text-gray-800">
+          <Card className="shadow-sm border h-full flex flex-col">
+            <CardHeader className="bg-gray-100 border-b flex-shrink-0">
+              <CardTitle className="flex items-center gap-2 text-gray-800 font-medium">
                 <User className="w-5 h-5 text-secondary" />
                 Recently Visited Patients
               </CardTitle>
             </CardHeader>
 
-            <CardContent className="py-5 space-y-3">
+            <CardContent className="py-4 space-y-3 flex-1 overflow-auto">
               {recentPatients.length === 0 ? (
                 <div className="text-center py-6">
                   <User className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
@@ -132,12 +133,12 @@ const DoctorDashboard: React.FC = () => {
                 recentPatients.map((apt) => (
                   <div
                     key={apt.id}
-                    className="p-4 border rounded-md hover:bg-secondary/10 hover:border-secondary transition cursor-pointer space-y-2"
+                    className="p-3 border rounded-md hover:bg-secondary/10 hover:border-secondary transition cursor-pointer space-y-2"
                     onClick={() => navigate(`/doctor/consultation/${apt.patientId}`)}
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="font-semibold text-lg">{apt.patientName}</h3>
+                        <h3 className="font-medium text-base">{apt.patientName}</h3>
                       </div>
                       <Badge variant="secondary" className="text-xs px-2 py-0.5">
                         Completed
@@ -145,7 +146,7 @@ const DoctorDashboard: React.FC = () => {
                     </div>
 
                     <p className="text-sm text-gray-700">
-                      <span className="font-semibold">Last Visit:</span> {formatTime(apt.dateTime)}
+                      <span className="font-medium">Last Visit:</span> {formatTime(apt.dateTime)}
                     </p>
                   </div>
                 ))
