@@ -160,7 +160,7 @@ const ExistingPatient = () => {
         ) : (
           // Patient Found - Show Profile and Appointment Booking
           <ResizablePanels defaultSizes={[40, 60]} minSizes={[30, 30]} className="h-full">
-            <Panel className="p-6 space-y-6">
+            <Panel className="p-6 space-y-6 overflow-hidden">
               {/* Patient Profile Section */}
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-medium flex items-center gap-2">

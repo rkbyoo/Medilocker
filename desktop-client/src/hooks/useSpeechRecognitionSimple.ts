@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
-import { isElectron } from '@/utils/electron';
 
 interface SpeechRecognitionAPI extends EventTarget {
   continuous: boolean;
@@ -83,7 +82,6 @@ export const useSpeechRecognition = (options: UseSpeechRecognitionOptions = {}) 
   const recognitionRef = useRef<SpeechRecognitionAPI | null>(null);
   const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isActiveRef = useRef(false);
-  const startTimeRef = useRef<number>(0);
 
   useEffect(() => {
     const initializeSpeechRecognition = () => {
@@ -96,12 +94,7 @@ export const useSpeechRecognition = (options: UseSpeechRecognitionOptions = {}) 
         recognition.lang = lang;
         recognition.maxAlternatives = 1;
 
-        // Check if running in Electron
-        const isElectronEnv = isElectron();
-
         recognition.onstart = () => {
-          console.log('Speech recognition started');
-          startTimeRef.current = Date.now();
           setIsListening(true);
           onStart?.();
         };
@@ -131,97 +124,62 @@ export const useSpeechRecognition = (options: UseSpeechRecognitionOptions = {}) 
         };
 
         recognition.onerror = (event) => {
-          console.log('Speech recognition error:', event.error);
           setIsListening(false);
           setInterimTranscript('');
 
-          const errorMessage = getErrorMessage(event.error);
-
-          // Handle permission errors - stop everything
           if (event.error === 'not-allowed' || event.error === 'audio-capture') {
             isActiveRef.current = false;
-            toast.error(errorMessage);
-            onError?.(errorMessage);
+            toast.error('🚫 Microphone access denied. Please allow microphone permissions.');
+            onError?.('Microphone access denied');
             return;
           }
 
-          // For browsers, handle no-speech by restarting if still active
-          if (event.error === 'no-speech' && isActiveRef.current && !isElectronEnv) {
-            // Don't show error for no-speech in browsers - it's normal
-            console.log('No speech detected, restarting...');
-            
-            // Clear any existing timeouts first
+          if (event.error === 'no-speech' && isActiveRef.current) {
+            // Auto-restart on no-speech
             if (restartTimeoutRef.current) {
               clearTimeout(restartTimeoutRef.current);
             }
-
+            
             restartTimeoutRef.current = setTimeout(() => {
               if (isActiveRef.current && recognitionRef.current) {
                 try {
-                  console.log('Restarting after no-speech...');
                   recognitionRef.current.start();
                 } catch (e) {
-                  console.log('Failed to restart after no-speech:', e);
+                  isActiveRef.current = false;
+                  setIsListening(false);
+                }
+              }
+            }, 500);
+          } else if (event.error === 'aborted') {
+            isActiveRef.current = false;
+          } else {
+            isActiveRef.current = false;
+            onError?.(event.error);
+          }
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+          setInterimTranscript('');
+
+          if (isActiveRef.current) {
+            // Auto-restart if still active
+            if (restartTimeoutRef.current) {
+              clearTimeout(restartTimeoutRef.current);
+            }
+            
+            restartTimeoutRef.current = setTimeout(() => {
+              if (isActiveRef.current && recognitionRef.current) {
+                try {
+                  recognitionRef.current.start();
+                } catch (error) {
                   isActiveRef.current = false;
                   setIsListening(false);
                 }
               }
             }, 300);
-          } else if (event.error === 'aborted') {
-            // Aborted is normal when user stops - don't show error
-            console.log('Speech recognition aborted by user');
-            isActiveRef.current = false;
           } else {
-            // For other errors, stop and show error
-            console.log('Speech recognition error (stopping):', event.error);
-            isActiveRef.current = false;
-            if (event.error !== 'no-speech') {
-              toast.error(errorMessage);
-            }
-            onError?.(errorMessage);
-          }
-        };
-
-        recognition.onend = () => {
-          console.log('Speech recognition ended');
-          const sessionDuration = Date.now() - startTimeRef.current;
-          setIsListening(false);
-          setInterimTranscript('');
-
-          // Handle immediate ends in Electron silently
-          if (isElectronEnv && sessionDuration < 1000) {
-            console.log('Short session in Electron, stopping');
-            isActiveRef.current = false;
-            return;
-          }
-
-          // Show end message if session was meaningful
-          if (sessionDuration > 500) {
             onEnd?.();
-          }
-
-          // Auto-restart in browser if still active
-          if (isActiveRef.current && !isElectronEnv) {
-            // Clear any existing restart timeout
-            if (restartTimeoutRef.current) {
-              clearTimeout(restartTimeoutRef.current);
-            }
-
-            restartTimeoutRef.current = setTimeout(() => {
-              if (isActiveRef.current && recognitionRef.current) {
-                try {
-                  console.log('Auto-restarting speech recognition...');
-                  recognitionRef.current.start();
-                } catch (error) {
-                  console.log('Failed to auto-restart recognition:', error);
-                  isActiveRef.current = false;
-                  setIsListening(false);
-                }
-              }
-            }, 200);
-          } else if (isElectronEnv) {
-            // Reset state for Electron
-            isActiveRef.current = false;
           }
         };
 
@@ -249,37 +207,22 @@ export const useSpeechRecognition = (options: UseSpeechRecognitionOptions = {}) 
   }, [continuous, interimResults, lang, onResult, onError, onStart, onEnd]);
 
   const startListening = useCallback(async () => {
-    console.log('startListening called', { isSupported, isListening, isActive: isActiveRef.current });
-
     if (!isSupported) {
       toast.error('🚫 Speech recognition not supported in this browser');
       return false;
     }
 
-    // Prevent multiple simultaneous starts
     if (isListening || isActiveRef.current) {
-      console.log('Already listening or active, returning false');
       return false;
     }
 
-    // For browsers, test microphone access first
-    const isElectronEnv = isElectron();
-    if (!isElectronEnv) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
-          }
-        });
-        stream.getTracks().forEach(track => track.stop());
-        console.log('Microphone access granted');
-      } catch (micError) {
-        console.log('Microphone access denied:', micError);
-        toast.error('🚫 Microphone access required. Please allow microphone permissions.');
-        return false;
-      }
+    // Test microphone access
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+    } catch (micError) {
+      toast.error('🚫 Microphone access required. Please allow microphone permissions.');
+      return false;
     }
 
     // Clear any existing timeouts
@@ -288,56 +231,31 @@ export const useSpeechRecognition = (options: UseSpeechRecognitionOptions = {}) 
       restartTimeoutRef.current = null;
     }
 
-    // Ensure clean state by stopping any existing recognition
-    try {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-    } catch (e) {
-      console.log('Error stopping existing recognition:', e);
-    }
-
-    // Wait a moment to ensure clean state
-    await new Promise(resolve => setTimeout(resolve, 100));
-
     // Set active state
     isActiveRef.current = true;
     setInterimTranscript('');
 
     try {
-      console.log('Starting speech recognition...');
-      if (recognitionRef.current) {
-        recognitionRef.current.start();
-      }
+      recognitionRef.current?.start();
       return true;
     } catch (error) {
-      console.log('Error starting recognition:', error);
       isActiveRef.current = false;
-
-      // Handle InvalidStateError (already started)
+      
       if (error instanceof Error && error.name === 'InvalidStateError') {
-        console.log('InvalidStateError - trying to stop and restart');
         try {
-          if (recognitionRef.current) {
-            recognitionRef.current.stop();
-          }
-          
-          // Wait longer for proper cleanup
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          if (isActiveRef.current && recognitionRef.current) {
-            try {
-              recognitionRef.current.start();
-              return true;
-            } catch (e) {
-              console.log('Failed to restart after InvalidStateError:', e);
-              isActiveRef.current = false;
-              toast.error('❌ Failed to start voice recognition');
-              return false;
+          recognitionRef.current?.stop();
+          setTimeout(() => {
+            if (isActiveRef.current && recognitionRef.current) {
+              try {
+                recognitionRef.current.start();
+              } catch (e) {
+                isActiveRef.current = false;
+                toast.error('❌ Failed to start voice recognition');
+              }
             }
-          }
+          }, 500);
+          return true;
         } catch (stopError) {
-          console.log('Failed to stop after InvalidStateError:', stopError);
           toast.error('❌ Failed to start voice recognition');
           return false;
         }
@@ -349,12 +267,10 @@ export const useSpeechRecognition = (options: UseSpeechRecognitionOptions = {}) 
   }, [isSupported, isListening]);
 
   const stopListening = useCallback(() => {
-    // Clear all states
     isActiveRef.current = false;
     setIsListening(false);
     setInterimTranscript('');
 
-    // Clear any pending restart
     if (restartTimeoutRef.current) {
       clearTimeout(restartTimeoutRef.current);
       restartTimeoutRef.current = null;
@@ -383,31 +299,4 @@ export const useSpeechRecognition = (options: UseSpeechRecognitionOptions = {}) 
     stopListening,
     toggleListening
   };
-};
-
-const getErrorMessage = (error: string): string => {
-  const isElectronEnv = isElectron();
-
-  switch (error) {
-    case 'not-allowed':
-      return isElectronEnv
-        ? '� MicNrophone access denied. Please restart the app to grant permissions.'
-        : '🚫 Microphone access denied. Please allow microphone permissions.';
-    case 'no-speech':
-      return '🔇 No speech detected. Continuing to listen...';
-    case 'audio-capture':
-      return isElectronEnv
-        ? '🎤 Microphone not accessible. Please check your microphone and restart the app.'
-        : '🎤 Microphone not found. Please check your microphone connection.';
-    case 'network':
-      return '🌐 Network error. Please check your internet connection.';
-    case 'service-not-allowed':
-      return '🚫 Speech recognition service not allowed.';
-    case 'bad-grammar':
-      return '📝 Grammar error in speech recognition.';
-    case 'language-not-supported':
-      return '🌍 Language not supported.';
-    default:
-      return `❌ Speech recognition error: ${error}`;
-  }
 };

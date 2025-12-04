@@ -20,7 +20,14 @@ function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             enableRemoteModule: false,
-            preload: path.join(__dirname, 'preload.js')
+            preload: path.join(__dirname, 'preload.js'),
+            // Enable media permissions for microphone access
+            allowRunningInsecureContent: false,
+            experimentalFeatures: true,
+            // Enable web security for proper speech recognition
+            webSecurity: true,
+            // Enable media stream for microphone access
+            enableBlinkFeatures: 'MediaStreamTrack'
         },
         icon: path.join(__dirname, '../public/favicon.ico'),
         show: false,
@@ -48,6 +55,40 @@ function createWindow() {
     // Show window when ready to prevent visual flash
     mainWindow.once('ready-to-show', () => {
         mainWindow.show();
+    });
+
+    // Handle media permissions - more comprehensive approach
+    mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+        console.log('Permission requested:', permission);
+        
+        // Allow microphone and media access for speech recognition
+        const allowedPermissions = ['microphone', 'media', 'audioCapture', 'camera'];
+        if (allowedPermissions.includes(permission)) {
+            callback(true);
+        } else {
+            callback(false);
+        }
+    });
+
+    // Handle permission check requests
+    mainWindow.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin) => {
+        console.log('Permission check:', permission, 'from:', requestingOrigin);
+        
+        // Allow microphone and media access
+        const allowedPermissions = ['microphone', 'media', 'audioCapture'];
+        if (allowedPermissions.includes(permission)) {
+            return true;
+        }
+        return false;
+    });
+
+    // Set media device access
+    mainWindow.webContents.session.setDevicePermissionHandler((details) => {
+        console.log('Device permission requested:', details);
+        if (details.deviceType === 'microphone') {
+            return true;
+        }
+        return false;
     });
 
     // Handle window closed

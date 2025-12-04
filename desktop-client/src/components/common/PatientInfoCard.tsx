@@ -28,7 +28,7 @@ const PatientInfoCard = ({ patient, variant = "detailed", showExpandableDetails 
   const calculateAge = patientsApi.calculateAge;
 
   return (
-    <Card className="bg-white border rounded-xl shadow-sm w-full h-full overflow-hidden flex flex-col">
+    <Card className={`bg-white border rounded-xl shadow-sm w-full ${showExpandableDetails ? 'h-full' : 'h-fit max-h-full'} overflow-hidden flex flex-col`}>
 
       {/* Header */}
       <div className="px-6 py-4 border-b bg-gray-50">
@@ -70,7 +70,7 @@ const PatientInfoCard = ({ patient, variant = "detailed", showExpandableDetails 
 
 
       {/* Content */}
-      <CardContent className="px-6 py-6 space-y-6 flex-1 overflow-auto">
+      <CardContent className={`px-6 ${showExpandableDetails ? 'py-6 space-y-6 flex-1 overflow-auto' : 'py-4 space-y-4 overflow-hidden'}`}>
 
         {/* Basic Section */}
         <SectionTitle title="Patient Information" />
@@ -137,8 +137,8 @@ const PatientInfoCard = ({ patient, variant = "detailed", showExpandableDetails 
                 </CollapsibleContent>
               </Collapsible>
             ) : (
-              // Show all details without collapsible when showExpandableDetails is false
-              <div className="space-y-6">
+              // Show compact details without collapsible when showExpandableDetails is false
+              <div className="space-y-4">
                 <SectionTitle title="Personal Profile" />
 
                 <DetailsGrid>
@@ -146,9 +146,7 @@ const PatientInfoCard = ({ patient, variant = "detailed", showExpandableDetails 
                   <Detail label="Marital Status" value={patient.maritalStatus} />
                   {patient.spouseName && <Detail label="Spouse Name" value={patient.spouseName} />}
                   <Detail label="Nationality" value={patient.nationality} />
-                  <Detail label="Religion" value={patient.religion} />
-                  <Detail label="Caste" value={patient.caste} />
-
+                  
                   <Detail
                     label="Emergency Contact"
                     value={`${patient.emergencyContactName} (${patient.emergencyContactNumber})`}
@@ -157,28 +155,34 @@ const PatientInfoCard = ({ patient, variant = "detailed", showExpandableDetails 
                   />
                 </DetailsGrid>
 
-                {/* Allergies */}
+                {/* Allergies - Compact display */}
                 {patient.allergies.length > 0 && (
-                  <>
+                  <div className="space-y-2">
                     <SectionTitle title="Allergies" />
                     <BadgeBlock icon={<AlertCircle className="text-red-500" />}>
-                      {patient.allergies.map((a, i) => (
-                        <Badge key={i} variant="destructive">{a}</Badge>
+                      {patient.allergies.slice(0, 3).map((a, i) => (
+                        <Badge key={i} variant="destructive" className="text-xs">{a}</Badge>
                       ))}
+                      {patient.allergies.length > 3 && (
+                        <Badge variant="outline" className="text-xs">+{patient.allergies.length - 3} more</Badge>
+                      )}
                     </BadgeBlock>
-                  </>
+                  </div>
                 )}
 
-                {/* Chronic Conditions */}
+                {/* Chronic Conditions - Compact display */}
                 {patient.chronicConditions.length > 0 && (
-                  <>
+                  <div className="space-y-2">
                     <SectionTitle title="Chronic Conditions" />
                     <BadgeBlock icon={<Activity className="text-blue-600" />}>
-                      {patient.chronicConditions.map((c, i) => (
-                        <Badge key={i} variant="secondary">{c}</Badge>
+                      {patient.chronicConditions.slice(0, 3).map((c, i) => (
+                        <Badge key={i} variant="secondary" className="text-xs">{c}</Badge>
                       ))}
+                      {patient.chronicConditions.length > 3 && (
+                        <Badge variant="outline" className="text-xs">+{patient.chronicConditions.length - 3} more</Badge>
+                      )}
                     </BadgeBlock>
-                  </>
+                  </div>
                 )}
               </div>
             )}

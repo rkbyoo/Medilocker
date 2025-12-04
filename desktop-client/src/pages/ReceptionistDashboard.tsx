@@ -18,7 +18,7 @@ const ReceptionistDashboard = () => {
         <div className="w-full px-8 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-medium text-primary-foreground">Receptionist Dashboard</h1>
           <Button variant="ghost" onClick={handleLogout} className="text-primary-foreground hover:bg-white/20 text-base font-medium">
-            <LogOut className="w-5 h-5 mr-2" />
+            <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
         </div>

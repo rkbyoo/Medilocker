@@ -7,7 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ResizablePanels, Panel } from '@/components/ui/resizable-panels';
-import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognitionSimple';
+
 
 import { toast } from 'sonner';
 import {
@@ -50,9 +51,7 @@ const Consultation = () => {
       toast.success('🎤 Listening... Start speaking');
     },
     onEnd: () => {
-      if (!isListening) {
-        toast.info('✅ Voice input stopped');
-      }
+      toast.info('✅ Voice input stopped');
     },
     onError: (error) => {
       toast.error(error);
@@ -244,6 +243,14 @@ const Consultation = () => {
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
                     <p className="font-medium">Voice input not available</p>
                     <p>Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari for voice input functionality.</p>
+                  </div>
+                )}
+                
+                {/* Desktop app notice */}
+                {speechSupported && typeof window !== 'undefined' && (window as any).electronAPI && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+                    <p className="font-medium">ℹ️ Desktop App Notice</p>
+                    <p>Due to some missing dependencies, voice input might not work properly in the desktop version. Please use the browser version if issues persist.</p>
                   </div>
                 )}
                 {/* Diagnosis */}
