@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TimePicker } from '@/components/ui/time-picker';
 import { toast } from 'sonner';
 import { ArrowLeft, Calendar } from 'lucide-react';
 import { patientsApi, appointmentsApi } from '@/api';
@@ -164,14 +165,12 @@ const PatientDetails = () => {
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-4">
-                                        <Label htmlFor="dateTime" className="w-32 text-right font-medium">Date & Time *</Label>
+                                    <div className="flex items-start gap-4">
+                                        <Label className="w-32 text-right font-medium pt-2">Date & Time *</Label>
                                         <div className="flex-1">
-                                            <Input
-                                                id="dateTime"
-                                                type="datetime-local"
+                                            <TimePicker
                                                 value={appointmentData.dateTime}
-                                                onChange={(e) => setAppointmentData(prev => ({ ...prev, dateTime: e.target.value }))}
+                                                onChange={(value) => setAppointmentData(prev => ({ ...prev, dateTime: value }))}
                                                 required
                                             />
                                         </div>

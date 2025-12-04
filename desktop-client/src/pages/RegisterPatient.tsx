@@ -97,7 +97,7 @@ const RegisterPatient = () => {
                     <Input
                       id="dob"
                       type="date"
-                      className="text-base h-10"
+                      className="text-base h-10 w-fit max-w-[160px]"
                       value={formData.dateOfBirth}
                       onChange={(e) => updateField('dateOfBirth', e.target.value)}
                       required

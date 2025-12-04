@@ -330,13 +330,15 @@ const Consultation = () => {
                     <Calendar className="w-4 h-4" />
                     Next Visit Date
                   </Label>
-                  <Input
-                    id="nextVisit"
-                    type="date"
-                    value={consultationData.nextVisit}
-                    onChange={(e) => setConsultationData(prev => ({ ...prev, nextVisit: e.target.value }))}
-                    className="border-2 focus:border-primary col-span-3"
-                  />
+                  <div className="col-span-3">
+                    <Input
+                      id="nextVisit"
+                      type="date"
+                      value={consultationData.nextVisit}
+                      onChange={(e) => setConsultationData(prev => ({ ...prev, nextVisit: e.target.value }))}
+                      className="border-2 focus:border-primary w-fit max-w-[160px]"
+                    />
+                  </div>
                 </div>
 
                 {/* Action Buttons */}

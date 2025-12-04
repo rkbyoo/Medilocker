@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TimePicker } from '@/components/ui/time-picker';
 import { toast } from 'sonner';
 import { ArrowLeft, Search, Nfc, Calendar, User } from 'lucide-react';
 import { patientsApi, appointmentsApi } from '@/api';
@@ -232,17 +233,12 @@ const ExistingPatient = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="dateTime" className="text-base font-medium">Date & Time *</Label>
-                        <div className="max-w-md">
-                          <Input
-                            id="dateTime"
-                            type="datetime-local"
-                            value={appointmentData.dateTime}
-                            onChange={(e) => setAppointmentData(prev => ({ ...prev, dateTime: e.target.value }))}
-                            required
-                            className="text-base h-12 w-full"
-                          />
-                        </div>
+                        <Label className="text-base font-medium">Date & Time *</Label>
+                        <TimePicker
+                          value={appointmentData.dateTime}
+                          onChange={(value) => setAppointmentData(prev => ({ ...prev, dateTime: value }))}
+                          required
+                        />
                       </div>
                     </div>
 
