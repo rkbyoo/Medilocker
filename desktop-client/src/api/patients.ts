@@ -1,5 +1,6 @@
-import { dummyPatients, generatePatientId as generateId } from '@/data/dummyData';
-import type { ApiResponse, PatientResponse, Patient } from '@/types';
+import { apiClient } from '@/services';
+import { API_CONFIG } from '@/config/api';
+import type { ApiResponse, PatientResponse, Patient, PaginatedResponse } from '@/types';
 
 /**
  * Patient API
@@ -10,28 +11,64 @@ export interface CreatePatientData extends Omit<Patient, 'id'> {
   id?: string;
 }
 
-// PatientResponse type is imported from centralized types file
+export interface PatientSearchParams {
+  query?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: 'name' | 'id' | 'dateOfBirth';
+  sortOrder?: 'asc' | 'desc';
+}
 
 /**
- * Get all patients
+ * Get all patients with pagination
  */
-export const getAllPatients = (): Patient[] => {
+export const getAllPatients = async (params: PatientSearchParams = {}): Promise<PaginatedResponse<Patient>> => {
   try {
-    return [...dummyPatients];
+    const queryParams = new URLSearchParams();
+    
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+    
+    const endpoint = `${API_CONFIG.ENDPOINTS.PATIENTS.BASE}?${queryParams.toString()}`;
+    const response = await apiClient.get<PaginatedResponse<Patient>>(endpoint);
+    
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    return {
+      success: false,
+      error: response.error || 'Failed to fetch patients',
+      data: [],
+      pagination: { page: 1, limit: 10, total: 0, totalPages: 0 }
+    };
   } catch (error) {
     console.error('Error fetching patients:', error);
-    return [];
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch patients',
+      data: [],
+      pagination: { page: 1, limit: 10, total: 0, totalPages: 0 }
+    };
   }
 };
 
 /**
  * Get patient by ID
  */
-export const getPatientById = (id: string): Patient | null => {
+export const getPatientById = async (id: string): Promise<Patient | null> => {
   try {
     if (!id) return null;
-    const patient = dummyPatients.find(p => p.id === id);
-    return patient || null;
+    
+    const response = await apiClient.get<Patient>(API_CONFIG.ENDPOINTS.PATIENTS.BY_ID(id));
+    
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    return null;
   } catch (error) {
     console.error('Error fetching patient:', error);
     return null;
@@ -41,15 +78,18 @@ export const getPatientById = (id: string): Patient | null => {
 /**
  * Create new patient
  */
-export const createPatient = (data: CreatePatientData): PatientResponse => {
+export const createPatient = async (data: CreatePatientData): Promise<PatientResponse> => {
   try {
-    const newPatient: Patient = {
-      ...data,
-      id: data.id || generateId(),
-    };
+    const response = await apiClient.post<Patient>(
+      API_CONFIG.ENDPOINTS.PATIENTS.BASE,
+      data
+    );
 
-    dummyPatients.push(newPatient);
-    return { success: true, data: newPatient };
+    if (response.success && response.data) {
+      return { success: true, data: response.data };
+    }
+    
+    return { success: false, error: response.error || 'Failed to create patient' };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to create patient';
     return { success: false, error: message };
@@ -59,20 +99,18 @@ export const createPatient = (data: CreatePatientData): PatientResponse => {
 /**
  * Update patient
  */
-export const updatePatient = (id: string, updates: Partial<Patient>): PatientResponse => {
+export const updatePatient = async (id: string, updates: Partial<Patient>): Promise<PatientResponse> => {
   try {
-    const patientIndex = dummyPatients.findIndex(p => p.id === id);
-    
-    if (patientIndex === -1) {
-      return { success: false, error: 'Patient not found' };
-    }
+    const response = await apiClient.put<Patient>(
+      API_CONFIG.ENDPOINTS.PATIENTS.BY_ID(id),
+      updates
+    );
 
-    dummyPatients[patientIndex] = {
-      ...dummyPatients[patientIndex],
-      ...updates
-    };
+    if (response.success && response.data) {
+      return { success: true, data: response.data };
+    }
     
-    return { success: true, data: dummyPatients[patientIndex] };
+    return { success: false, error: response.error || 'Failed to update patient' };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to update patient';
     return { success: false, error: message };
@@ -82,16 +120,15 @@ export const updatePatient = (id: string, updates: Partial<Patient>): PatientRes
 /**
  * Delete patient
  */
-export const deletePatient = (id: string): ApiResponse => {
+export const deletePatient = async (id: string): Promise<ApiResponse> => {
   try {
-    const patientIndex = dummyPatients.findIndex(p => p.id === id);
+    const response = await apiClient.delete(API_CONFIG.ENDPOINTS.PATIENTS.BY_ID(id));
     
-    if (patientIndex === -1) {
-      return { success: false, error: 'Patient not found' };
+    if (response.success) {
+      return { success: true };
     }
-
-    dummyPatients.splice(patientIndex, 1);
-    return { success: true };
+    
+    return { success: false, error: response.error || 'Failed to delete patient' };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to delete patient';
     return { success: false, error: message };
@@ -99,22 +136,56 @@ export const deletePatient = (id: string): ApiResponse => {
 };
 
 /**
- * Search patients by name
+ * Search patients
  */
-export const searchPatientsByName = (searchTerm: string): Patient[] => {
-  const term = searchTerm.toLowerCase();
-  return dummyPatients.filter(p => 
-    p.name.toLowerCase().includes(term)
-  );
+export const searchPatients = async (params: PatientSearchParams): Promise<PaginatedResponse<Patient>> => {
+  try {
+    const queryParams = new URLSearchParams();
+    
+    if (params.query) queryParams.append('q', params.query);
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+    
+    const endpoint = `${API_CONFIG.ENDPOINTS.PATIENTS.SEARCH}?${queryParams.toString()}`;
+    const response = await apiClient.get<PaginatedResponse<Patient>>(endpoint);
+    
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    return {
+      success: false,
+      error: response.error || 'Search failed',
+      data: [],
+      pagination: { page: 1, limit: 10, total: 0, totalPages: 0 }
+    };
+  } catch (error) {
+    console.error('Error searching patients:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Search failed',
+      data: [],
+      pagination: { page: 1, limit: 10, total: 0, totalPages: 0 }
+    };
+  }
 };
 
 /**
- * Search patients by ID
+ * Search patients by name (legacy support)
  */
-export const searchPatientsById = (searchTerm: string): Patient[] => {
-  return dummyPatients.filter(p => 
-    p.id.includes(searchTerm)
-  );
+export const searchPatientsByName = async (searchTerm: string): Promise<Patient[]> => {
+  const result = await searchPatients({ query: searchTerm });
+  return result.data || [];
+};
+
+/**
+ * Search patients by ID (legacy support)
+ */
+export const searchPatientsById = async (searchTerm: string): Promise<Patient[]> => {
+  const result = await searchPatients({ query: searchTerm });
+  return result.data || [];
 };
 
 

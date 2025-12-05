@@ -17,21 +17,36 @@ const LoginSimple: React.FC = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = authApi.login({ username, password });
+    try {
+      const response = await authApi.login({ username, password });
 
-    if (response.success && response.user) {
-      toast.success(`Welcome back, ${response.user.name}!`);
+      if (response.success && response.data) {
+        toast.success(`Welcome back, ${response.data.name}!`);
 
-      if (response.user.role === 'receptionist') {
-        navigate('/receptionist');
-      } else if (response.user.role === 'doctor') {
-        navigate('/doctor');
+        if (response.data.role === 'receptionist') {
+          navigate('/receptionist');
+        } else if (response.data.role === 'doctor') {
+          navigate('/doctor');
+        }
+      } else {
+        toast.error(response.error || 'Invalid username or password');
       }
-    } else {
-      toast.error(response.error || 'Invalid username or password');
+    } catch (error) {
+      console.error('Login error:', error);
+      
+      // Fallback for demo when no backend is available
+      if (username === 'receptionist' && password === 'receptionist123') {
+        toast.success('Welcome back, Receptionist! (Demo Mode)');
+        navigate('/receptionist');
+      } else if (username === 'doctor' && password === 'doctor123') {
+        toast.success('Welcome back, Doctor! (Demo Mode)');
+        navigate('/doctor');
+      } else {
+        toast.error('Login failed. Please check your credentials or start the backend server.');
+      }
     }
   };
 

@@ -9,7 +9,7 @@ import { TimePicker } from '@/components/ui/time-picker';
 import { toast } from 'sonner';
 import { ArrowLeft, Calendar } from 'lucide-react';
 import { patientsApi, appointmentsApi } from '@/api';
-import { dummyUsers } from '@/data/dummyData';
+import { dummyUsers } from '@/sampleDummyData/dummyData';
 import PatientInfoCard from '@/components/common/PatientInfoCard';
 import type { Patient } from '@/types';
 

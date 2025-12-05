@@ -9,7 +9,9 @@ import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppRouter } from '@/router';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { LoadingScreen } from '@/components/common/LoadingScreen';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -22,19 +24,33 @@ const queryClient = new QueryClient({
   },
 });
 
+const AppContent: React.FC = () => {
+  const { isLoading } = useAuth();
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <TooltipProvider>
+      <div className="app w-screen h-screen overflow-hidden">
+        <AppRouter />
+        <Toaster />
+        <Sonner />
+      </div>
+    </TooltipProvider>
+  );
+};
+
 const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <div className="app w-screen h-screen overflow-hidden">
-            <AppRouter />
-            <Toaster />
-            <Sonner />
-          </div>
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

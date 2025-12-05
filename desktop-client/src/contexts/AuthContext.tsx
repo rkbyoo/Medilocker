@@ -27,18 +27,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Check for existing session on mount
-    const currentUser = authApi.getCurrentUser();
-    setUser(currentUser);
-    setIsLoading(false);
+    const initAuth = async () => {
+      try {
+        const currentUser = await authApi.getCurrentUser();
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Failed to get current user:', error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initAuth();
   }, []);
 
   const login = async (credentials: LoginFormData): Promise<ApiResponse<User>> => {
     setIsLoading(true);
     try {
-      const response = authApi.login(credentials);
-      if (response.success && response.user) {
-        setUser(response.user);
-        return { success: true, data: response.user };
+      const response = await authApi.login(credentials);
+      if (response.success && response.data) {
+        setUser(response.data);
+        return { success: true, data: response.data };
       }
       return { success: false, error: response.error };
     } catch (error) {
@@ -49,9 +59,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    authApi.logout();
-    setUser(null);
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+    }
   };
 
   const value: AuthContextType = {

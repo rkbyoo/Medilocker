@@ -9,7 +9,7 @@ import { TimePicker } from '@/components/ui/time-picker';
 import { toast } from 'sonner';
 import { ArrowLeft, Search, Nfc, Calendar, User } from 'lucide-react';
 import { patientsApi, appointmentsApi } from '@/api';
-import { dummyUsers } from '@/data/dummyData';
+import { dummyUsers } from '@/sampleDummyData/dummyData';
 import PatientInfoCard from '@/components/common/PatientInfoCard';
 import { ResizablePanels, Panel } from '@/components/ui/resizable-panels';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogAction } from '@/components/ui/alert-dialog';

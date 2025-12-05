@@ -3,14 +3,17 @@
  * Centralized HTTP client with error handling and interceptors
  */
 
+import { API_CONFIG } from '@/config/api';
 import type { ApiResponse } from '@/types';
 
 export class ApiClient {
   private baseURL: string;
   private defaultHeaders: Record<string, string>;
+  private timeout: number;
 
-  constructor(baseURL = '', defaultHeaders: Record<string, string> = {}) {
+  constructor(baseURL = API_CONFIG.BASE_URL, defaultHeaders: Record<string, string> = {}) {
     this.baseURL = baseURL;
+    this.timeout = API_CONFIG.TIMEOUT;
     this.defaultHeaders = {
       'Content-Type': 'application/json',
       ...defaultHeaders,
@@ -23,26 +26,40 @@ export class ApiClient {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
     
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+    
     const config: RequestInit = {
       headers: {
         ...this.defaultHeaders,
         ...options.headers,
       },
+      signal: controller.signal,
       ...options,
     };
 
     try {
       const response = await fetch(url, config);
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
       return { success: true, data };
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Network error';
-      return { success: false, error: message };
+      clearTimeout(timeoutId);
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          return { success: false, error: 'Request timeout' };
+        }
+        return { success: false, error: error.message };
+      }
+      
+      return { success: false, error: 'Network error' };
     }
   }
 
