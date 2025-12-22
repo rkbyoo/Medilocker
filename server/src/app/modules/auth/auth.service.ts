@@ -1,8 +1,7 @@
 import { UserService } from '../user/user.service';
 import { hashPassword, comparePassword } from '../../utils/bcrypt';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../utils/jwt';
-import { pool } from '../../config/database';
-import { v4 as uuidv4 } from 'uuid';
+import { prisma } from '../../config/prisma';
 import { RegisterRequest, LoginRequest } from './auth.dto';
 import { DatabaseUser, RefreshToken } from '../../types/global';
 
@@ -117,23 +116,23 @@ export class AuthService {
   }
 
   private static async storeRefreshToken(userId: string, refreshToken: string): Promise<void> {
-    const tokenId = uuidv4();
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
 
-    await pool.query(
-      `INSERT INTO refresh_tokens (token_id, user_id, refresh_token, expires_at, created_at)
-       VALUES ($1, $2, $3, $4, NOW())`,
-      [tokenId, userId, refreshToken, expiresAt]
-    );
+    await prisma.refreshToken.create({
+      data: {
+        user_id: userId,
+        refresh_token: refreshToken,
+        expires_at: expiresAt,
+      },
+    });
   }
 
   private static async getRefreshToken(refreshToken: string): Promise<RefreshToken | null> {
-    const result = await pool.query(
-      'SELECT * FROM refresh_tokens WHERE refresh_token = $1',
-      [refreshToken]
-    );
-    return result.rows[0] || null;
+    const token = await prisma.refreshToken.findUnique({
+      where: { refresh_token: refreshToken },
+    });
+    return token as RefreshToken | null;
   }
 
   private static async replaceRefreshToken(
@@ -144,18 +143,26 @@ export class AuthService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
-    await pool.query(
-      `UPDATE refresh_tokens 
-       SET refresh_token = $1, expires_at = $2, created_at = NOW()
-       WHERE refresh_token = $3 AND user_id = $4`,
-      [newToken, expiresAt, oldToken, userId]
-    );
+    // Delete old token and create new one
+    await prisma.refreshToken.deleteMany({
+      where: {
+        refresh_token: oldToken,
+        user_id: userId,
+      },
+    });
+
+    await prisma.refreshToken.create({
+      data: {
+        user_id: userId,
+        refresh_token: newToken,
+        expires_at: expiresAt,
+      },
+    });
   }
 
   private static async deleteRefreshToken(refreshToken: string): Promise<void> {
-    await pool.query(
-      'DELETE FROM refresh_tokens WHERE refresh_token = $1',
-      [refreshToken]
-    );
+    await prisma.refreshToken.deleteMany({
+      where: { refresh_token: refreshToken },
+    });
   }
 }

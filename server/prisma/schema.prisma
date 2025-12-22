@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // url moved to prisma.config.ts for Prisma 7
+}
+
+enum UserRole {
+  patient
+  doctor
+  admin
+  hospital_staff
+}
+
+model User {
+  user_id      String   @id @default(uuid()) @db.Uuid
+  full_name    String   @db.VarChar(150)
+  email        String   @unique @db.VarChar(150)
+  phone        String?  @db.VarChar(20)
+  password_hash String  @db.Text
+  role         UserRole
+  created_at   DateTime @default(now())
+  updated_at   DateTime @default(now()) @updatedAt
+
+  // Relations
+  refreshTokens RefreshToken[]
+  accessLogs    AccessLog[]
+  patient       Patient?
+  hospitalUsers HospitalUser[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model RefreshToken {
+  token_id      String   @id @default(uuid()) @db.Uuid
+  user_id       String   @db.Uuid
+  refresh_token String   @unique @db.Text
+  expires_at    DateTime
+  created_at    DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("refresh_tokens")
+}
+
+model AccessLog {
+  log_id     BigInt   @id @default(autoincrement())
+  user_id    String?  @db.Uuid
+  action     String   @db.VarChar(200)
+  timestamp  DateTime  @default(now())
+  ip_address String?  @db.VarChar(50)
+  user_agent String?  @db.Text
+  success    Boolean
+
+  // Relations
+  user User? @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+
+  @@index([user_id])
+  @@index([timestamp])
+  @@map("access_logs")
+}
+
+model HospitalUser {
+  hospital_user_id String   @id @default(uuid()) @db.Uuid
+  hospital_id      String   @db.Uuid
+  user_id          String   @db.Uuid
+  role_in_hospital String   @db.VarChar(50)
+  created_at       DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("hospital_users")
+}
+
+model Patient {
+  patient_id  String   @id @default(uuid()) @db.Uuid
+  user_id     String   @unique @db.Uuid
+  nfc_card_uid String  @unique @db.VarChar(100)
+  created_at  DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([nfc_card_uid])
+  @@map("patients")
+}
+

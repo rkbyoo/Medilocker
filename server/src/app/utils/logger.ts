@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { pool } from '../config/database';
+import { prisma } from '../config/prisma';
 
 export const logAccess = async (
   userId: string | null,
@@ -11,11 +11,15 @@ export const logAccess = async (
     const ipAddress = req.ip || req.connection.remoteAddress || null;
     const userAgent = req.headers['user-agent'] || null;
 
-    await pool.query(
-      `INSERT INTO access_logs (user_id, action, ip_address, user_agent, success, timestamp) 
-       VALUES ($1, $2, $3, $4, $5, NOW())`,
-      [userId, action, ipAddress, userAgent, success]
-    );
+    await prisma.accessLog.create({
+      data: {
+        user_id: userId,
+        action,
+        ip_address: ipAddress,
+        user_agent: userAgent,
+        success,
+      },
+    });
   } catch (error) {
     console.error('Failed to log access:', error);
   }

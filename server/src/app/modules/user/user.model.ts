@@ -1,22 +1,20 @@
-import { pool } from '../../config/database';
+import { prisma } from '../../config/prisma';
 import { DatabaseUser } from '../../types/global';
-import { v4 as uuidv4 } from 'uuid';
+import { UserRole } from '@prisma/client';
 
 export class UserModel {
   static async findByEmail(email: string): Promise<DatabaseUser | null> {
-    const result = await pool.query(
-      'SELECT * FROM users WHERE email = $1',
-      [email]
-    );
-    return result.rows[0] || null;
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+    return user as DatabaseUser | null;
   }
 
   static async findById(userId: string): Promise<DatabaseUser | null> {
-    const result = await pool.query(
-      'SELECT * FROM users WHERE user_id = $1',
-      [userId]
-    );
-    return result.rows[0] || null;
+    const user = await prisma.user.findUnique({
+      where: { user_id: userId },
+    });
+    return user as DatabaseUser | null;
   }
 
   static async create(userData: {
@@ -26,20 +24,22 @@ export class UserModel {
     password_hash: string;
     role: string;
   }): Promise<DatabaseUser> {
-    const userId = uuidv4();
-    const result = await pool.query(
-      `INSERT INTO users (user_id, full_name, email, phone, password_hash, role, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-       RETURNING *`,
-      [userId, userData.full_name, userData.email, userData.phone, userData.password_hash, userData.role]
-    );
-    return result.rows[0];
+    const user = await prisma.user.create({
+      data: {
+        full_name: userData.full_name,
+        email: userData.email,
+        phone: userData.phone,
+        password_hash: userData.password_hash,
+        role: userData.role as UserRole,
+      },
+    });
+    return user as DatabaseUser;
   }
 
   static async updateLastLogin(userId: string): Promise<void> {
-    await pool.query(
-      'UPDATE users SET updated_at = NOW() WHERE user_id = $1',
-      [userId]
-    );
+    await prisma.user.update({
+      where: { user_id: userId },
+      data: { updated_at: new Date() },
+    });
   }
 }

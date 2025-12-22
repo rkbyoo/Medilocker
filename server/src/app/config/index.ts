@@ -1,2 +1,2 @@
 export { config } from './env';
-export { pool } from './database';
+export { prisma } from './prisma';
