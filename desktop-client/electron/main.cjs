@@ -16,6 +16,7 @@ function createWindow() {
         height: 800,
         minWidth: 800,
         minHeight: 600,
+        title: 'Medical Management System',
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
