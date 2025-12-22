@@ -1,4 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import 'dotenv/config';
+import { PrismaClient } from '../../../prisma/generated/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 import { config } from './env';
 
 // PrismaClient is attached to the `global` object in development to prevent
@@ -7,12 +10,18 @@ import { config } from './env';
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
+// Create PostgreSQL pool for Prisma 7 adapter
+const pool = new Pool({
+  connectionString: config.database.url,
+});
+
+// Create Prisma adapter
+const adapter = new PrismaPg(pool);
+
 export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
-    adapter: {
-      url: config.database.url,
-    },
+    adapter,
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
 

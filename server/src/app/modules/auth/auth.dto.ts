@@ -6,7 +6,7 @@ export const RegisterDto = z.object({
   email: z.string().email().max(150),
   phone: z.string().max(20).optional(),
   password: z.string().min(6),
-  role: z.enum([USER_ROLES.PATIENT, USER_ROLES.DOCTOR, USER_ROLES.ADMIN, USER_ROLES.HOSPITAL_STAFF]),
+  role: z.enum([USER_ROLES.PATIENT, USER_ROLES.ADMIN, USER_ROLES.HOSPITAL_STAFF]),
 });
 
 export const LoginDto = z.object({

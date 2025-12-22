@@ -20,7 +20,7 @@ export interface DatabaseUser {
   email: string;
   phone?: string;
   password_hash: string;
-  role: 'patient' | 'doctor' | 'admin' | 'hospital_staff';
+  role: 'patient' | 'admin' | 'hospital_staff';
   created_at: Date;
   updated_at: Date;
 }
