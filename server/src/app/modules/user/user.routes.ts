@@ -5,5 +5,6 @@ import { authenticate } from '../../middlewares/auth.middleware';
 const router = Router();
 
 router.get('/profile', authenticate, UserController.getProfile);
+router.get('/doctors', authenticate, UserController.getDoctors);
 
 export default router;

@@ -29,7 +29,7 @@ export class AuthService {
   }
 
   static async login(credentials: LoginRequest): Promise<{
-    user: Omit<DatabaseUser, 'password_hash'>;
+    user: Omit<DatabaseUser, 'password_hash'> & { hospitalRole?: string };
     accessToken: string;
     refreshToken: string;
   }> {
@@ -43,6 +43,16 @@ export class AuthService {
     const isPasswordValid = await comparePassword(credentials.password, user.password_hash);
     if (!isPasswordValid) {
       throw new Error('Invalid credentials');
+    }
+
+    // Get hospital role if user is hospital_staff
+    let hospitalRole: string | undefined;
+    if (user.role === 'hospital_staff') {
+      const hospitalUser = await prisma.hospitalUser.findFirst({
+        where: { user_id: user.user_id },
+        select: { role_in_hospital: true },
+      });
+      hospitalRole = hospitalUser?.role_in_hospital || undefined;
     }
 
     // Generate tokens
@@ -63,7 +73,10 @@ export class AuthService {
     const sanitizedUser = UserService.sanitizeUser(user);
 
     return {
-      user: sanitizedUser,
+      user: {
+        ...sanitizedUser,
+        hospitalRole,
+      },
       accessToken,
       refreshToken,
     };

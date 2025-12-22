@@ -124,6 +124,7 @@ export type HospitalUserScalarFieldEnum = (typeof HospitalUserScalarFieldEnum)[k
 export const PatientScalarFieldEnum = {
   patient_id: 'patient_id',
   user_id: 'user_id',
+  patient_number: 'patient_number',
   name: 'name',
   dob: 'dob',
   gender: 'gender',

@@ -21,6 +21,7 @@ export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 export const HospitalRole = {
   doctor: 'doctor',
   nurse: 'nurse',
+  receptionist: 'receptionist',
   staff: 'staff',
   admin: 'admin'
 } as const

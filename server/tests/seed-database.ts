@@ -152,7 +152,7 @@ async function main() {
       data: {
         hospital_id: hospital.hospital_id,
         user_id: receptionist.user_id,
-        role_in_hospital: 'staff',
+        role_in_hospital: 'receptionist',
       },
     });
     logSuccess(`Receptionist linked to hospital`);
@@ -165,6 +165,7 @@ async function main() {
     const patient1 = await prisma.patient.create({
       data: {
         user_id: patient1User.user_id,
+        patient_number: '1234567890', // 10-digit patient number
         name: 'John Smith',
         dob: new Date('1985-03-15'),
         gender: 'Male',
@@ -187,6 +188,7 @@ async function main() {
     const patient2 = await prisma.patient.create({
       data: {
         user_id: patient2User.user_id,
+        patient_number: '2345678901', // 10-digit patient number
         name: 'Emily Rodriguez',
         dob: new Date('1992-07-22'),
         gender: 'Female',

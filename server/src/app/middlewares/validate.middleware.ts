@@ -3,10 +3,11 @@ import { ZodSchema, ZodError } from 'zod';
 import { sendError } from '../utils/response';
 import { HTTP_STATUS } from '../constants/statusCodes';
 
-export const validateRequest = (schema: ZodSchema) => {
+export const validateRequest = (schema: ZodSchema, source: 'body' | 'query' = 'body') => {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
-      schema.parse(req.body);
+      const data = source === 'query' ? req.query : req.body;
+      schema.parse(data);
       next();
     } catch (error) {
       if (error instanceof ZodError) {
