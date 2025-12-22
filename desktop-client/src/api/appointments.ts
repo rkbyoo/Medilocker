@@ -1,19 +1,58 @@
-import { dummyAppointments, dummyUsers } from '@/data/dummyData';
 import type { ApiResponse, CreateAppointmentData, AppointmentResponse, Appointment } from '@/types';
+import { getApiUrl, getAuthHeader } from '@/config/api';
 
 /**
  * Appointment API
  * Handles all appointment-related operations with proper error handling
  */
 
-// Types are now imported from centralized types file
+/**
+ * Transform backend appointment to frontend format
+ */
+const transformAppointment = (apt: any): Appointment => {
+  return {
+    id: apt.id || apt.appointment_id,
+    appointment_id: apt.appointment_id || apt.id,
+    patientId: apt.patient_id,
+    patientNumber: apt.patient_number,
+    patientName: apt.patient_name,
+    doctorId: apt.doctor_id,
+    doctorName: apt.doctor_name,
+    hospitalId: apt.hospital_id,
+    hospitalName: apt.hospital_name,
+    department: apt.department,
+    reason: apt.reason,
+    dateTime: apt.dateTime || apt.scheduled_date_time,
+    scheduled_date_time: apt.scheduled_date_time || apt.dateTime,
+    status: apt.status,
+    visit_id: apt.visit_id, // Include visit_id if available
+  };
+};
 
 /**
  * Get all appointments
  */
-export const getAllAppointments = (): Appointment[] => {
+export const getAllAppointments = async (): Promise<Appointment[]> => {
   try {
-    return [...dummyAppointments];
+    const response = await fetch(getApiUrl('appointments'), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    
+    if (data.success && data.data) {
+      return Array.isArray(data.data) ? data.data.map(transformAppointment) : [];
+    }
+    
+    return [];
   } catch (error) {
     console.error('Error fetching appointments:', error);
     return [];
@@ -23,10 +62,29 @@ export const getAllAppointments = (): Appointment[] => {
 /**
  * Get appointments by doctor ID
  */
-export const getAppointmentsByDoctorId = (doctorId: string): Appointment[] => {
+export const getAppointmentsByDoctorId = async (doctorId: string): Promise<Appointment[]> => {
   try {
     if (!doctorId) return [];
-    return dummyAppointments.filter(apt => apt.doctorId === doctorId);
+
+    const response = await fetch(getApiUrl(`appointments?doctor_id=${doctorId}`), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    
+    if (data.success && data.data) {
+      return Array.isArray(data.data) ? data.data.map(transformAppointment) : [];
+    }
+    
+    return [];
   } catch (error) {
     console.error('Error fetching doctor appointments:', error);
     return [];
@@ -36,35 +94,94 @@ export const getAppointmentsByDoctorId = (doctorId: string): Appointment[] => {
 /**
  * Get appointments by patient ID
  */
-export const getAppointmentsByPatientId = (patientId: string): Appointment[] => {
-  return dummyAppointments.filter(apt => apt.patientId === patientId);
+export const getAppointmentsByPatientId = async (patientId: string): Promise<Appointment[]> => {
+  try {
+    if (!patientId) return [];
+
+    const response = await fetch(getApiUrl(`appointments?patient_id=${patientId}`), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    
+    if (data.success && data.data) {
+      return Array.isArray(data.data) ? data.data.map(transformAppointment) : [];
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('Error fetching patient appointments:', error);
+    return [];
+  }
 };
 
 /**
  * Create new appointment
  */
-export const createAppointment = (data: CreateAppointmentData): AppointmentResponse => {
+export const createAppointment = async (data: CreateAppointmentData): Promise<AppointmentResponse> => {
   try {
-    const doctor = dummyUsers.find(u => u.id === data.doctorId);
+    // Determine if patientId is a UUID or patient_number (10-digit)
+    const isPatientNumber = /^\d{10}$/.test(data.patientId);
     
-    if (!doctor) {
-      return { success: false, error: 'Doctor not found' };
-    }
-
-    const newAppointment: Appointment = {
-      id: `APT${Date.now()}`,
-      patientId: data.patientId,
-      patientName: data.patientName,
-      doctorId: data.doctorId,
-      doctorName: doctor.name,
+    // Determine if doctorId is a UUID or needs to be looked up
+    const isDoctorUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.doctorId);
+    
+    const requestBody: any = {
       department: data.department,
       reason: data.reason,
-      dateTime: data.dateTime,
-      status: 'scheduled'
+      scheduled_date_time: data.dateTime,
     };
 
-    dummyAppointments.push(newAppointment);
-    return { success: true, data: newAppointment };
+    // Add patient identifier
+    if (isPatientNumber) {
+      requestBody.patient_number = data.patientId;
+    } else {
+      requestBody.patient_id = data.patientId;
+    }
+
+    // Add doctor identifier
+    if (isDoctorUUID) {
+      requestBody.doctor_id = data.doctorId;
+    } else {
+      // If it's not a UUID, it should be a UUID - return error
+      return {
+        success: false,
+        error: 'Doctor ID must be a valid UUID',
+      };
+    }
+
+    // hospital_id will be auto-filled from logged-in user's context in backend
+
+    const response = await fetch(getApiUrl('appointments'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      return {
+        success: false,
+        error: result.message || result.error || 'Failed to create appointment',
+      };
+    }
+
+    return {
+      success: true,
+      data: transformAppointment(result.data),
+    };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to create appointment';
     return { success: false, error: message };
@@ -74,15 +191,29 @@ export const createAppointment = (data: CreateAppointmentData): AppointmentRespo
 /**
  * Get today's appointments for a doctor
  */
-export const getTodaysAppointments = (doctorId: string): Appointment[] => {
+export const getTodaysAppointments = async (doctorId: string): Promise<Appointment[]> => {
   try {
     if (!doctorId) return [];
-    const today = new Date().toDateString();
-    return dummyAppointments.filter(apt => 
-      apt.doctorId === doctorId && 
-      new Date(apt.dateTime).toDateString() === today &&
-      apt.status === 'scheduled'
-    );
+
+    const response = await fetch(getApiUrl(`appointments/doctor/${doctorId}/today`), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    
+    if (data.success && data.data) {
+      return Array.isArray(data.data) ? data.data.map(transformAppointment) : [];
+    }
+    
+    return [];
   } catch (error) {
     console.error('Error fetching today\'s appointments:', error);
     return [];
@@ -90,15 +221,63 @@ export const getTodaysAppointments = (doctorId: string): Appointment[] => {
 };
 
 /**
- * Get completed appointments for a doctor (recent patients)
+ * Get tomorrow's appointments for a doctor
  */
-export const getCompletedAppointments = (doctorId: string, limit = 5): Appointment[] => {
+export const getTomorrowsAppointments = async (doctorId: string): Promise<Appointment[]> => {
   try {
     if (!doctorId) return [];
-    return dummyAppointments
-      .filter(apt => apt.doctorId === doctorId && apt.status === 'completed')
-      .sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime())
-      .slice(0, limit);
+
+    const response = await fetch(getApiUrl(`appointments/doctor/${doctorId}/tomorrow`), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    
+    if (data.success && data.data) {
+      return Array.isArray(data.data) ? data.data.map(transformAppointment) : [];
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('Error fetching tomorrow\'s appointments:', error);
+    return [];
+  }
+};
+
+/**
+ * Get completed appointments for a doctor (recent patients)
+ */
+export const getCompletedAppointments = async (doctorId: string, limit = 5): Promise<Appointment[]> => {
+  try {
+    if (!doctorId) return [];
+
+    const response = await fetch(getApiUrl(`appointments/doctor/${doctorId}/completed?limit=${limit}`), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    
+    if (data.success && data.data) {
+      return Array.isArray(data.data) ? data.data.map(transformAppointment) : [];
+    }
+    
+    return [];
   } catch (error) {
     console.error('Error fetching completed appointments:', error);
     return [];
@@ -108,20 +287,36 @@ export const getCompletedAppointments = (doctorId: string, limit = 5): Appointme
 /**
  * Update appointment
  */
-export const updateAppointment = (id: string, updates: Partial<Appointment>): AppointmentResponse => {
+export const updateAppointment = async (id: string, updates: Partial<Appointment>): Promise<AppointmentResponse> => {
   try {
-    const appointmentIndex = dummyAppointments.findIndex(apt => apt.id === id);
-    
-    if (appointmentIndex === -1) {
-      return { success: false, error: 'Appointment not found' };
+    const updateData: any = {};
+    if (updates.department) updateData.department = updates.department;
+    if (updates.reason !== undefined) updateData.reason = updates.reason;
+    if (updates.dateTime) updateData.scheduled_date_time = updates.dateTime;
+    if (updates.status) updateData.status = updates.status;
+
+    const response = await fetch(getApiUrl(`appointments/${id}`), {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify(updateData),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      return {
+        success: false,
+        error: result.message || result.error || 'Failed to update appointment',
+      };
     }
 
-    dummyAppointments[appointmentIndex] = {
-      ...dummyAppointments[appointmentIndex],
-      ...updates
+    return {
+      success: true,
+      data: transformAppointment(result.data),
     };
-    
-    return { success: true, data: dummyAppointments[appointmentIndex] };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to update appointment';
     return { success: false, error: message };
@@ -131,15 +326,25 @@ export const updateAppointment = (id: string, updates: Partial<Appointment>): Ap
 /**
  * Delete appointment
  */
-export const deleteAppointment = (id: string): ApiResponse => {
+export const deleteAppointment = async (id: string): Promise<ApiResponse> => {
   try {
-    const appointmentIndex = dummyAppointments.findIndex(apt => apt.id === id);
-    
-    if (appointmentIndex === -1) {
-      return { success: false, error: 'Appointment not found' };
+    const response = await fetch(getApiUrl(`appointments/${id}`), {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      return {
+        success: false,
+        error: result.message || result.error || 'Failed to delete appointment',
+      };
     }
 
-    dummyAppointments.splice(appointmentIndex, 1);
     return { success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to delete appointment';

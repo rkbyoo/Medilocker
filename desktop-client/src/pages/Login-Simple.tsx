@@ -13,35 +13,43 @@ import { authApi } from '@/api';
 import { Stethoscope } from 'lucide-react';
 
 const LoginSimple: React.FC = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
-    const response = authApi.login({ username, password });
+    try {
+      const response = await authApi.login({ email, password });
 
-    if (response.success && response.user) {
-      toast.success(`Welcome back, ${response.user.name}!`);
+      if (response.success && response.user) {
+        toast.success(`Welcome back, ${response.user.name}!`);
 
-      if (response.user.role === 'receptionist') {
-        navigate('/receptionist');
-      } else if (response.user.role === 'doctor') {
-        navigate('/doctor');
+        if (response.user.role === 'receptionist') {
+          navigate('/receptionist');
+        } else if (response.user.role === 'doctor') {
+          navigate('/doctor');
+        }
+      } else {
+        toast.error(response.error || 'Invalid email or password');
       }
-    } else {
-      toast.error(response.error || 'Invalid username or password');
+    } catch (error) {
+      toast.error('Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const fillDemoCredentials = (role: 'receptionist' | 'doctor') => {
     const credentials = {
-      receptionist: { username: 'receptionist', password: 'receptionist123' },
-      doctor: { username: 'doctor', password: 'doctor123' },
+      receptionist: { email: 'sarah.johnson@hospital.com', password: 'password123' },
+      doctor: { email: 'doctor.chen@hospital.com', password: 'password123' },
     };
 
-    setUsername(credentials[role].username);
+    setEmail(credentials[role].email);
     setPassword(credentials[role].password);
   };
 
@@ -61,17 +69,18 @@ const LoginSimple: React.FC = () => {
         <CardContent className="pt-6">
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="flex items-center gap-4">
-              <label htmlFor="username" className="text-sm font-medium w-24 text-right flex-shrink-0">
-                Username
+              <label htmlFor="email" className="text-sm font-medium w-24 text-right flex-shrink-0">
+                Email
               </label>
               <Input
-                id="username"
-                type="text"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="border-2 focus:border-primary flex-1"
+                disabled={isLoading}
               />
             </div>
 
@@ -93,8 +102,9 @@ const LoginSimple: React.FC = () => {
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md"
+              disabled={isLoading}
             >
-              Sign In
+              {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
 

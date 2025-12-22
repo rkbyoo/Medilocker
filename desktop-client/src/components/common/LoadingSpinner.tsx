@@ -1,47 +1,29 @@
-/**
- * Loading Spinner Component
- * Simple loading indicator
- */
-
-import React from 'react';
-import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
-  message?: string;
   className?: string;
-  fullScreen?: boolean;
+  text?: string;
 }
 
-const sizeClasses = {
-  sm: 'w-4 h-4',
-  md: 'w-6 h-6',
-  lg: 'w-8 h-8',
-};
+export const LoadingSpinner = ({ size = 'md', className, text }: LoadingSpinnerProps) => {
+  const sizeClasses = {
+    sm: 'h-4 w-4 border-2',
+    md: 'h-8 w-8 border-2',
+    lg: 'h-12 w-12 border-2',
+  };
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
-  size = 'md',
-  message,
-  className,
-  fullScreen = false,
-}) => {
-  const content = (
-    <div className={cn('flex flex-col items-center justify-center gap-2', className)}>
-      <Loader2 className={cn('animate-spin text-primary', sizeClasses[size])} />
-      {message && (
-        <p className="text-sm text-muted-foreground animate-pulse">{message}</p>
-      )}
+  return (
+    <div className={cn('flex flex-col items-center justify-center', className)}>
+      <div
+        className={cn(
+          'animate-spin rounded-full border-primary border-t-transparent',
+          sizeClasses[size]
+        )}
+      />
+      {text && <p className="mt-2 text-sm font-medium text-muted-foreground">{text}</p>}
     </div>
   );
-
-  if (fullScreen) {
-    return (
-      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-        {content}
-      </div>
-    );
-  }
-
-  return content;
 };
+
+export default LoadingSpinner;

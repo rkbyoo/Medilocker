@@ -7,62 +7,104 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { ArrowLeft, Calendar } from 'lucide-react';
-import { patientsApi, appointmentsApi } from '@/api';
-import { dummyUsers } from '@/data/dummyData';
+import { patientsApi, appointmentsApi, usersApi } from '@/api';
+import { useAuth } from '@/contexts';
 import PatientInfoCard from '@/components/common/PatientInfoCard';
 import type { Patient } from '@/types';
 
 const PatientDetails = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const { patientId } = useParams<{ patientId: string }>();
     const [patient, setPatient] = useState<Patient | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isScheduling, setIsScheduling] = useState(false);
+    const [doctors, setDoctors] = useState<Array<{ user_id: string; full_name: string }>>([]);
 
     const [appointmentData, setAppointmentData] = useState({
         department: '',
-        doctor: 'D001',
+        doctor: '',
         reason: '',
         dateTime: ''
     });
 
+    // Fetch doctors on mount
     useEffect(() => {
-        if (patientId) {
-            const foundPatient = patientsApi.getPatientById(patientId);
-            if (foundPatient) {
-                setPatient(foundPatient);
-            } else {
-                toast.error('Patient not found');
-                navigate('/existing-patient');
+        const fetchDoctors = async () => {
+            const doctorsList = await usersApi.getDoctors();
+            setDoctors(doctorsList);
+            // Set default doctor if available
+            if (doctorsList.length > 0) {
+                setAppointmentData(prev => ({ ...prev, doctor: doctorsList[0].user_id }));
             }
-        }
-        setLoading(false);
+        };
+        fetchDoctors();
+    }, []);
+
+    useEffect(() => {
+        const fetchPatient = async () => {
+            if (patientId) {
+                try {
+                    const foundPatient = await patientsApi.getPatientById(patientId);
+                    if (foundPatient) {
+                        setPatient(foundPatient);
+                    } else {
+                        toast.error('Patient not found');
+                        navigate('/existing-patient');
+                    }
+                } catch (error) {
+                    toast.error('Error loading patient');
+                    navigate('/existing-patient');
+                } finally {
+                    setLoading(false);
+                }
+            } else {
+                setLoading(false);
+            }
+        };
+        fetchPatient();
     }, [patientId, navigate]);
 
-    const handleScheduleAppointment = (e: React.FormEvent) => {
+    const handleScheduleAppointment = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!patient) return;
 
-        const doctor = dummyUsers.find(u => u.id === appointmentData.doctor);
+        if (!appointmentData.doctor) {
+            toast.error('Please select a doctor');
+            return;
+        }
 
-        const response = appointmentsApi.createAppointment({
-            patientId: patient.id,
-            patientName: patient.name,
-            doctorId: appointmentData.doctor,
-            doctorName: doctor?.name || '',
-            department: appointmentData.department,
-            reason: appointmentData.reason,
-            dateTime: appointmentData.dateTime
-        });
+        setIsScheduling(true);
+        try {
+            const selectedDoctor = doctors.find(d => d.user_id === appointmentData.doctor);
 
-        if (response.success) {
-            toast.success('Appointment scheduled successfully!');
+            // Use patient_number if available, otherwise use patient_id
+            const patientIdentifier = patient.patientNumber || patient.id;
 
-            setTimeout(() => {
-                navigate('/receptionist');
-            }, 1500);
-        } else {
-            toast.error(response.error || 'Failed to schedule appointment');
+            const response = await appointmentsApi.createAppointment({
+                patientId: patientIdentifier,
+                patientName: patient.name,
+                doctorId: appointmentData.doctor,
+                doctorName: selectedDoctor?.full_name || '',
+                department: appointmentData.department,
+                reason: appointmentData.reason,
+                dateTime: appointmentData.dateTime
+            });
+
+            if (response.success) {
+                toast.success('Appointment scheduled successfully!');
+
+                setTimeout(() => {
+                    navigate('/receptionist');
+                }, 1500);
+            } else {
+                toast.error(response.error || 'Failed to schedule appointment');
+            }
+        } catch (error) {
+            toast.error('Error scheduling appointment');
+        } finally {
+            setIsScheduling(false);
         }
     };
 
@@ -143,8 +185,10 @@ const PatientDetails = () => {
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {dummyUsers.filter(u => u.role === 'doctor').map(doctor => (
-                                                        <SelectItem key={doctor.id} value={doctor.id}>{doctor.name}</SelectItem>
+                                                    {doctors.map(doctor => (
+                                                        <SelectItem key={doctor.user_id} value={doctor.user_id}>
+                                                            {doctor.full_name}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -182,9 +226,22 @@ const PatientDetails = () => {
                                     <Button type="button" variant="outline" onClick={() => navigate('/existing-patient')} className="flex-1">
                                         Back to Search
                                     </Button>
-                                    <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md font-medium">
-                                        <Calendar className="w-4 h-4 mr-2" />
-                                        Schedule Appointment
+                                    <Button 
+                                        type="submit" 
+                                        className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md font-medium"
+                                        disabled={isScheduling}
+                                    >
+                                        {isScheduling ? (
+                                            <>
+                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                                Scheduling...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Calendar className="w-4 h-4 mr-2" />
+                                                Schedule Appointment
+                                            </>
+                                        )}
                                     </Button>
                                 </div>
                             </form>

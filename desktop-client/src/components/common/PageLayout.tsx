@@ -48,7 +48,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
         'border-b bg-gradient-to-r shadow-lg backdrop-blur-sm',
         `bg-gradient-to-r ${headerGradient}`
       )}>
-        <div className="container mx-auto px-6 py-4">
+        <div className="container mx-auto px-6 py-6">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               {showBackButton && (
@@ -63,12 +63,12 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
               )}
               <div>
                 {title && (
-                  <h1 className="text-2xl font-bold text-primary-foreground">
+                  <h1 className="text-3xl font-bold text-primary-foreground">
                     {title}
                   </h1>
                 )}
                 {user && (
-                  <p className="text-sm text-primary-foreground/80">
+                  <p className="text-base text-primary-foreground/80 mt-1">
                     Welcome, {user.name}
                   </p>
                 )}

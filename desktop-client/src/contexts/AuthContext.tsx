@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (credentials: LoginFormData): Promise<ApiResponse<User>> => {
     setIsLoading(true);
     try {
-      const response = authApi.login(credentials);
+      const response = await authApi.login(credentials);
       if (response.success && response.user) {
         setUser(response.user);
         return { success: true, data: response.user };

@@ -10,12 +10,16 @@ import * as authApi from './auth';
 import * as patientsApi from './patients';
 import * as appointmentsApi from './appointments';
 import * as medicalRecordsApi from './medicalRecords';
+import * as usersApi from './users';
+import * as visitsApi from './visits';
 
 export {
   authApi,
   patientsApi,
   appointmentsApi,
-  medicalRecordsApi
+  medicalRecordsApi,
+  usersApi,
+  visitsApi
 };
 
 // Re-export types for convenience

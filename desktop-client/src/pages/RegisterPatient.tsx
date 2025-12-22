@@ -34,25 +34,34 @@ const RegisterPatient = () => {
 
   const [allergiesText, setAllergiesText] = useState('');
   const [conditionsText, setConditionsText] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsRegistering(true);
 
-    const response = patientsApi.createPatient({
-      ...formData as any,
-      allergies: allergiesText.split(',').map(a => a.trim()).filter(Boolean),
-      chronicConditions: conditionsText.split(',').map(c => c.trim()).filter(Boolean)
-    });
+    try {
+      const response = await patientsApi.createPatient({
+        ...formData as any,
+        allergies: allergiesText.split(',').map(a => a.trim()).filter(Boolean),
+        chronicConditions: conditionsText.split(',').map(c => c.trim()).filter(Boolean)
+      });
 
-    if (response.success && response.data) {
-      toast.success(`Patient registered successfully! ID: ${response.data.id}`);
+      if (response.success && response.data) {
+        const patientNumber = response.data.patientNumber || response.data.id;
+        toast.success(`Patient registered successfully! Patient ID: ${patientNumber}`);
 
-      // Navigate back to dashboard
-      setTimeout(() => {
-        navigate('/receptionist');
-      }, 2000);
-    } else {
-      toast.error(response.error || 'Failed to register patient');
+        // Navigate to existing patient page with patient number to book appointment
+        setTimeout(() => {
+          navigate(`/receptionist/existing-patient?patientId=${patientNumber}`);
+        }, 1500);
+      } else {
+        toast.error(response.error || 'Failed to register patient');
+      }
+    } catch (error) {
+      toast.error('An error occurred while registering the patient');
+    } finally {
+      setIsRegistering(false);
     }
   };
 
@@ -193,33 +202,56 @@ const RegisterPatient = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="nationality" className="text-base font-medium">Nationality *</Label>
-                    <Input
-                      id="nationality"
-                      className="text-base h-10"
+                    <Select
                       value={formData.nationality}
-                      onChange={(e) => updateField('nationality', e.target.value)}
+                      onValueChange={(value) => updateField('nationality', value)}
                       required
-                    />
+                    >
+                      <SelectTrigger className="text-base h-10">
+                        <SelectValue placeholder="Select nationality" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Indian" className="text-base">Indian</SelectItem>
+                        <SelectItem value="Others" className="text-base">Others</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="religion" className="text-base font-medium">Religion</Label>
-                    <Input
-                      id="religion"
-                      className="text-base h-10"
+                    <Select
                       value={formData.religion}
-                      onChange={(e) => updateField('religion', e.target.value)}
-                    />
+                      onValueChange={(value) => updateField('religion', value)}
+                    >
+                      <SelectTrigger className="text-base h-10">
+                        <SelectValue placeholder="Select religion" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Hindu" className="text-base">Hindu</SelectItem>
+                        <SelectItem value="Christianity" className="text-base">Christianity</SelectItem>
+                        <SelectItem value="Muslim" className="text-base">Muslim</SelectItem>
+                        <SelectItem value="Others" className="text-base">Others</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="caste" className="text-base font-medium">Caste</Label>
-                    <Input
-                      id="caste"
-                      className="text-base h-10"
+                    <Select
                       value={formData.caste}
-                      onChange={(e) => updateField('caste', e.target.value)}
-                    />
+                      onValueChange={(value) => updateField('caste', value)}
+                    >
+                      <SelectTrigger className="text-base h-10">
+                        <SelectValue placeholder="Select caste" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="General" className="text-base">General</SelectItem>
+                        <SelectItem value="STP" className="text-base">STP</SelectItem>
+                        <SelectItem value="STH" className="text-base">STH</SelectItem>
+                        <SelectItem value="OBC" className="text-base">OBC</SelectItem>
+                        <SelectItem value="Other" className="text-base">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
@@ -287,12 +319,31 @@ const RegisterPatient = () => {
               </div>
 
               <div className="flex gap-6 pt-6 border-t flex-shrink-0">
-                <Button type="button" variant="outline" onClick={() => navigate('/receptionist')} className="flex-1 text-base font-medium h-11">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => navigate('/receptionist')} 
+                  className="flex-1 text-base font-medium h-11"
+                  disabled={isRegistering}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" className="flex-1 text-base font-medium h-11">
-                  <Save className="w-5 h-5 mr-2" />
-                  Register Patient
+                <Button 
+                  type="submit" 
+                  className="flex-1 text-base font-medium h-11"
+                  disabled={isRegistering}
+                >
+                  {isRegistering ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Registering...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-5 h-5 mr-2" />
+                      Register Patient
+                    </>
+                  )}
                 </Button>
               </div>
             </form>

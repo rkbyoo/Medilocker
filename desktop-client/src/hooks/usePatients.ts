@@ -19,25 +19,29 @@ export const usePatients = () => {
     error,
   } = useQuery({
     queryKey: QUERY_KEYS.PATIENTS.LIST,
-    queryFn: () => patientsApi.getAllPatients(),
+    queryFn: async () => await patientsApi.getAllPatients(),
   });
 
   // Get patient by ID
   const usePatientById = (id?: string) => {
     return useQuery({
       queryKey: QUERY_KEYS.PATIENTS.DETAIL(id || ''),
-      queryFn: () => patientsApi.getPatientById(id || ''),
+      queryFn: async () => await patientsApi.getPatientById(id || ''),
       enabled: !!id,
     });
   };
 
   // Create patient mutation
   const createPatientMutation = useMutation({
-    mutationFn: (data: PatientFormData) => 
-      Promise.resolve(patientsApi.createPatient(data)),
+    mutationFn: async (data: PatientFormData) => 
+      await patientsApi.createPatient(data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PATIENTS.LIST });
-      toast.success('Patient registered successfully');
+      if (response.success) {
+        toast.success('Patient registered successfully');
+      } else {
+        toast.error(response.error || 'Failed to register patient');
+      }
       return response;
     },
     onError: (error: Error) => {
@@ -58,7 +62,7 @@ export const usePatients = () => {
     },
   });
 
-  // Search patients
+  // Search patients (client-side filtering from loaded patients)
   const searchPatients = (query: string) => {
     if (!query.trim()) return patients;
     
@@ -66,8 +70,7 @@ export const usePatients = () => {
     return patients.filter(patient => 
       patient.name.toLowerCase().includes(searchTerm) ||
       patient.id.includes(searchTerm) ||
-      patient.phoneNumber.includes(searchTerm) ||
-      patient.email.toLowerCase().includes(searchTerm)
+      (patient.phoneNumber && patient.phoneNumber.includes(searchTerm))
     );
   };
 

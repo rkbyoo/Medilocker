@@ -12,6 +12,8 @@ import ExistingPatient from '@/pages/ExistingPatient';
 import PatientDetails from '@/pages/PatientDetails';
 import DoctorDashboard from '@/pages/DoctorDashboard';
 import Consultation from '@/pages/Consultation';
+import ViewVisit from '@/pages/ViewVisit';
+import DoctorPatientView from '@/pages/DoctorPatientView';
 import NotFound from '@/pages/NotFound';
 
 export const AppRouter: React.FC = () => {
@@ -26,6 +28,8 @@ export const AppRouter: React.FC = () => {
         <Route path="/patient-details/:patientId" element={<PatientDetails />} />
         <Route path="/doctor" element={<DoctorDashboard />} />
         <Route path="/doctor/consultation/:patientId" element={<Consultation />} />
+        <Route path="/doctor/patient/:patientId" element={<DoctorPatientView />} />
+        <Route path="/doctor/visit/:visitId" element={<ViewVisit />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </HashRouter>

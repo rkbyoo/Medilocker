@@ -7,15 +7,21 @@
 export type UserRole = 'receptionist' | 'doctor';
 
 export interface User {
-  id: string;
-  username: string;
-  password: string;
-  role: UserRole;
-  name: string;
+  id: string; // user_id (UUID) from backend
+  user_id: string; // Same as id, for clarity
+  username: string; // email from backend
+  email: string; // email from backend
+  password: string; // Not stored, kept for compatibility
+  role: UserRole; // 'receptionist' | 'doctor'
+  name: string; // full_name from backend
+  hospitalRole?: string; // 'doctor' | 'receptionist' | etc. from backend
 }
 
 export interface Patient {
   id: string;
+  patientId?: string; // UUID from backend (for API calls)
+  patientNumber?: string; // 10-digit patient number
+  nfcCardUid?: string; // NFC card UID
   name: string;
   dateOfBirth: string;
   gender: 'Male' | 'Female' | 'Other';
@@ -48,15 +54,21 @@ export interface MedicalRecord {
 }
 
 export interface Appointment {
-  id: string;
-  patientId: string;
+  id: string; // This is appointment_id
+  appointment_id?: string; // Explicitly store appointment_id
+  patientId: string; // This is patient_id (UUID)
+  patientNumber?: string; // 10-digit patient number
   patientName: string;
-  doctorId: string;
+  doctorId: string; // This is doctor_id (UUID)
   doctorName: string;
+  hospitalId?: string; // Hospital UUID
+  hospitalName?: string; // Hospital Name
   department: string;
   reason: string;
-  dateTime: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
+  dateTime: string; // ISO string
+  scheduled_date_time?: string; // ISO string
+  status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
+  visit_id?: string; // Link to visit (for completed appointments)
 }
 
 // API Response Types
@@ -96,7 +108,7 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
 
 // Form Types
 export interface LoginFormData {
-  username: string;
+  email: string;
   password: string;
 }
 

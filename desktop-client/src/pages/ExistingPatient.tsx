@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { ArrowLeft, Search, Nfc, Calendar, User } from 'lucide-react';
-import { patientsApi, appointmentsApi } from '@/api';
-import { dummyUsers } from '@/data/dummyData';
+import { patientsApi, appointmentsApi, usersApi } from '@/api';
+import { useAuth } from '@/contexts';
 import PatientInfoCard from '@/components/common/PatientInfoCard';
 import { ResizablePanels, Panel } from '@/components/ui/resizable-panels';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogAction } from '@/components/ui/alert-dialog';
@@ -16,56 +16,126 @@ import type { Patient } from '@/types';
 
 const ExistingPatient = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [patientId, setPatientId] = useState('');
   const [showNFCDialog, setShowNFCDialog] = useState(false);
   const [foundPatient, setFoundPatient] = useState<Patient | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isScheduling, setIsScheduling] = useState(false);
+  const [doctors, setDoctors] = useState<Array<{ user_id: string; full_name: string }>>([]);
   const [appointmentData, setAppointmentData] = useState({
     department: '',
-    doctor: 'D001',
+    doctor: '',
     reason: '',
     dateTime: ''
   });
 
-  const handleSearch = () => {
+  // Fetch doctors on mount
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      const doctorsList = await usersApi.getDoctors();
+      setDoctors(doctorsList);
+      // Set default doctor if available
+      if (doctorsList.length > 0) {
+        setAppointmentData(prev => ({ ...prev, doctor: doctorsList[0].user_id }));
+      }
+    };
+    fetchDoctors();
+  }, []);
+
+  // Auto-search if patientId is provided in query params
+  useEffect(() => {
+    const patientIdParam = searchParams.get('patientId');
+    if (patientIdParam) {
+      setPatientId(patientIdParam);
+      setIsSearching(true);
+      // Auto-trigger search after a short delay
+      const searchPatient = async () => {
+        try {
+          const patient = await patientsApi.getPatientById(patientIdParam);
+          if (patient) {
+            setFoundPatient(patient);
+            toast.success('Patient found!');
+          } else {
+            setFoundPatient(null);
+            toast.error('Patient not found. Please check the ID.');
+          }
+        } catch (error) {
+          toast.error('Error searching for patient');
+        } finally {
+          setIsSearching(false);
+        }
+      };
+      setTimeout(() => {
+        searchPatient();
+      }, 100);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  const handleSearch = async () => {
     if (!patientId) {
       toast.error('Please enter a patient ID');
       return;
     }
 
-    const patient = patientsApi.getPatientById(patientId);
-    if (patient) {
-      setFoundPatient(patient);
-      toast.success('Patient found!');
-    } else {
-      setFoundPatient(null);
-      toast.error('Patient not found. Please check the ID.');
+    setIsSearching(true);
+    try {
+      const patient = await patientsApi.getPatientById(patientId);
+      if (patient) {
+        setFoundPatient(patient);
+        toast.success('Patient found!');
+      } else {
+        setFoundPatient(null);
+        toast.error('Patient not found. Please check the ID.');
+      }
+    } catch (error) {
+      toast.error('Error searching for patient');
+    } finally {
+      setIsSearching(false);
     }
   };
 
-  const handleScheduleAppointment = (e: React.FormEvent) => {
+  const handleScheduleAppointment = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!foundPatient) return;
 
-    const doctor = dummyUsers.find(u => u.id === appointmentData.doctor);
+    if (!appointmentData.doctor) {
+      toast.error('Please select a doctor');
+      return;
+    }
 
-    const response = appointmentsApi.createAppointment({
-      patientId: foundPatient.id,
-      patientName: foundPatient.name,
-      doctorId: appointmentData.doctor,
-      doctorName: doctor?.name || '',
-      department: appointmentData.department,
-      reason: appointmentData.reason,
-      dateTime: appointmentData.dateTime
-    });
+    setIsScheduling(true);
+    try {
+      const selectedDoctor = doctors.find(d => d.user_id === appointmentData.doctor);
 
-    if (response.success) {
-      toast.success('Appointment scheduled successfully!');
-      setTimeout(() => {
-        navigate('/receptionist');
-      }, 1500);
-    } else {
-      toast.error(response.error || 'Failed to schedule appointment');
+      // Use patient_number if available, otherwise use patient_id
+      const patientIdentifier = foundPatient.patientNumber || foundPatient.id;
+
+      const response = await appointmentsApi.createAppointment({
+        patientId: patientIdentifier,
+        patientName: foundPatient.name,
+        doctorId: appointmentData.doctor,
+        doctorName: selectedDoctor?.full_name || '',
+        department: appointmentData.department,
+        reason: appointmentData.reason,
+        dateTime: appointmentData.dateTime
+      });
+
+      if (response.success) {
+        toast.success('Appointment scheduled successfully!');
+        setTimeout(() => {
+          navigate('/receptionist');
+        }, 1500);
+      } else {
+        toast.error(response.error || 'Failed to schedule appointment');
+      }
+    } catch (error) {
+      toast.error('Error scheduling appointment');
+    } finally {
+      setIsScheduling(false);
     }
   };
 
@@ -74,7 +144,7 @@ const ExistingPatient = () => {
     setPatientId('');
     setAppointmentData({
       department: '',
-      doctor: 'D001',
+      doctor: doctors.length > 0 ? doctors[0].user_id : '',
       reason: '',
       dateTime: ''
     });
@@ -94,7 +164,15 @@ const ExistingPatient = () => {
       </header>
 
       <main className="flex-1 overflow-hidden">
-        {!foundPatient ? (
+        {isSearching && !foundPatient ? (
+          // Loading State
+          <div className="h-full px-8 py-8 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="font-medium text-lg">Searching for patient...</p>
+            </div>
+          </div>
+        ) : !foundPatient ? (
           // Search Interface
           <div className="h-full px-8 py-8 flex items-center justify-center">
             <div className="w-full max-w-4xl space-y-8">
@@ -107,28 +185,40 @@ const ExistingPatient = () => {
                     <div className="space-y-4">
                       <div className="flex items-center gap-6">
                         <Label htmlFor="patientId" className="text-base font-medium w-40 text-right flex-shrink-0">
-                          10-Digit Patient ID
+                          Patient ID
                         </Label>
                         <div className="flex-1 flex gap-4">
                           <Input
                             id="patientId"
-                            placeholder="Enter patient ID"
+                            placeholder="Enter 10-digit Patient ID, NFC Card UID, Name, or Phone"
                             value={patientId}
                             onChange={(e) => setPatientId(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                            maxLength={10}
                             className="bg-background flex-1 text-base h-12"
                           />
-                          <Button onClick={handleSearch} className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md text-base font-medium h-12 px-6">
-                            <Search className="w-5 h-5 mr-2" />
-                            Search
+                          <Button 
+                            onClick={handleSearch} 
+                            className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md text-base font-medium h-12 px-6"
+                            disabled={isSearching}
+                          >
+                            {isSearching ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Searching...
+                              </>
+                            ) : (
+                              <>
+                                <Search className="w-5 h-5 mr-2" />
+                                Search
+                              </>
+                            )}
                           </Button>
                         </div>
                       </div>
                       <div className="flex items-center gap-6">
                         <div className="w-40 flex-shrink-0"></div>
-                        <p className="text-base text-muted-foreground flex-1 font-medium">
-                          Try: 1234567890, 2345678901, or 3456789012
+                        <p className="text-sm text-muted-foreground">
+                          Search by: <strong>10-digit Patient ID</strong> (e.g., 1234567890), NFC Card UID, Patient Name, or Phone Number
                         </p>
                       </div>
                     </div>
@@ -209,11 +299,13 @@ const ExistingPatient = () => {
                         <Label htmlFor="doctor" className="text-base font-medium">Doctor *</Label>
                         <Select value={appointmentData.doctor} onValueChange={(value) => setAppointmentData(prev => ({ ...prev, doctor: value }))}>
                           <SelectTrigger className="text-base h-12">
-                            <SelectValue />
+                            <SelectValue placeholder={doctors.length === 0 ? "Loading doctors..." : "Select doctor"} />
                           </SelectTrigger>
                           <SelectContent>
-                            {dummyUsers.filter(u => u.role === 'doctor').map(doctor => (
-                              <SelectItem key={doctor.id} value={doctor.id} className="text-base">{doctor.name}</SelectItem>
+                            {doctors.map(doctor => (
+                              <SelectItem key={doctor.user_id} value={doctor.user_id} className="text-base">
+                                {doctor.full_name}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -250,9 +342,22 @@ const ExistingPatient = () => {
                       <Button type="button" variant="outline" onClick={() => navigate('/receptionist')} className="flex-1 text-base font-medium h-12">
                         Back to Dashboard
                       </Button>
-                      <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md text-base font-medium h-12">
-                        <Calendar className="w-5 h-5 mr-2" />
-                        Schedule Appointment
+                      <Button 
+                        type="submit" 
+                        className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md text-base font-medium h-12"
+                        disabled={isScheduling}
+                      >
+                        {isScheduling ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Scheduling...
+                          </>
+                        ) : (
+                          <>
+                            <Calendar className="w-5 h-5 mr-2" />
+                            Schedule Appointment
+                          </>
+                        )}
                       </Button>
                     </div>
                   </form>
