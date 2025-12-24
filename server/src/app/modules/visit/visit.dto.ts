@@ -3,9 +3,23 @@ import { VisitType } from '../../../../prisma/generated/client';
 
 /**
  * Create Visit DTO
+ * Accepts either patient_id (UUID) or patient_number (10-digit string)
  */
 export const CreateVisitSchema = z.object({
-  patient_id: z.string().uuid('Invalid patient ID'),
+  patient_id: z.string().refine(
+    (val) => {
+      // Accept UUID format
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val)) {
+        return true;
+      }
+      // Accept 10-digit patient number
+      if (/^\d{10}$/.test(val)) {
+        return true;
+      }
+      return false;
+    },
+    { message: 'Patient ID must be a valid UUID or 10-digit patient number' }
+  ),
   doctor_id: z.string().uuid('Invalid doctor ID'),
   hospital_id: z.string().uuid('Invalid hospital ID').optional(),
   appointment_id: z.string().uuid('Invalid appointment ID').optional(),

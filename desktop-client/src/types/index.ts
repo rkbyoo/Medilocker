@@ -149,6 +149,7 @@ export interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
+  getCurrentUser?: () => User | null; // Helper to get fresh user from localStorage
 }
 
 export interface ThemeContextType {

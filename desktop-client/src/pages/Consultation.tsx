@@ -77,55 +77,70 @@ const Consultation = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (patientId && user) {
-        setLoading(true);
-        try {
-          // Fetch patient
-          const foundPatient = await patientsApi.getPatientById(patientId);
-          if (!foundPatient) {
-            toast.error('Patient not found');
-            navigate('/doctor');
-            return;
-          }
-          setPatient(foundPatient);
+      if (!patientId) {
+        setLoading(false);
+        return;
+      }
 
-          // Use patient_id (UUID) for API calls, fallback to id if patientId not available
-          const patientUuid = (foundPatient as any).patientId || foundPatient.id;
-          
-          // Fetch patient's medical history (visits)
-          const visits = await visitsApi.getVisitsByPatientId(patientUuid);
-          setMedicalRecords(visits);
+      // Get user - always fetch fresh from localStorage for reliability
+      // This ensures we have the latest user data even if context is stale
+      const currentUser = authApi.getCurrentUser();
+      if (!currentUser || !currentUser.user_id) {
+        toast.error('Doctor information not available. Please log in again.');
+        console.error('User not available from localStorage:', {
+          contextUser: user,
+          localStorageUser: currentUser,
+          localStorageCheck: localStorage.getItem('currentUser')
+        });
+        navigate('/doctor');
+        return;
+      }
 
-          // Find today's scheduled appointment for this patient and doctor
-          // This will be used to link the visit to the appointment
-          const todayAppointments = await appointmentsApi.getTodaysAppointments(user.user_id);
-          const matchingAppointment = todayAppointments.find(
-            apt => {
-              // Match by patient_id (UUID), patient_number, or id
-              return apt.patientId === patientUuid || 
-                     apt.patientId === foundPatient.patientNumber || 
-                     apt.patientId === foundPatient.id ||
-                     (apt as any).patient_number === foundPatient.patientNumber;
-            }
-          );
-          if (matchingAppointment) {
-            // Use appointment_id (UUID) from backend, fallback to id
-            const aptId = (matchingAppointment as any).appointment_id || matchingAppointment.id;
-            setAppointmentId(aptId);
-            console.log('Found matching appointment:', aptId);
-          } else {
-            console.log('No matching appointment found for patient:', patientUuid, foundPatient.patientNumber);
+      setLoading(true);
+      try {
+        // Fetch patient
+        const foundPatient = await patientsApi.getPatientById(patientId);
+        if (!foundPatient) {
+          toast.error('Patient not found');
+          navigate('/doctor');
+          return;
+        }
+        setPatient(foundPatient);
+
+        // Use patient_number (10-digit) as primary identifier for API calls
+        const patientIdentifier = foundPatient.patientNumber || foundPatient.id;
+        
+        // Fetch patient's medical history (visits) - backend accepts both UUID and 10-digit
+        const visits = await visitsApi.getVisitsByPatientId(patientIdentifier);
+        setMedicalRecords(visits);
+
+        // Find today's scheduled appointment for this patient and doctor
+        // This will be used to link the visit to the appointment
+        const todayAppointments = await appointmentsApi.getTodaysAppointments(currentUser.user_id);
+        const matchingAppointment = todayAppointments.find(
+          apt => {
+            // Match by patient_number (preferred) or patient_id
+            return apt.patientNumber === foundPatient.patientNumber || 
+                   apt.patientId === foundPatient.patientNumber ||
+                   apt.patientId === (foundPatient as any).patientId ||
+                   apt.patientId === foundPatient.id;
           }
-        } catch (error) {
+        );
+        if (matchingAppointment) {
+          // Use appointment_id (UUID) from backend, fallback to id
+          const aptId = (matchingAppointment as any).appointment_id || matchingAppointment.id;
+          setAppointmentId(aptId);
+          console.log('Found matching appointment:', aptId);
+        } else {
+          console.log('No matching appointment found for patient:', patientIdentifier);
+        }
+      } catch (error) {
           console.error('Error loading patient data:', error);
           toast.error('Error loading patient data');
           navigate('/doctor');
         } finally {
           setLoading(false);
         }
-      } else {
-        setLoading(false);
-      }
     };
     fetchData();
   }, [patientId, user, navigate]);
@@ -146,24 +161,50 @@ const Consultation = () => {
       return;
     }
 
-    if (!user || !patient) return;
+    if (!patient) {
+      toast.error('Patient information is missing');
+      return;
+    }
+
+    // Get user - always fetch fresh from localStorage for reliability
+    // This ensures we have the latest user data even if context is stale
+    const currentUser = authApi.getCurrentUser();
+    if (!currentUser || !currentUser.user_id) {
+      toast.error('Doctor information not available. Please log in again.');
+      console.error('User not available from localStorage:', { 
+        contextUser: user, 
+        localStorageUser: currentUser,
+        localStorageCheck: localStorage.getItem('currentUser')
+      });
+      return;
+    }
+
+    // Validate doctor_id is a valid UUID
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentUser.user_id)) {
+      toast.error('Invalid doctor ID. Please log in again.');
+      console.error('Invalid doctor_id:', currentUser.user_id);
+      return;
+    }
 
     setIsSaving(true);
     try {
-      // Use patient_id (UUID) for API calls, fallback to id if patientId not available
-      const patientUuid = (patient as any).patientId || patient.id;
+      // Use patient_number (10-digit) as primary identifier for API calls
+      // Backend visit controller accepts both UUID and 10-digit numbers
+      const patientIdentifier = patient.patientNumber || patient.id;
       
       // Log for debugging
-      if (appointmentId) {
-        console.log('Creating visit with appointment_id:', appointmentId);
-      } else {
-        console.log('Creating visit without appointment_id (walk-in)');
-      }
+      console.log('Creating visit with:', {
+        patient_id: patientIdentifier,
+        doctor_id: currentUser.user_id,
+        appointment_id: appointmentId,
+        visit_type: appointmentId ? 'scheduled' : 'walk_in'
+      });
       
       // Create visit (this will also update appointment status if appointment_id is provided)
+      // Backend will resolve patient_id from patient_number if needed
       const response = await visitsApi.createVisit({
-        patient_id: patientUuid,
-        doctor_id: user.user_id,
+        patient_id: patientIdentifier,
+        doctor_id: currentUser.user_id,
         appointment_id: appointmentId || undefined,
         visit_date: new Date().toISOString(), // Current date/time
         visit_type: appointmentId ? 'scheduled' : 'walk_in',
@@ -181,7 +222,6 @@ const Consultation = () => {
         queryClient.invalidateQueries({ queryKey: ['appointments'] });
         
         // Also invalidate visits/medical history for this patient
-        const patientUuid = (patient as any).patientId || patient.id;
         queryClient.invalidateQueries({ queryKey: ['visits'] });
 
         setTimeout(() => {

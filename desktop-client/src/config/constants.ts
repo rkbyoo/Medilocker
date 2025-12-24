@@ -19,8 +19,8 @@ export const ROUTES = {
   },
   DOCTOR: {
     DASHBOARD: '/doctor',
-    CONSULTATION: '/doctor/consultation/:patientId',
-    CONSULTATION_WITH_ID: (patientId: string) => `/doctor/consultation/${patientId}`,
+    CONSULTATION: '/doctor/consultation/:patientId', // patientId accepts 10-digit patient number
+    CONSULTATION_WITH_ID: (patientNumber: string) => `/doctor/consultation/${patientNumber}`, // Use 10-digit patient number
   },
   NOT_FOUND: '*',
 } as const;
