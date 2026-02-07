@@ -1,0 +1,38 @@
+{
+  "name": "hospital-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hospital Management System with NFC integration - pnpm workspace",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter server --filter client dev",
+    "dev:server": "pnpm --filter server dev",
+    "dev:client": "pnpm --filter client dev",
+    "electron": "pnpm --parallel --filter server --filter client electron:dev",
+    "electron:build": "pnpm build && pnpm --filter client electron:build",
+    "build": "pnpm -r run build",
+    "build:server": "pnpm --filter server build",
+    "build:client": "pnpm --filter client build",
+    "start": "pnpm --filter server start",
+    "lint": "pnpm -r run lint",
+    "clean": "pnpm -r exec rm -rf node_modules dist dist-electron .turbo && rm -rf node_modules pnpm-lock.yaml",
+    "clean:install": "pnpm run clean && pnpm install",
+    "db:migrate": "pnpm --filter server prisma:migrate",
+    "db:generate": "pnpm --filter server prisma:generate",
+    "db:studio": "pnpm --filter server prisma:studio",
+    "db:seed": "cd server && npx ts-node tests/seed-database.ts",
+    "test": "pnpm -r run test"
+  },
+  "devDependencies": {
+    "@types/node": "^20.6.3",
+    "typescript": "^5.2.2"
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ]
+}

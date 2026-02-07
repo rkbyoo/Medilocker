@@ -1,5 +1,5 @@
 {
-  "name": "nfc-healthcare-backend",
+  "name": "@hospital/server",
   "version": "1.0.0",
   "description": "NFC-based Healthcare Management System Backend",
   "main": "dist/main.js",

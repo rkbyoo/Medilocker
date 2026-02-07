@@ -10,9 +10,26 @@ import { errorHandler, notFoundHandler } from '../middlewares/error.middleware';
 const app = express();
 
 // CORS configuration
+const allowedOrigins = [
+  'http://localhost:5173', // Vite dev server
+  'http://localhost:4000', // Server itself
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:4000',
+  // Allow Electron file:// protocol
+  'file://',
+  null, // Allow requests with no origin (Electron production)
+];
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Electron, curl, etc.)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],

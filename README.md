@@ -65,8 +65,8 @@ A comprehensive hospital management system with NFC card integration, featuring 
 Before you begin, ensure you have the following installed:
 
 - **Node.js** (v18 or higher)
-- **npm** (v9 or higher) or **yarn**
-- **PostgreSQL** (v14 or higher)
+- **pnpm** (v9 or higher) - `npm install -g pnpm`
+- **PostgreSQL** (v14 or higher) - or use Neon DB (remote)
 - **Git**
 
 ## 🚀 Installation
@@ -80,19 +80,11 @@ cd finalYearProject
 
 ### 2. Install Dependencies
 
-#### Backend Dependencies
-
 ```bash
-cd server
-npm install
+pnpm install
 ```
 
-#### Frontend Dependencies
-
-```bash
-cd ../desktop-client
-npm install
-```
+This installs dependencies for both client and server using pnpm workspaces.
 
 ## ⚙️ Configuration
 
@@ -103,14 +95,16 @@ npm install
 
 ```bash
 cd server
-cp .env.example .env  # If you have an example file
+cp .env.example .env
 ```
 
 3. Configure the following environment variables in `server/.env`:
 
 ```env
-# Database
+# Database (local PostgreSQL or Neon DB)
 DATABASE_URL="postgresql://username:password@localhost:5432/hospital_db?schema=public"
+# Or for Neon DB:
+# DATABASE_URL="postgresql://user:pass@host.neon.tech/db?sslmode=require"
 
 # JWT Secrets
 JWT_ACCESS_SECRET=your_access_secret_here
@@ -137,101 +131,92 @@ VITE_API_BASE_URL=http://localhost:4000/api
 
 ## 🏃 Running the Project
 
-### Start the Backend Server
+### Quick Start (Recommended)
 
 ```bash
-cd server
-npm run dev
+# Start both server and client (web mode)
+pnpm dev
+
+# Or start server + Electron desktop app
+pnpm electron
 ```
 
-The server will start on `http://localhost:4000`
-
-### Start the Frontend (Development)
-
-#### Option 1: Web Development Mode
+### Individual Services
 
 ```bash
-cd desktop-client
-npm run dev
+# Backend only (port 4000)
+pnpm dev:server
+
+# Frontend only (port 5173)
+pnpm dev:client
+
+# Electron desktop app (requires server running separately)
+pnpm --filter client electron:dev
 ```
-
-The app will be available at `http://localhost:5173`
-
-#### Option 2: Electron Desktop App
-
-```bash
-cd desktop-client
-npm run electron:dev
-```
-
-This will start both the Vite dev server and Electron app.
 
 ### Database Setup
 
-1. **Create the database**:
+If using a **new database**, run migrations:
 
 ```bash
-# Using PostgreSQL CLI
-createdb hospital_db
+# Create tables (only for new databases)
+pnpm db:migrate
+
+# Generate Prisma client (required on new machines)
+pnpm db:generate
+
+# Seed with test data (optional)
+pnpm db:seed
 ```
 
-2. **Run Prisma migrations**:
+If connecting to an **existing Neon DB** with tables already created:
 
 ```bash
-cd server
-npm run prisma:migrate
-```
+# Just generate the client
+pnpm db:generate
 
-3. **Generate Prisma Client**:
-
-```bash
-npm run prisma:generate
-```
-
-4. **Seed the database** (optional):
-
-```bash
-npx ts-node tests/seed-database.ts
+# Then start the app
+pnpm electron
 ```
 
 ## 📁 Project Structure
 
 ```
 finalYearProject/
-├── server/                 # Backend API server
+├── package.json            # Root workspace config (pnpm)
+├── pnpm-workspace.yaml     # Workspace definition
+├── .npmrc                 # pnpm configuration
+├── server/                # Backend API server
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── config/     # Configuration files
-│   │   │   ├── constants/  # Constants and enums
+│   │   │   ├── config/    # Configuration files
+│   │   │   ├── constants/ # Constants and enums
 │   │   │   ├── middlewares/# Express middlewares
-│   │   │   ├── modules/    # Feature modules (auth, patient, appointment, etc.)
-│   │   │   ├── types/      # TypeScript type definitions
-│   │   │   └── utils/      # Utility functions
-│   │   └── main.ts         # Application entry point
+│   │   │   ├── modules/   # Feature modules (auth, patient, etc.)
+│   │   │   ├── types/     # TypeScript type definitions
+│   │   │   └── utils/     # Utility functions
+│   │   └── main.ts        # Application entry point
 │   ├── prisma/
-│   │   ├── schema.prisma   # Database schema
-│   │   └── migrations/     # Database migrations
-│   ├── tests/              # Test scripts
+│   │   ├── schema.prisma  # Database schema
+│   │   └── migrations/    # Database migrations
+│   ├── tests/             # Test scripts
 │   └── package.json
 │
-├── desktop-client/         # Frontend desktop application
+├── client/                # React + Electron frontend
 │   ├── src/
-│   │   ├── api/           # API client functions
-│   │   ├── components/     # React components
-│   │   │   ├── common/     # Common/reusable components
-│   │   │   └── ui/         # UI components (Shadcn)
-│   │   ├── contexts/       # React contexts
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── pages/          # Page components
-│   │   ├── router/         # Routing configuration
-│   │   ├── types/          # TypeScript types
-│   │   └── utils/          # Utility functions
-│   ├── electron/           # Electron configuration
+│   │   ├── api/          # API client functions
+│   │   ├── components/   # React components
+│   │   ├── contexts/     # React contexts
+│   │   ├── hooks/        # Custom React hooks
+│   │   ├── pages/        # Page components
+│   │   ├── router/       # Routing configuration
+│   │   └── utils/        # Utility functions
+│   ├── electron/         # Electron configuration
 │   └── package.json
 │
-├── commands.md             # Commands reference
-├── todo.md                 # Project todos and notes
-└── README.md              # This file
+├── commands.md            # Commands reference
+├── todo.md                # Project todos and notes
+└── README.md             # This file
 ```
 
 ## 📚 API Documentation
@@ -296,59 +281,87 @@ For detailed schema information, see:
 ### Adding New Features
 
 1. **Backend**: Create a new module in `server/src/app/modules/`
-2. **Frontend**: Create components in `desktop-client/src/components/` or pages in `desktop-client/src/pages/`
+2. **Frontend**: Create components in `client/src/components/` or pages in `client/src/pages/`
 3. **Database**: Update `server/prisma/schema.prisma` and run migrations
 
 ### Database Migrations
 
 ```bash
-cd server
-
 # Create a new migration
-npm run prisma:migrate
+pnpm db:migrate
 
-# Apply migrations
-npm run prisma:migrate:deploy
+# Apply migrations (production)
+cd server && npx prisma migrate deploy
 
 # Push schema changes (development only)
-npm run prisma:push
+cd server && npx prisma db push
 ```
 
 ### Testing
 
 ```bash
 # Backend tests (if available)
-cd server
-npm test
+pnpm --filter server test
 
 # Frontend tests (if available)
-cd desktop-client
-npm test
+pnpm --filter client test
+
+# All tests
+pnpm test
 ```
 
 ## 📖 Commands Reference
 
-For a complete list of available commands, see [commands.md](./commands.md)
+This project uses **pnpm workspaces** for monorepo management.
 
-### Quick Commands
+### Development Commands
 
-**Backend:**
 ```bash
-cd server
-npm run dev              # Start development server
-npm run build            # Build for production
-npm run prisma:generate  # Generate Prisma client
-npm run prisma:studio    # Open Prisma Studio
+pnpm dev              # Start server + client (web mode)
+pnpm electron         # Start server + Electron desktop app
+pnpm dev:server       # Backend only (port 4000)
+pnpm dev:client       # Frontend only (port 5173)
 ```
 
-**Frontend:**
+### Build Commands
+
 ```bash
-cd desktop-client
-npm run dev              # Start Vite dev server
-npm run build            # Build for production
-npm run electron:dev     # Run Electron app in dev mode
-npm run electron:build    # Build Electron app
+pnpm build            # Build both client and server
+pnpm build:server     # Build backend only
+pnpm build:client     # Build frontend only
 ```
+
+### Database Commands
+
+```bash
+pnpm db:migrate       # Run Prisma migrations
+pnpm db:generate      # Generate Prisma client
+pnpm db:studio        # Open Prisma Studio
+pnpm db:seed          # Seed database with test data
+```
+
+### Maintenance Commands
+
+```bash
+pnpm lint             # Run ESLint on all packages
+pnpm clean            # Remove all node_modules and builds
+pnpm clean:install    # Fresh install (clean + install)
+```
+
+### Package-Specific Commands
+
+```bash
+# Add dependency to server only
+pnpm --filter server add express
+
+# Add dev dependency to client only
+pnpm --filter client add -D @types/react
+
+# Run command in specific package
+pnpm --filter server exec prisma migrate dev
+```
+
+For more commands, see [commands.md](./commands.md)
 
 ## 🔐 Authentication
 

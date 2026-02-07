@@ -7,6 +7,19 @@ const isDev = process.env.NODE_ENV === 'development' ||
               process.argv.includes('--dev') || 
               !app.isPackaged;
 
+// Wayland support for Linux
+if (process.platform === 'linux') {
+    // Enable Wayland if available, fallback to X11
+    const waylandEnabled = process.env.XDG_SESSION_TYPE === 'wayland' || 
+                          process.env.WAYLAND_DISPLAY;
+    
+    if (waylandEnabled) {
+        app.commandLine.appendSwitch('ozone-platform-hint', 'auto');
+        app.commandLine.appendSwitch('enable-features', 'WaylandWindowDecorations');
+        console.log('Wayland detected: Enabling native Wayland support');
+    }
+}
+
 let mainWindow;
 
 function createWindow() {

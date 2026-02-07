@@ -1,5 +1,5 @@
 {
-  "name": "medical-management-desktop",
+  "name": "@hospital/client",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "electron": "electron .",
-    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron . --ozone-platform-hint=auto\"",
     "electron:build": "npm run build && electron-builder",
     "electron:dist": "npm run build && electron-builder --publish=never"
   },
