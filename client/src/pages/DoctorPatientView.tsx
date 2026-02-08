@@ -8,12 +8,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { ArrowLeft } from 'lucide-react';
 import { patientsApi } from '@/api';
 import { useAuth } from '@/contexts';
 import PatientInfoCard from '@/components/common/PatientInfoCard';
 import type { Patient } from '@/types';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { DesktopLayout } from '@/components/layout';
 
 const DoctorPatientView = () => {
   const { patientId } = useParams<{ patientId: string }>();
@@ -53,65 +53,49 @@ const DoctorPatientView = () => {
 
   if (loading) {
     return (
-      <div className="w-screen h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner />
-          <p className="font-medium text-lg mt-4">Loading patient data...</p>
+      <DesktopLayout title="Patient Details">
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <LoadingSpinner />
+            <p className="font-medium text-base mt-4">Loading patient data...</p>
+          </div>
         </div>
-      </div>
+      </DesktopLayout>
     );
   }
 
   if (!patient) {
     return (
-      <div className="w-screen h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-lg text-muted-foreground font-medium mb-4">Patient not found</p>
-          <Button onClick={() => navigate('/doctor')} className="font-medium">
-            Back to Dashboard
-          </Button>
+      <DesktopLayout title="Patient Details">
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <p className="text-base text-muted-foreground font-medium mb-4">Patient not found</p>
+            <Button onClick={() => navigate('/doctor')} className="font-medium">
+              Back to Dashboard
+            </Button>
+          </div>
         </div>
-      </div>
+      </DesktopLayout>
     );
   }
 
   return (
-    <div className="w-screen h-screen bg-background flex flex-col overflow-hidden">
-      {/* Header */}
-      <header className="border-b bg-gradient-to-r from-primary to-secondary shadow-lg flex-shrink-0 backdrop-blur-sm">
-        <div className="w-full px-4 py-3 flex justify-between items-center">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/doctor')}
-            className="text-white hover:bg-white/20 font-medium"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          <h1 className="text-xl font-medium text-primary-foreground">Patient Details</h1>
-          <div className="w-24" /> {/* Spacer for centering */}
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-hidden p-6">
-        <div className="max-w-4xl mx-auto">
-          <Card className="shadow-lg border-2">
-            <CardContent className="p-6">
-              <div className="mb-4">
-                <p className="text-sm text-muted-foreground mb-2">
-                  <span className="font-medium">Note:</span> This is a scheduled appointment for tomorrow. 
-                  Consultation can only be added on the appointment date.
-                </p>
-              </div>
-              <PatientInfoCard patient={patient} variant="detailed" showExpandableDetails={true} />
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-    </div>
+    <DesktopLayout title="Patient Details">
+      <div className="max-w-4xl mx-auto">
+        <Card className="shadow-sm border">
+          <CardContent className="p-4">
+            <div className="mb-4">
+              <p className="text-sm text-muted-foreground mb-2">
+                <span className="font-medium">Note:</span> This is a scheduled appointment for tomorrow. 
+                Consultation can only be added on the appointment date.
+              </p>
+            </div>
+            <PatientInfoCard patient={patient} variant="detailed" showExpandableDetails={true} />
+          </CardContent>
+        </Card>
+      </div>
+    </DesktopLayout>
   );
 };
 
 export default DoctorPatientView;
-

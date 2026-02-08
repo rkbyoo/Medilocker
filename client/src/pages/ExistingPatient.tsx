@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
+import { DesktopLayout } from '@/components/layout';
 import { toast } from 'sonner';
 import { ArrowLeft, Search, Nfc, Calendar, User } from 'lucide-react';
 import { patientsApi, appointmentsApi, usersApi } from '@/api';
@@ -13,6 +16,7 @@ import PatientInfoCard from '@/components/common/PatientInfoCard';
 import { ResizablePanels, Panel } from '@/components/ui/resizable-panels';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogAction } from '@/components/ui/alert-dialog';
 import type { Patient } from '@/types';
+import { staggerContainer, staggerItem, scaleIn } from '@/lib/animations';
 
 const ExistingPatient = () => {
   const navigate = useNavigate();
@@ -153,17 +157,12 @@ const ExistingPatient = () => {
 
 
   return (
-    <div className="w-screen h-screen bg-background flex flex-col overflow-hidden">
-      <header className="border-b bg-gradient-to-r from-primary to-secondary shadow-lg flex-shrink-0 backdrop-blur-sm">
-        <div className="w-full px-8 py-4 flex items-center">
-          <Button variant="ghost" onClick={() => navigate('/receptionist')} className="mr-4 text-primary-foreground hover:bg-white/20 font-medium">
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-2xl font-medium text-primary-foreground">Existing Patient Lookup</h1>
-        </div>
-      </header>
-
-      <main className="flex-1 overflow-hidden">
+    <DesktopLayout 
+      title="Existing Patient Lookup" 
+       
+      
+    >
+      <div className="flex-1 overflow-hidden">
         {isSearching && !foundPatient ? (
           // Loading State
           <div className="h-full px-8 py-8 flex items-center justify-center">
@@ -394,8 +393,8 @@ const ExistingPatient = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </main>
-    </div>
+      </div>
+    </DesktopLayout>
   );
 };
 

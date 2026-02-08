@@ -1,16 +1,17 @@
 /**
- * Simple Login Page
- * Basic version without complex dependencies
+ * Login Page
+ * Split-screen desktop aesthetic
  */
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
 import { toast } from 'sonner';
 import { authApi } from '@/api';
-import { Stethoscope } from 'lucide-react';
+import { Stethoscope, Mail, Lock } from 'lucide-react';
+import { fadeInUp, scaleIn, staggerContainer, staggerItem } from '@/lib/animations';
 
 const LoginSimple: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -54,84 +55,136 @@ const LoginSimple: React.FC = () => {
   };
 
   return (
-    <div className="w-screen h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-0 overflow-hidden">
-      <Card className="w-full max-w-lg shadow-lg border-2 mx-4">
-        <CardHeader className="space-y-3 text-center bg-gradient-to-r from-accent to-accent/50">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-md">
-            <Stethoscope className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Medical Management System
-          </CardTitle>
-          <CardDescription>Sign in to access your dashboard</CardDescription>
-        </CardHeader>
-
-        <CardContent className="pt-6">
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="flex items-center gap-4">
-              <label htmlFor="email" className="text-sm font-medium w-24 text-right flex-shrink-0">
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="border-2 focus:border-primary flex-1"
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="flex items-center gap-4">
-              <label htmlFor="password" className="text-sm font-medium w-24 text-right flex-shrink-0">
-                Password
-              </label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="border-2 focus:border-primary flex-1"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Signing in...' : 'Sign In'}
-            </Button>
-          </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-gradient-to-br from-muted to-muted/50 rounded-lg space-y-3 border">
-            <p className="text-sm font-medium text-muted-foreground">Demo Credentials:</p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 text-xs"
-                onClick={() => fillDemoCredentials('receptionist')}
-              >
-                Receptionist
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 text-xs"
-                onClick={() => fillDemoCredentials('doctor')}
-              >
-                Doctor
-              </Button>
+    <div className="min-h-screen bg-[#e7edf5] flex items-center justify-center p-4">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer}
+        className="w-full max-w-4xl"
+      >
+        <motion.div
+          variants={scaleIn}
+          className="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row"
+        >
+          {/* Visual Panel */}
+          <div className="lg:w-1/2 w-full flex flex-col bg-white">
+            <div
+              className="h-2/3 min-h-[230px] bg-cover bg-center"
+              style={{
+                backgroundImage: "url('/login.jpg')",
+              }}
+            />
+            <div className="flex-1 bg-[#1f3fae] text-white px-8 py-6 flex flex-col justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.35em] text-white/70">Hospital Access</p>
+                <h2 className="text-2xl font-semibold mt-4 leading-tight">
+                  Welcome back to Hospital Management
+                </h2>
+                <p className="text-sm text-white/80 mt-3">
+                  Secure desktop console for clinical, reception, and operations teams.
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-[2px] h-12 bg-white/70" />
+                <p className="text-sm text-white/80">
+                  Two-factor authentication protected • HIPAA compliant
+                </p>
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Form Panel */}
+          <div className="lg:w-1/2 w-full bg-white px-10 py-12">
+            <div className="mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                  <Stethoscope className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500">Hospital Management System</p>
+                  <h1 className="text-xl font-semibold text-slate-900">Staff Sign-In</h1>
+                </div>
+              </div>
+              <p className="text-sm text-slate-500 mt-4">
+                Enter your corporate credentials to access the desktop console.
+              </p>
+            </div>
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              <motion.div variants={staggerItem} className="space-y-1.5">
+                <label htmlFor="email" className="text-sm font-medium text-slate-700">
+                  Work Email
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="firstname.lastname@hospital.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    className="pl-9 h-11 border-slate-200 text-sm focus-visible:ring-blue-500"
+                  />
+                </div>
+              </motion.div>
+
+              <motion.div variants={staggerItem} className="space-y-1.5">
+                <label htmlFor="password" className="text-sm font-medium text-slate-700">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    className="pl-9 h-11 border-slate-200 text-sm focus-visible:ring-blue-500"
+                  />
+                </div>
+              </motion.div>
+
+              <motion.div variants={staggerItem}>
+                <AnimatedButton
+                  type="submit"
+                  className="w-full h-11 bg-[#1f4ed8] hover:bg-[#1a46c6]"
+                  loading={isLoading}
+                  loadingText="Signing in..."
+                >
+                  Sign In
+                </AnimatedButton>
+              </motion.div>
+            </form>
+
+            <motion.div variants={staggerItem} className="mt-10 border-t pt-6">
+              <p className="text-xs text-slate-500 mb-3 text-center uppercase tracking-[0.3em]">
+                Demo Access
+              </p>
+              <div className="flex gap-3">
+                <AnimatedButton
+                  variant="outline"
+                  className="flex-1 h-10"
+                  onClick={() => fillDemoCredentials('receptionist')}
+                >
+                  Reception Desk
+                </AnimatedButton>
+                <AnimatedButton
+                  variant="outline"
+                  className="flex-1 h-10"
+                  onClick={() => fillDemoCredentials('doctor')}
+                >
+                  Doctor Portal
+                </AnimatedButton>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

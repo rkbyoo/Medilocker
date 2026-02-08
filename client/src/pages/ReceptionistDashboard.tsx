@@ -1,79 +1,72 @@
+/**
+ * Receptionist Dashboard
+ * Desktop application style with sidebar navigation
+ */
+
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { UserPlus, ClipboardList, LogOut } from 'lucide-react';
-import { authApi } from '@/api';
+import { motion } from 'framer-motion';
+import { UserPlus, ClipboardList } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DesktopLayout } from '@/components/layout';
+import { staggerContainer, staggerItem } from '@/lib/animations';
 
 const ReceptionistDashboard = () => {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    authApi.logout();
-    navigate('/');
-  };
+  const actions = [
+    {
+      title: 'Register New Patient',
+      description: 'Create a new patient record',
+      icon: UserPlus,
+      path: '/receptionist/register-patient',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+    },
+    {
+      title: 'Find Patient',
+      description: 'Search and manage existing patients',
+      icon: ClipboardList,
+      path: '/receptionist/existing-patient',
+      color: 'text-slate-600',
+      bgColor: 'bg-slate-50',
+    },
+  ];
 
   return (
-    <div className="w-screen h-screen bg-background overflow-hidden flex flex-col">
-      <header className="border-b bg-gradient-to-r from-primary to-secondary shadow-lg backdrop-blur-sm flex-shrink-0">
-        <div className="w-full px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-medium text-primary-foreground">Receptionist Dashboard</h1>
-          <Button variant="ghost" onClick={handleLogout} className="text-primary-foreground hover:bg-white/20 text-base font-medium">
-            <LogOut className="w-5 h-5 mr-2" />
-            Logout
-          </Button>
+    <DesktopLayout title="Dashboard">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer}
+        className="max-w-4xl mx-auto"
+      >
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-1">Welcome to Hospital Management System</h3>
+          <p className="text-sm text-muted-foreground">Select an action to get started</p>
         </div>
-      </header>
 
-      <main className="flex-1 px-8 py-8 overflow-hidden flex items-center justify-center">
-        <div className="w-full max-w-7xl">
-          <h2 className="text-3xl font-medium mb-12 text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            What would you like to do?
-          </h2>
-
-          <div className="grid grid-cols-2 gap-12 max-w-5xl mx-auto">
-            <Card
-              className="cursor-pointer hover:shadow-xl transition-all duration-300 border-2 hover:border-primary hover:scale-105 bg-gradient-to-br from-card to-primary/5 h-80"
-              onClick={() => navigate('/receptionist/register-patient')}
-            >
-              <CardHeader className="pb-6 text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/70 rounded-full flex items-center justify-center mb-6 shadow-lg mx-auto">
-                  <UserPlus className="w-10 h-10 text-primary-foreground" />
-                </div>
-                <CardTitle className="text-2xl font-medium">Register New Patient</CardTitle>
-                <CardDescription className="text-base font-medium mt-3">
-                  Register a new patient who doesn't have an NFC card
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0 px-6">
-                <Button className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md font-medium text-base" size="lg">
-                  Start Registration
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="cursor-pointer hover:shadow-xl transition-all duration-300 border-2 hover:border-secondary hover:scale-105 bg-gradient-to-br from-card to-secondary/5 h-80"
-              onClick={() => navigate('/receptionist/existing-patient')}
-            >
-              <CardHeader className="pb-6 text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-secondary to-secondary/70 rounded-full flex items-center justify-center mb-6 shadow-lg mx-auto">
-                  <ClipboardList className="w-10 h-10 text-secondary-foreground" />
-                </div>
-                <CardTitle className="text-2xl font-medium">Existing Patient</CardTitle>
-                <CardDescription className="text-base font-medium mt-3">
-                  Handle existing patient with NFC card or patient ID
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0 px-6">
-                <Button variant="default" className="w-full bg-gradient-to-r from-secondary to-secondary/80 hover:from-secondary/90 hover:to-secondary/70 shadow-md font-medium text-base" size="lg">
-                  Lookup Patient
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+        <div className="grid grid-cols-2 gap-4">
+          {actions.map((action, index) => (
+            <motion.div key={action.path} variants={staggerItem} custom={index}>
+              <Card 
+                className="cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => navigate(action.path)}
+              >
+                <CardHeader className="pb-3">
+                  <div className={`w-10 h-10 ${action.bgColor} rounded-md flex items-center justify-center mb-3`}>
+                    <action.icon className={`w-5 h-5 ${action.color}`} />
+                  </div>
+                  <CardTitle className="text-base font-semibold">{action.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">{action.description}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
         </div>
-      </main>
-    </div>
+      </motion.div>
+    </DesktopLayout>
   );
 };
 

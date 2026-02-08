@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { patientsApi } from "@/api";
 import type { Patient } from "@/types";
+import { accordionContent } from "@/lib/animations";
 
 interface Props {
   patient: Patient;
@@ -31,7 +33,7 @@ const PatientInfoCard = ({ patient, variant = "detailed", showExpandableDetails 
     <Card className="bg-white border rounded-xl shadow-sm w-full h-full overflow-hidden flex flex-col">
 
       {/* Header */}
-      <div className="px-6 py-4 border-b bg-gray-50">
+      <div className="px-6 py-4 border-b bg-muted/30">
         <div className="flex items-center gap-4">
           {/* Smaller Profile Picture */}
           <div className="w-16 h-16 rounded-full bg-white border shadow-sm flex items-center justify-center flex-shrink-0">
@@ -40,16 +42,16 @@ const PatientInfoCard = ({ patient, variant = "detailed", showExpandableDetails 
           
           {/* Basic Info */}
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold text-gray-900 truncate">{patient.name}</h2>
+            <h2 className="text-lg font-bold text-foreground truncate">{patient.name}</h2>
             <p className="text-sm text-muted-foreground mb-2">ID: {patient.id}</p>
             
             {/* Key Details */}
             <div className="space-y-1">
               <div className="flex items-center gap-3 text-sm">
-                <span className="text-gray-600">Age:</span>
+                <span className="text-muted-foreground">Age:</span>
                 <span className="font-medium">{calculateAge(patient.dateOfBirth)} years</span>
                 <span className="text-gray-400">•</span>
-                <span className="text-gray-600">Gender:</span>
+                <span className="text-muted-foreground">Gender:</span>
                 <span className="font-medium">{patient.gender}</span>
               </div>
               
@@ -214,13 +216,13 @@ const Detail = ({
 }) => (
   <div className={`flex items-start gap-2 ${fullWidth ? "md:col-span-2" : ""}`}>
     {icon && <span className="text-gray-400 mt-[2px]">{icon}</span>}
-    <span className="text-sm text-gray-500 w-24">{label}</span>
-    <span className="text-sm font-medium text-gray-900 flex-1 leading-tight">{value}</span>
+    <span className="text-sm text-muted-foreground w-24">{label}</span>
+    <span className="text-sm font-medium text-foreground flex-1 leading-tight">{value}</span>
   </div>
 );
 
 const SectionTitle = ({ title }: { title: string }) => (
-  <p className="text-xs uppercase tracking-wide text-gray-500 font-semibold border-b pb-1">
+  <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold border-b pb-1">
     {title}
   </p>
 );

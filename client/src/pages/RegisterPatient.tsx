@@ -1,15 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
+import { DesktopLayout } from '@/components/layout';
 import { toast } from 'sonner';
 import { ArrowLeft, Save } from 'lucide-react';
 import { patientsApi } from '@/api';
 import type { Patient } from '@/types';
+import { staggerContainer, staggerItem } from '@/lib/animations';
 
 const RegisterPatient = () => {
   const navigate = useNavigate();
@@ -70,23 +74,19 @@ const RegisterPatient = () => {
   };
 
   return (
-    <div className="w-screen h-screen bg-background flex flex-col overflow-hidden">
-      <header className="border-b bg-gradient-to-r from-primary to-secondary shadow-lg flex-shrink-0 backdrop-blur-sm">
-        <div className="w-full px-8 py-4 flex items-center">
-          <Button variant="ghost" onClick={() => navigate('/receptionist')} className="mr-4 text-primary-foreground hover:bg-white/20 font-medium">
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-2xl font-medium text-primary-foreground">Register New Patient</h1>
-        </div>
-      </header>
-
-      <main className="flex-1 px-8 py-6 overflow-hidden">
-        <Card className="w-full h-full max-w-7xl mx-auto shadow-lg border-2 flex flex-col">
-          <CardHeader className="bg-gradient-to-r from-accent to-accent/50 flex-shrink-0">
-            <CardTitle className="text-xl font-medium">Patient Information</CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 p-8 overflow-hidden">
-            <form onSubmit={handleSubmit} className="h-full flex flex-col">
+    <DesktopLayout title="Register New Patient">
+      <div className="h-full p-6">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+        >
+          <Card className="w-full h-full max-w-7xl mx-auto shadow-md border flex flex-col">
+            <CardHeader className="border-b bg-muted/30 flex-shrink-0 py-4">
+              <CardTitle className="font-heading text-xl font-semibold">Patient Information</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 p-8 overflow-hidden">
+              <form onSubmit={handleSubmit} className="h-full flex flex-col">
               <div className="flex-1 grid grid-cols-3 gap-x-10 gap-y-4 overflow-hidden px-2">
                 {/* Column 1 - Basic Information */}
                 <div className="space-y-4">
@@ -319,38 +319,31 @@ const RegisterPatient = () => {
               </div>
 
               <div className="flex gap-6 pt-6 border-t flex-shrink-0">
-                <Button 
+                <AnimatedButton 
                   type="button" 
                   variant="outline" 
                   onClick={() => navigate('/receptionist')} 
-                  className="flex-1 text-base font-medium h-11"
+                  className="flex-1 h-11"
                   disabled={isRegistering}
                 >
                   Cancel
-                </Button>
-                <Button 
+                </AnimatedButton>
+                <AnimatedButton 
                   type="submit" 
-                  className="flex-1 text-base font-medium h-11"
-                  disabled={isRegistering}
+                  className="flex-1 h-11"
+                  loading={isRegistering}
+                  loadingText="Registering..."
+                  icon={<Save className="w-5 h-5" />}
                 >
-                  {isRegistering ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Registering...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-5 h-5 mr-2" />
-                      Register Patient
-                    </>
-                  )}
-                </Button>
+                  Register Patient
+                </AnimatedButton>
               </div>
             </form>
           </CardContent>
         </Card>
-      </main>
-    </div>
+        </motion.div>
+      </div>
+    </DesktopLayout>
   );
 };
 

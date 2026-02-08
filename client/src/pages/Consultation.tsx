@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
+import { DesktopLayout } from '@/components/layout';
 import { ResizablePanels, Panel } from '@/components/ui/resizable-panels';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 
@@ -20,11 +23,12 @@ import {
   Calendar,
   FileText
 } from 'lucide-react';
-import { patientsApi, medicalRecordsApi, authApi, visitsApi, appointmentsApi } from '@/api';
+import { patientsApi, authApi, visitsApi, appointmentsApi } from '@/api';
 import { useAuth } from '@/contexts';
 import PatientInfoCard from '@/components/common/PatientInfoCard';
-import type { Patient, MedicalRecord } from '@/types';
+import type { Patient } from '@/types';
 import type { Visit } from '@/api/visits';
+import { staggerContainer, staggerItem, cardHover } from '@/lib/animations';
 
 
 
@@ -263,17 +267,12 @@ const Consultation = () => {
   }
 
   return (
-    <div className="w-screen h-screen bg-background flex flex-col overflow-hidden">
-      <header className="border-b bg-gradient-to-r from-primary to-secondary shadow-lg flex-shrink-0 backdrop-blur-sm">
-        <div className="w-full px-4 py-3 flex items-center">
-          <Button variant="ghost" onClick={() => navigate('/doctor')} className="mr-4 text-primary-foreground hover:bg-white/20 font-medium">
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <h1 className="text-xl font-medium text-primary-foreground">Patient Consultation</h1>
-        </div>
-      </header>
-
-      <main className="flex-1 overflow-hidden">
+    <DesktopLayout 
+      title="Patient Consultation" 
+       
+      
+    >
+      <div className="flex-1 overflow-hidden">
         <ResizablePanels defaultSizes={[40, 60]} minSizes={[25, 25]} className="h-full">
           <Panel>
             {/* Nested vertical panels for Patient Profile and Medical History */}
@@ -516,8 +515,8 @@ const Consultation = () => {
             </Card>
           </Panel>
         </ResizablePanels>
-      </main>
-    </div>
+      </div>
+    </DesktopLayout>
   );
 };
 
