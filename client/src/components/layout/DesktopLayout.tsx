@@ -46,12 +46,14 @@ interface DesktopLayoutProps {
   children: React.ReactNode;
   title?: string;
   actions?: React.ReactNode;
+  header?: React.ReactNode;
 }
 
-export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ 
-  children, 
+export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
+  children,
   title,
-  actions 
+  actions,
+  header
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -137,7 +139,11 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        {(title || actions) && (
+        {header ? (
+          <header className="h-12 border-b bg-card flex items-center px-4 flex-shrink-0">
+            {header}
+          </header>
+        ) : (title || actions) && (
           <header className="h-12 border-b bg-card flex items-center px-4 flex-shrink-0">
             {title && (
               <h2 className="font-semibold text-base">{title}</h2>
@@ -151,7 +157,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
         )}
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto p-4">
+        <div className="flex-1 overflow-hidden">
           {children}
         </div>
       </main>

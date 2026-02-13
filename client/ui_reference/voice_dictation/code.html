@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Refined Consultation Workspace</title>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1246e2",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101522",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"],
+                        "sans": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    keyframes: {
+                        pulseRing: {
+                            '0%': { transform: 'scale(0.8)', opacity: '0.5' },
+                            '100%': { transform: 'scale(2.5)', opacity: '0' },
+                        },
+                        wave: {
+                            '0%, 100%': { height: '10px' },
+                            '50%': { height: '25px' },
+                        }
+                    },
+                    animation: {
+                        pulseRing: 'pulseRing 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite',
+                        wave1: 'wave 1s ease-in-out infinite',
+                        wave2: 'wave 1.2s ease-in-out infinite 0.1s',
+                        wave3: 'wave 0.8s ease-in-out infinite 0.2s',
+                        wave4: 'wave 1.1s ease-in-out infinite 0.3s',
+                        wave5: 'wave 0.9s ease-in-out infinite 0.4s',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 antialiased overflow-hidden h-screen flex relative">
+<div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+<div class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100 flex flex-col">
+<div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+<h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">graphic_eq</span>
+            Voice Dictation - Diagnosis &amp; Findings
+        </h3>
+<button class="text-slate-400 hover:text-slate-600 transition-colors">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="p-8 flex flex-col items-center justify-center border-b border-gray-100">
+<div class="relative size-16 flex items-center justify-center mb-6">
+<div class="absolute inset-0 bg-blue-100 rounded-full animate-pulseRing"></div>
+<div class="relative bg-primary text-white size-14 rounded-full flex items-center justify-center shadow-lg shadow-blue-200 z-10">
+<span class="material-symbols-outlined text-[28px]">mic</span>
+</div>
+</div>
+<p class="text-sm font-semibold text-slate-700 mb-1">Listening...</p>
+<p class="text-xs text-slate-400 mb-6">Speak clearly into your microphone</p>
+<div class="flex items-center justify-center gap-1 h-8">
+<div class="w-1 bg-blue-400 rounded-full animate-wave1"></div>
+<div class="w-1 bg-blue-500 rounded-full animate-wave2"></div>
+<div class="w-1 bg-blue-600 rounded-full animate-wave3"></div>
+<div class="w-1 bg-blue-500 rounded-full animate-wave4"></div>
+<div class="w-1 bg-blue-400 rounded-full animate-wave1"></div>
+<div class="w-1 bg-blue-300 rounded-full animate-wave5"></div>
+<div class="w-1 bg-blue-400 rounded-full animate-wave2"></div>
+<div class="w-1 bg-blue-500 rounded-full animate-wave3"></div>
+</div>
+</div>
+<div class="p-6 bg-gray-50/30 flex-1">
+<label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Live Transcription</label>
+<div class="relative">
+<textarea class="w-full h-32 rounded-lg border-gray-200 text-[13px] leading-relaxed text-slate-700 bg-white focus:border-primary focus:ring-primary p-3 shadow-sm resize-none" placeholder="Transcription will appear here...">Patient reports experiencing mild chest discomfort since yesterday evening. Pain is localized and non-radiating. Vital signs show slightly elevated blood pressure...</textarea>
+<div class="absolute bottom-3 right-3 flex gap-2">
+<button class="text-slate-400 hover:text-primary transition-colors" title="Copy">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+</button>
+<button class="text-slate-400 hover:text-red-500 transition-colors" title="Clear">
+<span class="material-symbols-outlined text-[16px]">delete_outline</span>
+</button>
+</div>
+</div>
+</div>
+<div class="px-6 py-4 bg-white border-t border-gray-100 flex justify-end items-center gap-3">
+<button class="px-4 py-2 rounded-lg border border-gray-200 text-slate-600 text-sm font-semibold hover:bg-gray-50 hover:text-slate-800 transition-colors">
+            Cancel
+        </button>
+<button class="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-blue-700 shadow-md shadow-blue-200 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">check</span>
+            Insert into Consultation
+        </button>
+</div>
+</div>
+</div>
+<aside class="w-[260px] bg-[#111827] text-white flex flex-col h-full shrink-0 z-20 shadow-xl">
+<div class="p-5 border-b border-gray-800 flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[20px]">local_hospital</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight text-white">MedCore</h1>
+</div>
+<nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border-l-4 border-primary" href="#">
+<span class="material-symbols-outlined text-[20px] text-primary">clinical_notes</span>
+<span class="text-sm font-medium">Consultation</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">group</span>
+<span class="text-sm font-medium">Patients</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">calendar_month</span>
+<span class="text-sm font-medium">Schedule</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">lab_profile</span>
+<span class="text-sm font-medium">Reports</span>
+</a>
+</nav>
+<div class="p-4 border-t border-gray-800 space-y-4">
+<div class="flex items-center gap-3 px-2">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-9 ring-2 ring-gray-700" data-alt="Doctor profile portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDgf74Li6nZ1Z2rR_t577xvNDuAvyL7_JKsl0zfOS6Vi4yb-g0L0pFkbbkb5q86YwjufReYO06CUCjTHbmJ-q3ud7JucByBAZVv7B8Sjg_YV37kr0S5Cp5HrT2EG3JqzTxLYhy1cEIvRSaWmzJT6KLYcrrFSO9xWNoKj2X_Y2ZPInl5AXWNhAmI0gGHMnRHo0-gG8pag8gF9zmpmPszh00ba2INsmG1aqB9znmw2-JIk6KW-q_wa_1KdvSwQd8SFFjvJQLr--8tj0g");'></div>
+<div class="flex flex-col">
+<h1 class="text-sm font-semibold leading-tight text-white">Dr. Smith</h1>
+<p class="text-gray-400 text-xs font-normal">General Practitioner</p>
+</div>
+</div>
+<div class="pt-2 border-t border-gray-800/50">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-red-400 transition-colors group mt-1" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-red-400 transition-colors">logout</span>
+<span class="text-sm font-medium">Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<main class="flex flex-1 h-full overflow-hidden bg-gray-50/50 blur-[1px]">
+<div class="w-[35%] flex flex-col border-r border-gray-200 bg-white h-full overflow-hidden">
+<div class="p-6 border-b border-gray-100">
+<div class="flex items-start gap-4 mb-4">
+<div class="relative">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-16 ring-4 ring-gray-50 shadow-sm" data-alt="Patient profile portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAa6xMN_kCEUUy1nz9dsgb28mhsWcY6LsZpw72ZoZA4lDLnWOK9qITMih7OSg9FW7-Hysq2aJTm3BWTMAj4_MPskt3aPBzCREqOVAXGAT82ZdrgA07_0epXhzM4hVeiDh-c_A_RXFCCs89byqLMlNEfzaJ-f8HRO0EHQqRUFe6YmNiOyDlf9rPS5ZI9JVyYKtAFIuDPYqg2CBVDX7CHh7w_hHvoze8UL_nqg9vL-GZtd1-Ek5MygszqtXjgGYRdwo3sY0fOE0oEdho");'></div>
+<span class="absolute bottom-0 right-0 size-4 bg-green-500 border-2 border-white rounded-full"></span>
+</div>
+<div class="flex flex-col pt-1">
+<h2 class="text-lg font-bold text-slate-900 leading-tight">Jane Doe (34F)</h2>
+<p class="text-slate-500 text-xs font-medium mt-1">ID: NFC-89221</p>
+<div class="flex items-center gap-2 mt-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                                Blood: O+
+                            </span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                                Last Visit: 12 days ago
+                            </span>
+</div>
+</div>
+</div>
+<div class="flex flex-wrap gap-2">
+<div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-red-50 border border-red-100">
+<span class="material-symbols-outlined text-[16px] text-red-600">warning</span>
+<span class="text-xs font-semibold text-red-700">Allergy: Penicillin</span>
+</div>
+<div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-orange-50 border border-orange-100">
+<span class="material-symbols-outlined text-[16px] text-orange-600">monitor_heart</span>
+<span class="text-xs font-semibold text-orange-700">Chronic: Hypertension</span>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-6 bg-gray-50/30">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Recent History</h3>
+<div class="relative pl-4 border-l-2 border-gray-200 space-y-8">
+<div class="relative group">
+<div class="absolute -left-[21px] top-1 size-3 bg-white border-2 border-primary rounded-full group-hover:scale-110 transition-transform"></div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-start">
+<span class="text-xs font-semibold text-primary">Oct 12, 2023</span>
+<span class="text-[10px] font-medium text-slate-400 bg-white px-1.5 py-0.5 rounded border border-gray-100">Dr. Lee</span>
+</div>
+<h4 class="text-sm font-bold text-slate-800">Viral Fever</h4>
+<p class="text-xs text-slate-500 leading-relaxed line-clamp-2">Patient reported high fever (102°F) with chills and body ache. Prescribed antipyretics and rest.</p>
+<a class="text-[11px] font-semibold text-primary mt-1 hover:underline decoration-primary/30" href="#">View Report</a>
+</div>
+</div>
+<div class="relative group">
+<div class="absolute -left-[21px] top-1 size-3 bg-white border-2 border-gray-300 rounded-full group-hover:border-primary transition-colors"></div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-start">
+<span class="text-xs font-semibold text-slate-500">Aug 04, 2023</span>
+<span class="text-[10px] font-medium text-slate-400 bg-white px-1.5 py-0.5 rounded border border-gray-100">Dr. Smith</span>
+</div>
+<h4 class="text-sm font-bold text-slate-800">Routine Checkup</h4>
+<p class="text-xs text-slate-500 leading-relaxed line-clamp-2">Regular quarterly checkup for hypertension management. BP stable at 120/80.</p>
+<a class="text-[11px] font-semibold text-primary mt-1 hover:underline decoration-primary/30" href="#">View Report</a>
+</div>
+</div>
+<div class="relative group">
+<div class="absolute -left-[21px] top-1 size-3 bg-white border-2 border-gray-300 rounded-full group-hover:border-primary transition-colors"></div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-start">
+<span class="text-xs font-semibold text-slate-500">Jul 15, 2023</span>
+<span class="text-[10px] font-medium text-slate-400 bg-white px-1.5 py-0.5 rounded border border-gray-100">Pathology Lab</span>
+</div>
+<h4 class="text-sm font-bold text-slate-800">Blood Test</h4>
+<p class="text-xs text-slate-500 leading-relaxed line-clamp-2">CBC, Lipid Profile, and Blood Sugar Fasting.</p>
+<a class="text-[11px] font-semibold text-primary mt-1 hover:underline decoration-primary/30" href="#">View Report</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="w-[65%] flex flex-col h-full bg-white relative">
+<div class="shrink-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center sticky top-0 z-10">
+<div>
+<h2 class="text-xl font-bold text-slate-900">Consultation</h2>
+<p class="text-sm text-slate-500">Today, <span class="font-medium text-slate-700">Oct 24, 2023</span> • 10:30 AM</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Active Visit
+                    </span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-6 space-y-6 bg-white">
+<section>
+<div class="flex justify-between items-end mb-3">
+<h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">diagnosis</span> Diagnosis &amp; Findings
+                    </h4>
+<button class="text-xs font-semibold text-primary hover:text-white border border-primary hover:bg-primary px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5 group">
+<span class="material-symbols-outlined text-[16px] group-hover:animate-pulse">mic</span>
+<span>Voice Input</span>
+</button>
+</div>
+<textarea class="block w-full rounded-md border-gray-200 text-sm text-slate-700 focus:border-primary focus:ring-primary min-h-[120px] resize-y bg-gray-50/50 p-3 leading-relaxed" placeholder="Enter detailed diagnosis here...Or use voice input to transcribe findings.">Acute Viral Pharyngitis. Patient presents with low-grade fever and throat pain. Lungs clear to auscultation. No lymphadenopathy detected.</textarea>
+</section>
+<section>
+<div class="flex justify-between items-end mb-3">
+<h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">pill</span> Medications
+                        </h4>
+</div>
+<div class="border border-gray-200 rounded-lg overflow-hidden">
+<table class="w-full text-left text-sm">
+<thead class="bg-gray-50 border-b border-gray-200">
+<tr>
+<th class="px-4 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-wide w-[35%]">Drug Name</th>
+<th class="px-4 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-wide">Dosage</th>
+<th class="px-4 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-wide">Freq</th>
+<th class="px-4 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-wide">Duration</th>
+<th class="px-4 py-2 w-10"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-100">
+<tr class="group hover:bg-gray-50/50">
+<td class="px-4 py-2">
+<input class="w-full border-none bg-transparent p-0 text-sm font-medium text-slate-900 focus:ring-0 placeholder-gray-400" type="text" value="Paracetamol"/>
+</td>
+<td class="px-4 py-2">
+<input class="w-full border-none bg-transparent p-0 text-sm text-slate-600 focus:ring-0 placeholder-gray-400" type="text" value="500mg"/>
+</td>
+<td class="px-4 py-2">
+<input class="w-full border-none bg-transparent p-0 text-sm text-slate-600 focus:ring-0 placeholder-gray-400" type="text" value="BID"/>
+</td>
+<td class="px-4 py-2">
+<input class="w-full border-none bg-transparent p-0 text-sm text-slate-600 focus:ring-0 placeholder-gray-400" type="text" value="3 Days"/>
+</td>
+<td class="px-4 py-2 text-right">
+<button class="text-slate-400 hover:text-red-500 transition-colors" title="Remove">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
+</tr>
+<tr class="group hover:bg-gray-50/50">
+<td class="px-4 py-2">
+<input class="w-full border-none bg-transparent p-0 text-sm font-medium text-slate-900 focus:ring-0 placeholder-gray-400" type="text" value="Cetrizine"/>
+</td>
+<td class="px-4 py-2">
+<input class="w-full border-none bg-transparent p-0 text-sm text-slate-600 focus:ring-0 placeholder-gray-400" type="text" value="10mg"/>
+</td>
+<td class="px-4 py-2">
+<input class="w-full border-none bg-transparent p-0 text-sm text-slate-600 focus:ring-0 placeholder-gray-400" type="text" value="OD"/>
+</td>
+<td class="px-4 py-2">
+<input class="w-full border-none bg-transparent p-0 text-sm text-slate-600 focus:ring-0 placeholder-gray-400" type="text" value="5 Days"/>
+</td>
+<td class="px-4 py-2 text-right">
+<button class="text-slate-400 hover:text-red-500 transition-colors" title="Remove">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
+</tr>
+<tr class="bg-blue-50/30">
+<td class="px-4 py-2">
+<input class="w-full rounded border-gray-200 bg-white px-2 py-1 text-sm font-medium text-slate-900 focus:border-primary focus:ring-primary placeholder-gray-400 shadow-sm" placeholder="e.g. Amoxicillin" type="text"/>
+</td>
+<td class="px-4 py-2">
+<input class="w-full rounded border-gray-200 bg-white px-2 py-1 text-sm text-slate-600 focus:border-primary focus:ring-primary placeholder-gray-400 shadow-sm" placeholder="500mg" type="text"/>
+</td>
+<td class="px-4 py-2">
+<input class="w-full rounded border-gray-200 bg-white px-2 py-1 text-sm text-slate-600 focus:border-primary focus:ring-primary placeholder-gray-400 shadow-sm" placeholder="TID" type="text"/>
+</td>
+<td class="px-4 py-2">
+<input class="w-full rounded border-gray-200 bg-white px-2 py-1 text-sm text-slate-600 focus:border-primary focus:ring-primary placeholder-gray-400 shadow-sm" placeholder="7 Days" type="text"/>
+</td>
+<td class="px-4 py-2 text-right">
+<button class="flex items-center justify-center size-8 rounded-full bg-primary text-white hover:bg-blue-700 transition-colors shadow-sm mx-auto">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section>
+<h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">notes</span> Advice &amp; Notes
+                    </h4>
+<textarea class="block w-full rounded-md border-gray-200 text-sm text-slate-700 focus:border-primary focus:ring-primary min-h-[80px] bg-gray-50/50 p-3" placeholder="Enter advice for patient...">Drink plenty of warm fluids. Salt water gargle 3 times a day. Avoid cold beverages. Follow up if fever persists beyond 3 days.</textarea>
+</section>
+</div>
+<div class="border-t border-gray-200 bg-white p-4 shrink-0 flex items-center justify-between z-20">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200 transition-colors hover:border-gray-300">
+<div class="flex items-center h-5">
+<input class="size-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" id="schedule-followup" type="checkbox"/>
+</div>
+<div class="flex flex-col">
+<label class="text-sm font-medium text-slate-700 cursor-pointer select-none" for="schedule-followup">Schedule Follow-up</label>
+<div class="flex items-center gap-2 h-0 overflow-hidden transition-all duration-300 ease-in-out opacity-0" id="date-picker-container">
+<input class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 text-sm py-1 px-2" type="date"/>
+</div>
+</div>
+</div>
+<style>
+                        #schedule-followup:checked ~ div #date-picker-container {
+                            height: auto;
+                            opacity: 1;
+                            margin-top: 0.25rem;
+                            padding-bottom: 0.25rem;
+                        }
+                    </style>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-transparent text-slate-600 hover:bg-slate-50 text-sm font-semibold transition-colors">
+                        Save as Draft
+                    </button>
+<button class="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary text-white hover:bg-blue-700 shadow-md shadow-blue-200 text-sm font-bold transition-all">
+<span class="material-symbols-outlined text-[18px]">print</span>
+                        Save &amp; Print
+                    </button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

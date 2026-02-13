@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Historical Visit Report Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1246e2",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101522",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"],
+                        "sans": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 antialiased overflow-hidden h-screen flex">
+<aside class="w-[260px] bg-[#111827] text-white flex flex-col h-full shrink-0 z-20 shadow-xl">
+<div class="p-5 border-b border-gray-800 flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[20px]">local_hospital</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight text-white">MedCore</h1>
+</div>
+<nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">clinical_notes</span>
+<span class="text-sm font-medium">Consultation</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">group</span>
+<span class="text-sm font-medium">Patients</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">calendar_month</span>
+<span class="text-sm font-medium">Schedule</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border-l-4 border-primary" href="#">
+<span class="material-symbols-outlined text-[20px] text-primary">lab_profile</span>
+<span class="text-sm font-medium">Reports</span>
+</a>
+</nav>
+<div class="p-4 border-t border-gray-800 space-y-4">
+<div class="flex items-center gap-3 px-2">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-9 ring-2 ring-gray-700" data-alt="Doctor profile portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDgf74Li6nZ1Z2rR_t577xvNDuAvyL7_JKsl0zfOS6Vi4yb-g0L0pFkbbkb5q86YwjufReYO06CUCjTHbmJ-q3ud7JucByBAZVv7B8Sjg_YV37kr0S5Cp5HrT2EG3JqzTxLYhy1cEIvRSaWmzJT6KLYcrrFSO9xWNoKj2X_Y2ZPInl5AXWNhAmI0gGHMnRHo0-gG8pag8gF9zmpmPszh00ba2INsmG1aqB9znmw2-JIk6KW-q_wa_1KdvSwQd8SFFjvJQLr--8tj0g");'></div>
+<div class="flex flex-col">
+<h1 class="text-sm font-semibold leading-tight text-white">Dr. Smith</h1>
+<p class="text-gray-400 text-xs font-normal">General Practitioner</p>
+</div>
+</div>
+<div class="pt-2 border-t border-gray-800/50">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-red-400 transition-colors group mt-1" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-red-400 transition-colors">logout</span>
+<span class="text-sm font-medium">Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<main class="flex flex-1 flex-col h-full overflow-hidden bg-gray-50">
+<header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center size-8 rounded-full hover:bg-gray-100 text-slate-500 transition-colors">
+<span class="material-symbols-outlined text-[22px]">arrow_back</span>
+</button>
+<div>
+<h2 class="text-lg font-bold text-slate-900 leading-none">Visit Report</h2>
+<p class="text-xs text-slate-500 mt-1 font-medium">October 12, 2023 • 09:45 AM</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="inline-flex items-center px-2.5 py-1 rounded text-[11px] font-semibold bg-gray-100 text-gray-600 border border-gray-200 uppercase tracking-wide">
+                    Historical Record
+                </span>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded bg-white border border-gray-300 text-slate-700 hover:bg-gray-50 text-xs font-semibold shadow-sm transition-all">
+<span class="material-symbols-outlined text-[16px]">print</span>
+                    Print
+                </button>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded bg-primary text-white hover:bg-blue-700 text-xs font-semibold shadow-sm transition-all">
+<span class="material-symbols-outlined text-[16px]">download</span>
+                    Export PDF
+                </button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<div class="w-[30%] bg-white border-r border-gray-200 h-full overflow-y-auto p-6">
+<div class="bg-slate-50 rounded-xl border border-slate-200 p-5 shadow-sm mb-6">
+<div class="flex flex-col items-center text-center">
+<div class="relative mb-4">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-20 ring-4 ring-white shadow-md" data-alt="Patient profile portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAa6xMN_kCEUUy1nz9dsgb28mhsWcY6LsZpw72ZoZA4lDLnWOK9qITMih7OSg9FW7-Hysq2aJTm3BWTMAj4_MPskt3aPBzCREqOVAXGAT82ZdrgA07_0epXhzM4hVeiDh-c_A_RXFCCs89byqLMlNEfzaJ-f8HRO0EHQqRUFe6YmNiOyDlf9rPS5ZI9JVyYKtAFIuDPYqg2CBVDX7CHh7w_hHvoze8UL_nqg9vL-GZtd1-Ek5MygszqtXjgGYRdwo3sY0fOE0oEdho");'></div>
+</div>
+<h2 class="text-lg font-bold text-slate-900">Jane Doe</h2>
+<p class="text-slate-500 text-sm font-medium mt-0.5">34 Years, Female</p>
+<div class="mt-3 inline-flex items-center px-2.5 py-1 rounded bg-white border border-gray-200 text-xs font-mono text-slate-600 shadow-sm">
+<span class="material-symbols-outlined text-[14px] text-slate-400 mr-1.5">nfc</span>
+                            NFC-89221
+                        </div>
+</div>
+<div class="mt-6 space-y-3">
+<div class="flex justify-between py-2 border-b border-slate-200 border-dashed">
+<span class="text-xs text-slate-500 font-medium">Blood Type</span>
+<span class="text-xs font-bold text-slate-800">O+</span>
+</div>
+<div class="flex justify-between py-2 border-b border-slate-200 border-dashed">
+<span class="text-xs text-slate-500 font-medium">Height</span>
+<span class="text-xs font-bold text-slate-800">165 cm</span>
+</div>
+<div class="flex justify-between py-2 border-b border-slate-200 border-dashed">
+<span class="text-xs text-slate-500 font-medium">Weight</span>
+<span class="text-xs font-bold text-slate-800">62 kg</span>
+</div>
+<div class="flex justify-between py-2 border-b border-slate-200 border-dashed">
+<span class="text-xs text-slate-500 font-medium">BMI</span>
+<span class="text-xs font-bold text-slate-800">22.8</span>
+</div>
+</div>
+<div class="mt-6">
+<h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Critical Alerts</h4>
+<div class="space-y-2">
+<div class="flex items-start gap-2 p-3 rounded bg-red-50 border border-red-100">
+<span class="material-symbols-outlined text-[18px] text-red-600 shrink-0 mt-0.5">warning</span>
+<div>
+<span class="block text-xs font-bold text-red-800">Allergy Alert</span>
+<span class="text-[11px] text-red-700">Severe reaction to Penicillin.</span>
+</div>
+</div>
+<div class="flex items-start gap-2 p-3 rounded bg-orange-50 border border-orange-100">
+<span class="material-symbols-outlined text-[18px] text-orange-600 shrink-0 mt-0.5">medical_services</span>
+<div>
+<span class="block text-xs font-bold text-orange-800">Chronic Condition</span>
+<span class="text-[11px] text-orange-700">Hypertension (Stage 1)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-blue-50/50 rounded-lg p-4 border border-blue-100">
+<h4 class="text-[11px] font-bold text-blue-800 uppercase tracking-wider mb-2">Visit Summary</h4>
+<p class="text-xs text-blue-900/70 leading-relaxed">
+                        This visit was a scheduled follow-up for viral fever symptoms. Patient showed significant improvement.
+                    </p>
+</div>
+</div>
+<div class="w-[70%] bg-white h-full overflow-y-auto p-8">
+<div class="max-w-4xl mx-auto space-y-8">
+<section class="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+<div class="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">diagnosis</span>
+<h3 class="text-sm font-bold text-primary uppercase tracking-wide">Diagnosis &amp; Findings</h3>
+</div>
+<div class="p-5">
+<h4 class="text-sm font-bold text-slate-800 mb-2">Acute Viral Pharyngitis (Resolving)</h4>
+<p class="text-[13px] text-slate-600 leading-relaxed">
+                                Patient reports significant reduction in throat pain and fever. Temperature is normal (98.6°F). 
+                                Examination reveals mild redness in pharynx, no exudates. Lymph nodes are no longer palpable. 
+                                Lungs remain clear to auscultation.
+                            </p>
+<div class="mt-4 flex gap-2">
+<span class="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-600 text-[11px] font-medium border border-slate-200">ICD-10: J02.9</span>
+<span class="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-600 text-[11px] font-medium border border-slate-200">Viral</span>
+</div>
+</div>
+</section>
+<section class="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+<div class="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">pill</span>
+<h3 class="text-sm font-bold text-primary uppercase tracking-wide">Prescribed Medications</h3>
+</div>
+<table class="w-full text-left">
+<thead>
+<tr class="bg-gray-50/50 border-b border-gray-100">
+<th class="px-5 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wide w-[40%]">Drug Name</th>
+<th class="px-5 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wide">Dosage</th>
+<th class="px-5 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wide">Frequency</th>
+<th class="px-5 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wide">Duration</th>
+<th class="px-5 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wide text-right">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-100">
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-5 py-3 text-[13px] font-semibold text-slate-800">Paracetamol</td>
+<td class="px-5 py-3 text-[13px] text-slate-600">500mg</td>
+<td class="px-5 py-3 text-[13px] text-slate-600">BID (Twice a day)</td>
+<td class="px-5 py-3 text-[13px] text-slate-600">3 Days</td>
+<td class="px-5 py-3 text-right">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-50 text-green-700 border border-green-100">COMPLETED</span>
+</td>
+</tr>
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-5 py-3 text-[13px] font-semibold text-slate-800">Multivitamin Complex</td>
+<td class="px-5 py-3 text-[13px] text-slate-600">1 Tab</td>
+<td class="px-5 py-3 text-[13px] text-slate-600">OD (Once a day)</td>
+<td class="px-5 py-3 text-[13px] text-slate-600">10 Days</td>
+<td class="px-5 py-3 text-right">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100">ONGOING</span>
+</td>
+</tr>
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-5 py-3 text-[13px] font-semibold text-slate-800">Lozenges</td>
+<td class="px-5 py-3 text-[13px] text-slate-600">-</td>
+<td class="px-5 py-3 text-[13px] text-slate-600">SOS</td>
+<td class="px-5 py-3 text-[13px] text-slate-600">5 Days</td>
+<td class="px-5 py-3 text-right">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100">ONGOING</span>
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+<div class="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">notes</span>
+<h3 class="text-sm font-bold text-primary uppercase tracking-wide">Clinical Advice &amp; Notes</h3>
+</div>
+<div class="p-5 bg-yellow-50/30">
+<ul class="list-disc list-outside ml-4 space-y-2">
+<li class="text-[13px] text-slate-700 leading-relaxed">Continue warm saline gargles twice daily for 2 more days.</li>
+<li class="text-[13px] text-slate-700 leading-relaxed">Maintain hydration. Drink at least 2-3 liters of water.</li>
+<li class="text-[13px] text-slate-700 leading-relaxed">Patient advised to return if fever spikes &gt; 101°F or if difficulty in swallowing develops.</li>
+</ul>
+<div class="mt-4 pt-4 border-t border-gray-100 flex items-center gap-2">
+<span class="text-[11px] font-medium text-slate-400">Recorded by:</span>
+<div class="flex items-center gap-1.5">
+<div class="size-4 rounded-full bg-gray-200 flex items-center justify-center text-[8px] font-bold text-gray-600">DS</div>
+<span class="text-[12px] font-semibold text-slate-700">Dr. Smith</span>
+</div>
+</div>
+</div>
+</section>
+<section class="flex items-center gap-4 p-4 rounded-lg bg-slate-50 border border-slate-200">
+<div class="size-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[20px] text-primary">event_upcoming</span>
+</div>
+<div class="flex-1">
+<h4 class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-0.5">Scheduled Follow-up</h4>
+<div class="flex items-baseline gap-2">
+<span class="text-sm font-bold text-slate-900">October 24, 2023</span>
+<span class="text-xs text-slate-500">(Scheduled during this visit)</span>
+</div>
+</div>
+<button class="text-xs font-medium text-primary hover:text-blue-700 underline decoration-primary/30 hover:decoration-primary/100">
+                            View Appointment
+                        </button>
+</section>
+<div class="h-10"></div>
+</div>
+</div>
+</div>
+</main>
+
+</body></html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HMS Secure Staff Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1246e2",
+                        "background-light": "#f0f4f8", // Slightly adjusted to match "light blue-grey" description better than default #f6f6f8
+                        "background-dark": "#101522",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Public Sans", sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display antialiased text-[#111318] dark:text-white">
+<div class="flex flex-1 w-full h-screen overflow-hidden">
+<!-- Left Side: Hero Image Section -->
+<div class="hidden lg:flex lg:w-1/2 relative bg-gray-900 items-center justify-center overflow-hidden">
+<!-- Background Image with Gradient Overlay -->
+<div class="absolute inset-0 bg-cover bg-center bg-no-repeat" data-alt="Modern hospital hallway with professional medical staff blurring in motion" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC6tRDme-slrhesIbORZNSTwCRtTYPPHAlJ1pNJJTrr-8M4Dv385rTbPrFH3AkmTfz_dtnXIwdt1r36LYeMeu5wX4W8_nWAupGx7PG19Jsr3m0CFX7aLDro2jcPCLdMLY1Dag-P4IYpw8rr7lfffUCSgW3Jgi5YCZLCX9wYljaNte5ZSBJYHTReXUVKFzCdn8ZzbbpRF2S9AdvEyk2pDHsFW-vOZdnM7SI0nEmG4E1fVMChOFmlQ1TsjWopyf4jY8VzwM-bHyIrNMQ');">
+</div>
+<div class="absolute inset-0 bg-gradient-to-tr from-primary/90 to-primary/60 mix-blend-multiply"></div>
+<div class="absolute inset-0 bg-primary/40"></div> <!-- Additional overlay for brand strength -->
+<!-- Hero Content -->
+<div class="relative z-10 p-12 max-w-xl text-white flex flex-col gap-6">
+<div class="flex items-center gap-2 mb-4 opacity-90">
+<span class="material-symbols-outlined text-3xl">local_hospital</span>
+<span class="text-lg font-bold tracking-wide uppercase">MedCore HMS</span>
+</div>
+<h1 class="text-5xl font-bold leading-tight tracking-tight">
+                    Patient Care,<br/>Secured.
+                </h1>
+<p class="text-lg text-white/90 font-medium leading-relaxed max-w-md">
+                    Access the Hospital Management System securely. Unauthorized access is strictly prohibited and monitored.
+                </p>
+<div class="mt-8 flex gap-4 text-sm text-white/70">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span>HIPAA Compliant</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+<span>End-to-End Encrypted</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Side: Login Form Section -->
+<div class="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12 relative bg-[#f0f4f8] dark:bg-background-dark">
+<!-- Floating White Card -->
+<div class="w-full max-w-[440px] bg-white dark:bg-[#1a202c] p-8 md:p-10 rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-slate-100 dark:border-slate-800 flex flex-col gap-8">
+<!-- Header -->
+<div class="flex flex-col gap-1.5 text-center">
+<div class="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2 text-primary">
+<span class="material-symbols-outlined">id_card</span>
+</div>
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white">Staff Portal</h2>
+<p class="text-[13px] text-gray-500 dark:text-gray-400 font-normal">Please sign in to access your dashboard.</p>
+</div>
+<!-- Form -->
+<form class="flex flex-col gap-5">
+<!-- Email Input -->
+<label class="flex flex-col gap-2 group">
+<span class="text-[13px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Hospital Email ID</span>
+<div class="relative flex items-center">
+<span class="absolute left-4 text-gray-400 dark:text-gray-500 material-symbols-outlined text-[20px]">mail</span>
+<input class="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-sm" placeholder="name@hospital.org" type="email"/>
+</div>
+</label>
+<!-- Password Input -->
+<label class="flex flex-col gap-2 group">
+<div class="flex justify-between items-center">
+<span class="text-[13px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Password</span>
+<a class="text-[13px] text-primary hover:text-blue-700 font-medium transition-colors" href="#">Forgot Password?</a>
+</div>
+<div class="relative flex items-center">
+<span class="absolute left-4 text-gray-400 dark:text-gray-500 material-symbols-outlined text-[20px]">lock</span>
+<input class="w-full pl-11 pr-10 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-sm" placeholder="••••••••••••" type="password"/>
+<button class="absolute right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex items-center justify-center" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+</label>
+<!-- Submit Button -->
+<button class="mt-2 w-full bg-primary hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-md shadow-blue-500/20 text-sm tracking-wide">
+                        Sign In
+                    </button>
+</form>
+<!-- Divider -->
+<div class="relative flex py-1 items-center">
+<div class="flex-grow border-t border-gray-100 dark:border-gray-700"></div>
+<span class="flex-shrink-0 mx-4 text-xs text-gray-400 font-medium">FOR TESTING PURPOSES</span>
+<div class="flex-grow border-t border-gray-100 dark:border-gray-700"></div>
+</div>
+<!-- Demo Button -->
+<button class="w-full bg-transparent border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 font-semibold py-3 px-4 rounded-lg transition-colors text-sm flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">key</span>
+                    Use Demo Credentials
+                </button>
+</div>
+<!-- Footer -->
+<div class="absolute bottom-6 w-full text-center px-6">
+<p class="text-[11px] text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wider">
+                    Secure Connection • HIPAA Compliant • v2.0.4
+                </p>
+<div class="mt-2 flex justify-center gap-4 text-[11px] text-gray-400 dark:text-gray-500">
+<a class="hover:underline" href="#">Privacy Policy</a>
+<a class="hover:underline" href="#">Terms of Service</a>
+<a class="hover:underline" href="#">Help Center</a>
+</div>
+</div>
+</div>
+</div>
+</body></html>

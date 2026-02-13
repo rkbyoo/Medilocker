@@ -14,7 +14,12 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['"Public Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['"Public Sans"', 'system-ui', 'sans-serif'],
+      },
+      fontSize: {
+        'xs-dense': ['11px', { lineHeight: '1.4' }],
+        'sm-dense': ['13px', { lineHeight: '1.5' }],
       },
       colors: {
         border: "hsl(var(--border))",
