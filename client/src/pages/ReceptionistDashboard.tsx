@@ -9,10 +9,12 @@ import { MaterialIcon } from '@/components/ui/MaterialIcon';
 import { DesktopLayout } from '@/components/layout';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 import { useAuth } from '@/contexts';
+import { useNFC } from '@/hooks/useNFC';
 
 const ReceptionistDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { uid, isConnected, port, lastReadAt } = useNFC();
 
   // Get current date and time
   const now = new Date();
@@ -55,6 +57,23 @@ const ReceptionistDashboard = () => {
         </div>
       </div>
       <div className="flex items-center gap-4">
+        {/* NFC Status Indicator */}
+        <div 
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
+            isConnected 
+              ? 'bg-green-50 text-green-700 border border-green-200' 
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}
+          title={port || 'NFC Reader not connected'}
+        >
+          <MaterialIcon 
+            name={isConnected ? 'contactless' : 'contactless'} 
+            size={18} 
+            className={isConnected ? 'text-green-600' : 'text-red-600'}
+          />
+          <span>{isConnected ? 'NFC Ready' : 'NFC Offline'}</span>
+        </div>
+        
         <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full text-slate-600">
           <MaterialIcon name="schedule" size={18} />
           <span className="font-bold text-sm">{timeStr}</span>
@@ -83,6 +102,29 @@ const ReceptionistDashboard = () => {
             </h3>
             <p className="text-slate-500 mt-1 text-sm">Ready for patient intake and scheduling.</p>
           </motion.div>
+
+          {/* NFC Card Read Status */}
+          {uid && (
+            <motion.div 
+              variants={staggerItem}
+              className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <MaterialIcon name="credit_card" size={24} className="text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-blue-600 font-medium">Card Detected</p>
+                  <p className="text-lg font-bold text-blue-900 font-mono">{uid}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-blue-500">
+                  {lastReadAt ? new Date(lastReadAt).toLocaleTimeString() : ''}
+                </p>
+              </div>
+            </motion.div>
+          )}
 
           {/* Action Cards */}
           <motion.div variants={staggerItem} className="grid grid-cols-1 md:grid-cols-2 gap-6">

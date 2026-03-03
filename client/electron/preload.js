@@ -7,6 +7,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
   versions: process.versions,
   
+  // NFC API
+  nfc: {
+    onCardDetected: (callback) => {
+      ipcRenderer.on('nfc:card', (_, data) => callback(data));
+    },
+    onStatusChange: (callback) => {
+      ipcRenderer.on('nfc:status', (_, data) => callback(data));
+    },
+    getStatus: () => ipcRenderer.invoke('nfc:getStatus'),
+    reconnect: () => ipcRenderer.invoke('nfc:reconnect'),
+    removeAllListeners: () => {
+      ipcRenderer.removeAllListeners('nfc:card');
+      ipcRenderer.removeAllListeners('nfc:status');
+    }
+  },
+  
   // Example: File operations (if needed)
   // openFile: () => ipcRenderer.invoke('dialog:openFile'),
   // saveFile: (data) => ipcRenderer.invoke('dialog:saveFile', data),

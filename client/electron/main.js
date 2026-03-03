@@ -1,6 +1,7 @@
 const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { nfcService } = require('./nfcService');
 
 // Better development detection
 const isDev = process.env.NODE_ENV === 'development' ||
@@ -49,10 +50,15 @@ function createWindow() {
     // Show window when ready to prevent visual flash
     mainWindow.once('ready-to-show', () => {
         mainWindow.show();
+        
+        // Initialize NFC service after window is ready
+        nfcService.setMainWindow(mainWindow);
+        nfcService.start();
     });
 
     // Handle window closed
     mainWindow.on('closed', () => {
+        nfcService.stop();
         mainWindow = null;
     });
 }

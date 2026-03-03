@@ -12,7 +12,7 @@
     "dev": "pnpm --parallel --filter server --filter client dev",
     "dev:server": "pnpm --filter server dev",
     "dev:client": "pnpm --filter client dev",
-    "electron": "pnpm --parallel --filter server --filter client electron:dev",
+    "electron": "concurrently --kill-others --names server,client \"pnpm --filter server dev\" \"wait-on tcp:4000 && pnpm --filter client electron:dev\"",
     "electron:build": "pnpm build && pnpm --filter client electron:build",
     "build": "pnpm -r run build",
     "build:server": "pnpm --filter server build",
@@ -29,7 +29,9 @@
   },
   "devDependencies": {
     "@types/node": "^20.6.3",
-    "typescript": "^5.2.2"
+    "concurrently": "^8.2.2",
+    "typescript": "^5.2.2",
+    "wait-on": "^7.2.0"
   },
   "workspaces": [
     "client",
