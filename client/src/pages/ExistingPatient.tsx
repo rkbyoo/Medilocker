@@ -6,13 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { ArrowLeft, Search, Nfc, Calendar, User } from 'lucide-react';
+import { ArrowLeft, Search, Nfc, Calendar, User, Wifi, WifiOff } from 'lucide-react';
 import { patientsApi, appointmentsApi, usersApi } from '@/api';
 import { useAuth } from '@/contexts';
 import PatientInfoCard from '@/components/common/PatientInfoCard';
 import { ResizablePanels, Panel } from '@/components/ui/resizable-panels';
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogAction } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import type { Patient } from '@/types';
+import type { SerialPortInfo } from '@/types/electron.d';
 
 const ExistingPatient = () => {
   const navigate = useNavigate();
@@ -20,6 +21,10 @@ const ExistingPatient = () => {
   const [searchParams] = useSearchParams();
   const [patientId, setPatientId] = useState('');
   const [showNFCDialog, setShowNFCDialog] = useState(false);
+  const [nfcConnected, setNfcConnected] = useState(false);
+  const [nfcScanning, setNfcScanning] = useState(false);
+  const [availablePorts, setAvailablePorts] = useState<SerialPortInfo[]>([]);
+  const [selectedPort, setSelectedPort] = useState<string>('');
   const [foundPatient, setFoundPatient] = useState<Patient | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isScheduling, setIsScheduling] = useState(false);
@@ -43,6 +48,85 @@ const ExistingPatient = () => {
     };
     fetchDoctors();
   }, []);
+
+  // NFC Reader Setup - Only active on this page
+  useEffect(() => {
+    const isElectron = window.electronAPI !== undefined;
+    if (!isElectron) return;
+
+    // Auto-connect on mount if not already connected
+    const initNFC = async () => {
+      try {
+        const ports = await window.electronAPI.nfc.listPorts();
+        const arduinoPort = ports.find(p => 
+          p.vendorId === '2341' || 
+          p.vendorId === '1A86' ||
+          p.manufacturer?.toLowerCase().includes('arduino')
+        );
+        
+        if (arduinoPort && !nfcConnected) {
+          await window.electronAPI.nfc.connect(arduinoPort.path);
+        }
+      } catch (error) {
+        console.error('Failed to auto-connect NFC:', error);
+      }
+    };
+
+    initNFC();
+
+    // Listen for NFC card detection
+    const unsubscribeCard = window.electronAPI.nfc.onCardDetected(async (uid: string) => {
+      console.log('NFC Card UID received:', uid);
+      toast.info(`NFC Card detected: ${uid}`);
+      
+      // Auto-search patient by NFC UID
+      setPatientId(uid);
+      
+      setIsSearching(true);
+      try {
+        const patient = await patientsApi.getPatientById(uid);
+        if (patient) {
+          setFoundPatient(patient);
+          toast.success('Patient found via NFC!');
+        } else {
+          setFoundPatient(null);
+          toast.error('No patient found with this NFC card. Please register first.');
+        }
+      } catch (error) {
+        toast.error('Error searching for patient');
+      } finally {
+        setIsSearching(false);
+      }
+    });
+
+    // Listen for connection status
+    const unsubscribeConnected = window.electronAPI.nfc.onConnected((port: string) => {
+      setNfcConnected(true);
+      toast.success(`NFC Reader connected on ${port}`);
+    });
+
+    const unsubscribeDisconnected = window.electronAPI.nfc.onDisconnected(() => {
+      setNfcConnected(false);
+      toast.info('NFC Reader disconnected');
+    });
+
+    const unsubscribeError = window.electronAPI.nfc.onError((error: string) => {
+      toast.error(`NFC Reader error: ${error}`);
+    });
+
+    // Cleanup: Disconnect NFC when leaving this page
+    return () => {
+      unsubscribeCard();
+      unsubscribeConnected();
+      unsubscribeDisconnected();
+      unsubscribeError();
+      
+      // Disconnect NFC reader when component unmounts
+      if (isElectron && nfcConnected) {
+        window.electronAPI.nfc.disconnect().catch(console.error);
+      }
+    };
+  }, [nfcConnected]);
 
   // Auto-search if patientId is provided in query params
   useEffect(() => {
@@ -150,6 +234,62 @@ const ExistingPatient = () => {
     });
   };
 
+  const handleOpenNFCDialog = async () => {
+    const isElectron = window.electronAPI !== undefined;
+    
+    if (!isElectron) {
+      toast.error('NFC scanning is only available in the desktop app');
+      return;
+    }
+
+    setShowNFCDialog(true);
+    setNfcScanning(true);
+
+    // List available ports
+    try {
+      const ports = await window.electronAPI.nfc.listPorts();
+      setAvailablePorts(ports);
+      
+      if (ports.length === 0) {
+        toast.warning('No serial ports found. Please connect your Arduino NFC reader.');
+      } else if (ports.length === 1) {
+        // Auto-select if only one port
+        setSelectedPort(ports[0].path);
+      }
+    } catch (error) {
+      toast.error('Failed to list serial ports');
+    }
+  };
+
+  const handleConnectNFC = async () => {
+    if (!selectedPort) {
+      toast.error('Please select a serial port');
+      return;
+    }
+
+    try {
+      const result = await window.electronAPI.nfc.connect(selectedPort);
+      if (result.success) {
+        setNfcScanning(true);
+        toast.success('Waiting for NFC card...');
+      } else {
+        toast.error(result.error || 'Failed to connect to NFC reader');
+      }
+    } catch (error) {
+      toast.error('Error connecting to NFC reader');
+    }
+  };
+
+  const handleDisconnectNFC = async () => {
+    try {
+      await window.electronAPI.nfc.disconnect();
+      setNfcScanning(false);
+      setShowNFCDialog(false);
+    } catch (error) {
+      toast.error('Error disconnecting NFC reader');
+    }
+  };
+
 
 
   return (
@@ -218,7 +358,8 @@ const ExistingPatient = () => {
                       <div className="flex items-center gap-6">
                         <div className="w-40 flex-shrink-0"></div>
                         <p className="text-sm text-muted-foreground">
-                          Search by: <strong>10-digit Patient ID</strong> (e.g., 1234567890), NFC Card UID, Patient Name, or Phone Number
+                          Search by: <strong>10-digit Patient ID</strong> (e.g., 1234567890), NFC Card UID
+                          {/* , Patient Name, or Phone Number */}
                         </p>
                       </div>
                     </div>
@@ -228,20 +369,69 @@ const ExistingPatient = () => {
                         <span className="w-full border-t" />
                       </div>
                       <div className="relative flex justify-center text-sm uppercase">
-                        <span className="bg-card px-3 text-muted-foreground font-medium">Or</span>
+                        <span className="bg-card px-3 text-muted-foreground font-medium">Or Scan NFC Card</span>
                       </div>
                     </div>
 
-                    <Button
-                      onClick={() => setShowNFCDialog(true)}
-                      variant="outline"
-                      className="w-full border-2 border-dashed border-secondary hover:border-secondary hover:bg-secondary/10 h-24"
-                    >
-                      <div className="flex flex-col items-center gap-3">
-                        <Nfc className="w-8 h-8 text-secondary" />
-                        <span className="font-medium text-base">Scan NFC Card</span>
-                      </div>
-                    </Button>
+                    {/* NFC Scanning Animation */}
+                    <div className="w-full rounded-lg h-44 flex items-center justify-center bg-gradient-to-br from-secondary/10 to-secondary/5 relative overflow-hidden">
+                      {/* Connection Indicator - Top Right */}
+                      {window.electronAPI && (
+                        <div className="absolute top-3 right-3 flex items-center gap-2 bg-background/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
+                          <div className={`w-2 h-2 rounded-full ${nfcConnected ? 'bg-green-500' : 'bg-gray-400'}`} />
+                          <span className="text-xs font-medium text-foreground">
+                            {nfcConnected ? 'NFC Reader Connected' : 'Disconnected'}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {window.electronAPI ? (
+                        <div className="flex flex-col items-center gap-3 px-4">
+                          {/* Scanning Animation - Rotated WiFi Icon */}
+                          <div className="relative">
+                            {nfcConnected ? (
+                              <div className="rotate-90">
+                                <Wifi className="w-16 h-16 text-secondary animate-pulse" />
+                              </div>
+                            ) : (
+                              <div className="rotate-90">
+                                <WifiOff className="w-16 h-16 text-muted-foreground/50" />
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Status Text */}
+                          <div className="text-center space-y-1.5">
+                            <p className={`text-base font-medium ${nfcConnected ? 'text-secondary' : 'text-muted-foreground'}`}>
+                              {nfcConnected ? 'Scan Your NFC Card' : 'NFC Reader Not Connected'}
+                            </p>
+                            
+                            {/* Instruction text when connected */}
+                            {nfcConnected && (
+                              <p className="text-xs text-muted-foreground max-w-sm px-4">
+                                Place your NFC card near the reader to automatically search for patient
+                              </p>
+                            )}
+                            
+                            {!nfcConnected && (
+                              <Button
+                                variant="link"
+                                size="sm"
+                                onClick={handleOpenNFCDialog}
+                                className="text-xs text-primary hover:text-primary/80 h-auto p-0 mt-1"
+                              >
+                                Click to connect
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center text-muted-foreground px-4">
+                          <Nfc className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">NFC available in desktop app only</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -369,28 +559,87 @@ const ExistingPatient = () => {
 
         {/* NFC Dialog */}
         <AlertDialog open={showNFCDialog} onOpenChange={setShowNFCDialog}>
-          <AlertDialogContent>
+          <AlertDialogContent className="max-w-md">
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2 text-lg font-medium">
                 <Nfc className="w-6 h-6 text-secondary" />
                 NFC Card Scanner
+                {nfcConnected && <Wifi className="w-5 h-5 text-green-500 ml-auto" />}
               </AlertDialogTitle>
               <AlertDialogDescription className="space-y-4 pt-4">
-                <div className="flex items-center justify-center py-8">
-                  <div className="relative">
-                    <Nfc className="w-24 h-24 text-secondary animate-pulse" />
-                    <div className="absolute inset-0 bg-secondary/20 rounded-full animate-ping" />
-                  </div>
-                </div>
-                <p className="text-center font-medium text-foreground text-base">Hardware Integration Pending</p>
-                <p className="text-center text-base font-medium">
-                  NFC card scanning hardware is currently under testing and will be available soon.
-                  Please use manual ID entry for now.
-                </p>
+                {!window.electronAPI ? (
+                  // Not in Electron
+                  <>
+                    <p className="text-center font-medium text-foreground text-base">Desktop App Required</p>
+                    <p className="text-center text-base">
+                      NFC card scanning is only available in the desktop application.
+                      Please use the Electron app to access this feature.
+                    </p>
+                  </>
+                ) : nfcScanning ? (
+                  // Scanning mode
+                  <>
+                    <div className="flex items-center justify-center py-8">
+                      <div className="relative">
+                        <Nfc className="w-24 h-24 text-secondary animate-pulse" />
+                        <div className="absolute inset-0 bg-secondary/20 rounded-full animate-ping" />
+                      </div>
+                    </div>
+                    <p className="text-center font-medium text-foreground text-base">
+                      {nfcConnected ? 'Ready to Scan' : 'Connecting...'}
+                    </p>
+                    <p className="text-center text-base">
+                      {nfcConnected 
+                        ? 'Place your NFC card near the reader'
+                        : 'Initializing NFC reader...'}
+                    </p>
+                  </>
+                ) : (
+                  // Port selection mode
+                  <>
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-base font-medium mb-2 block">Select Arduino Port</Label>
+                        <Select value={selectedPort} onValueChange={setSelectedPort}>
+                          <SelectTrigger className="text-base h-11">
+                            <SelectValue placeholder={availablePorts.length === 0 ? "No ports found" : "Select a port"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availablePorts.map(port => (
+                              <SelectItem key={port.path} value={port.path} className="text-base">
+                                {port.path} {port.manufacturer && `(${port.manufacturer})`}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {availablePorts.length === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          Make sure your Arduino is connected via USB and drivers are installed.
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogAction className="text-base font-medium h-11">Close</AlertDialogAction>
+              {nfcScanning ? (
+                <>
+                  <AlertDialogCancel onClick={handleDisconnectNFC} className="text-base font-medium h-11">
+                    Cancel
+                  </AlertDialogCancel>
+                </>
+              ) : (
+                <>
+                  <AlertDialogCancel className="text-base font-medium h-11">Close</AlertDialogCancel>
+                  {window.electronAPI && availablePorts.length > 0 && (
+                    <AlertDialogAction onClick={handleConnectNFC} className="text-base font-medium h-11">
+                      Connect & Scan
+                    </AlertDialogAction>
+                  )}
+                </>
+              )}
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

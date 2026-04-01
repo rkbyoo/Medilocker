@@ -7,12 +7,30 @@ contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
   versions: process.versions,
   
-  // Example: File operations (if needed)
-  // openFile: () => ipcRenderer.invoke('dialog:openFile'),
-  // saveFile: (data) => ipcRenderer.invoke('dialog:saveFile', data),
-  
-  // Example: App controls
-  // minimize: () => ipcRenderer.invoke('window:minimize'),
-  // maximize: () => ipcRenderer.invoke('window:maximize'),
-  // close: () => ipcRenderer.invoke('window:close'),
+  // NFC Reader API
+  nfc: {
+    listPorts: () => ipcRenderer.invoke('nfc:list-ports'),
+    connect: (portPath) => ipcRenderer.invoke('nfc:connect', portPath),
+    disconnect: () => ipcRenderer.invoke('nfc:disconnect'),
+    onCardDetected: (callback) => {
+      const subscription = (event, uid) => callback(uid);
+      ipcRenderer.on('nfc:card-detected', subscription);
+      return () => ipcRenderer.removeListener('nfc:card-detected', subscription);
+    },
+    onConnected: (callback) => {
+      const subscription = (event, port) => callback(port);
+      ipcRenderer.on('nfc:connected', subscription);
+      return () => ipcRenderer.removeListener('nfc:connected', subscription);
+    },
+    onDisconnected: (callback) => {
+      const subscription = () => callback();
+      ipcRenderer.on('nfc:disconnected', subscription);
+      return () => ipcRenderer.removeListener('nfc:disconnected', subscription);
+    },
+    onError: (callback) => {
+      const subscription = (event, error) => callback(error);
+      ipcRenderer.on('nfc:error', subscription);
+      return () => ipcRenderer.removeListener('nfc:error', subscription);
+    }
+  }
 });

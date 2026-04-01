@@ -1,6 +1,8 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { SerialPort } = require('serialport');
+const { ReadlineParser } = require('@serialport/parser-readline');
 
 // Better development detection
 const isDev = process.env.NODE_ENV === 'development' ||
@@ -82,3 +84,128 @@ function createMenu() {
     // Remove the menu bar (File, View, Window)
     Menu.setApplicationMenu(null);
 }
+
+// NFC Serial Port Management
+let nfcPort = null;
+let nfcParser = null;
+
+// List available serial ports
+async function listSerialPorts() {
+    try {
+        const ports = await SerialPort.list();
+        return ports.map(port => ({
+            path: port.path,
+            manufacturer: port.manufacturer,
+            serialNumber: port.serialNumber,
+            vendorId: port.vendorId,
+            productId: port.productId
+        }));
+    } catch (error) {
+        console.error('Error listing serial ports:', error);
+        return [];
+    }
+}
+
+// Connect to NFC reader
+function connectNFCReader(portPath) {
+    try {
+        // Close existing connection if any
+        if (nfcPort && nfcPort.isOpen) {
+            nfcPort.close();
+        }
+
+        nfcPort = new SerialPort({
+            path: portPath,
+            baudRate: 115200,
+            autoOpen: false
+        });
+
+        nfcParser = nfcPort.pipe(new ReadlineParser({ delimiter: '\r\n' }));
+
+        nfcPort.open((err) => {
+            if (err) {
+                console.error('Error opening NFC port:', err);
+                if (mainWindow) {
+                    mainWindow.webContents.send('nfc:error', err.message);
+                }
+                return;
+            }
+
+            console.log('NFC Reader connected on', portPath);
+            if (mainWindow) {
+                mainWindow.webContents.send('nfc:connected', portPath);
+            }
+        });
+
+        // Listen for NFC card UIDs
+        nfcParser.on('data', (data) => {
+            const uid = data.trim();
+            if (uid && /^[0-9A-F]+$/i.test(uid)) {
+                console.log('NFC Card detected:', uid);
+                if (mainWindow) {
+                    mainWindow.webContents.send('nfc:card-detected', uid);
+                }
+            }
+        });
+
+        nfcPort.on('error', (err) => {
+            console.error('NFC Port error:', err);
+            if (mainWindow) {
+                mainWindow.webContents.send('nfc:error', err.message);
+            }
+        });
+
+        nfcPort.on('close', () => {
+            console.log('NFC Reader disconnected');
+            if (mainWindow) {
+                mainWindow.webContents.send('nfc:disconnected');
+            }
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error connecting to NFC reader:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// Disconnect NFC reader
+function disconnectNFCReader() {
+    if (nfcPort && nfcPort.isOpen) {
+        nfcPort.close();
+        return { success: true };
+    }
+    return { success: false, error: 'No active connection' };
+}
+
+// IPC Handlers for NFC
+ipcMain.handle('nfc:list-ports', async () => {
+    return await listSerialPorts();
+});
+
+ipcMain.handle('nfc:connect', async (event, portPath) => {
+    return connectNFCReader(portPath);
+});
+
+ipcMain.handle('nfc:disconnect', async () => {
+    return disconnectNFCReader();
+});
+
+// Auto-connect to Arduino on startup (optional)
+app.whenReady().then(async () => {
+    // Wait a bit for the window to be ready
+    setTimeout(async () => {
+        const ports = await listSerialPorts();
+        // Try to find Arduino (common vendor IDs: 0x2341 for Arduino, 0x1A86 for CH340)
+        const arduinoPort = ports.find(p => 
+            p.vendorId === '2341' || 
+            p.vendorId === '1A86' ||
+            p.manufacturer?.toLowerCase().includes('arduino')
+        );
+        
+        if (arduinoPort) {
+            console.log('Auto-connecting to Arduino on', arduinoPort.path);
+            connectNFCReader(arduinoPort.path);
+        }
+    }, 2000);
+});
