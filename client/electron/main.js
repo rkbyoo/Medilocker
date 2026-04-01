@@ -107,11 +107,19 @@ async function listSerialPorts() {
 }
 
 // Connect to NFC reader
-function connectNFCReader(portPath) {
+async function connectNFCReader(portPath) {
     try {
         // Close existing connection if any
         if (nfcPort && nfcPort.isOpen) {
-            nfcPort.close();
+            await new Promise((resolve) => {
+                nfcPort.close(() => {
+                    nfcPort = null;
+                    nfcParser = null;
+                    resolve();
+                });
+            });
+            // Wait a bit for the port to be fully released
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
 
         nfcPort = new SerialPort({
@@ -171,11 +179,25 @@ function connectNFCReader(portPath) {
 
 // Disconnect NFC reader
 function disconnectNFCReader() {
-    if (nfcPort && nfcPort.isOpen) {
-        nfcPort.close();
-        return { success: true };
-    }
-    return { success: false, error: 'No active connection' };
+    return new Promise((resolve) => {
+        if (nfcPort && nfcPort.isOpen) {
+            nfcPort.close((err) => {
+                if (err) {
+                    console.error('Error closing NFC port:', err);
+                    resolve({ success: false, error: err.message });
+                } else {
+                    console.log('NFC port closed successfully');
+                    nfcPort = null;
+                    nfcParser = null;
+                    resolve({ success: true });
+                }
+            });
+        } else {
+            nfcPort = null;
+            nfcParser = null;
+            resolve({ success: true, message: 'No active connection' });
+        }
+    });
 }
 
 // IPC Handlers for NFC

@@ -54,9 +54,16 @@ const ExistingPatient = () => {
     const isElectron = window.electronAPI !== undefined;
     if (!isElectron) return;
 
-    // Auto-connect on mount if not already connected
+    let mounted = true;
+
+    // Auto-connect on mount
     const initNFC = async () => {
       try {
+        // Wait a bit to ensure any previous disconnection is complete
+        await new Promise(resolve => setTimeout(resolve, 600));
+        
+        if (!mounted) return;
+
         const ports = await window.electronAPI.nfc.listPorts();
         const arduinoPort = ports.find(p => 
           p.vendorId === '2341' || 
@@ -64,7 +71,7 @@ const ExistingPatient = () => {
           p.manufacturer?.toLowerCase().includes('arduino')
         );
         
-        if (arduinoPort && !nfcConnected) {
+        if (arduinoPort && mounted) {
           await window.electronAPI.nfc.connect(arduinoPort.path);
         }
       } catch (error) {
@@ -116,17 +123,20 @@ const ExistingPatient = () => {
 
     // Cleanup: Disconnect NFC when leaving this page
     return () => {
+      mounted = false;
       unsubscribeCard();
       unsubscribeConnected();
       unsubscribeDisconnected();
       unsubscribeError();
       
       // Disconnect NFC reader when component unmounts
-      if (isElectron && nfcConnected) {
-        window.electronAPI.nfc.disconnect().catch(console.error);
+      if (isElectron) {
+        window.electronAPI.nfc.disconnect()
+          .then(() => console.log('NFC disconnected on unmount'))
+          .catch(err => console.error('Error disconnecting NFC on unmount:', err));
       }
     };
-  }, [nfcConnected]);
+  }, []);
 
   // Auto-search if patientId is provided in query params
   useEffect(() => {
@@ -268,6 +278,13 @@ const ExistingPatient = () => {
     }
 
     try {
+      // First disconnect if already connected
+      if (nfcConnected) {
+        await window.electronAPI.nfc.disconnect();
+        // Wait for port to be released
+        await new Promise(resolve => setTimeout(resolve, 600));
+      }
+
       const result = await window.electronAPI.nfc.connect(selectedPort);
       if (result.success) {
         setNfcScanning(true);
@@ -284,8 +301,11 @@ const ExistingPatient = () => {
     try {
       await window.electronAPI.nfc.disconnect();
       setNfcScanning(false);
+      setNfcConnected(false);
       setShowNFCDialog(false);
+      toast.info('NFC reader disconnected');
     } catch (error) {
+      console.error('Error disconnecting NFC reader:', error);
       toast.error('Error disconnecting NFC reader');
     }
   };
