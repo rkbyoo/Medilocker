@@ -137,6 +137,43 @@ export const getCurrentUser = (): User | null => {
 };
 
 /**
+ * Refresh the access token using the refresh token
+ */
+export const refreshAccessToken = async (): Promise<string | null> => {
+  try {
+    const refreshToken = localStorage.getItem('refresh_token');
+    
+    if (!refreshToken) {
+      return null;
+    }
+
+    const response = await fetch(getApiUrl('auth/refresh'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      // Refresh token is invalid or expired, logout user
+      await logout();
+      return null;
+    }
+
+    // Store new access token
+    localStorage.setItem('access_token', data.data.access_token);
+    
+    return data.data.access_token;
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    return null;
+  }
+};
+
+/**
  * Check if user is authenticated
  */
 export const isAuthenticated = (): boolean => {

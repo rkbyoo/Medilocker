@@ -1,5 +1,5 @@
 import type { ApiResponse, PatientResponse, Patient } from '@/types';
-import { getApiUrl, getAuthHeader } from '@/config/api';
+import { getApiUrl, fetchWithAuth } from '@/config/api';
 
 /**
  * Patient API
@@ -15,12 +15,8 @@ export interface CreatePatientData extends Omit<Patient, 'id'> {
  */
 export const getAllPatients = async (): Promise<Patient[]> => {
   try {
-    const response = await fetch(getApiUrl('patients'), {
+    const response = await fetchWithAuth(getApiUrl('patients'), {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
     });
 
     if (!response.ok) {
@@ -47,12 +43,8 @@ export const getPatientById = async (id: string): Promise<Patient | null> => {
   try {
     if (!id) return null;
 
-    const response = await fetch(getApiUrl(`patients/${id}`), {
+    const response = await fetchWithAuth(getApiUrl(`patients/${id}`), {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
     });
 
     if (!response.ok) {
@@ -77,12 +69,8 @@ export const getPatientById = async (id: string): Promise<Patient | null> => {
  */
 export const createPatient = async (data: CreatePatientData): Promise<PatientResponse> => {
   try {
-    const response = await fetch(getApiUrl('patients'), {
+    const response = await fetchWithAuth(getApiUrl('patients'), {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
       body: JSON.stringify(data),
     });
 
@@ -108,56 +96,52 @@ export const createPatient = async (data: CreatePatientData): Promise<PatientRes
 /**
  * Update patient
  */
-export const updatePatient = (id: string, updates: Partial<Patient>): PatientResponse => {
-  try {
-    const patientIndex = dummyPatients.findIndex(p => p.id === id);
+// export const updatePatient = (id: string, updates: Partial<Patient>): PatientResponse => {
+//   try {
+//     const patientIndex = dummyPatients.findIndex(p => p.id === id);
     
-    if (patientIndex === -1) {
-      return { success: false, error: 'Patient not found' };
-    }
+//     if (patientIndex === -1) {
+//       return { success: false, error: 'Patient not found' };
+//     }
 
-    dummyPatients[patientIndex] = {
-      ...dummyPatients[patientIndex],
-      ...updates
-    };
+//     dummyPatients[patientIndex] = {
+//       ...dummyPatients[patientIndex],
+//       ...updates
+//     };
     
-    return { success: true, data: dummyPatients[patientIndex] };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to update patient';
-    return { success: false, error: message };
-  }
-};
+//     return { success: true, data: dummyPatients[patientIndex] };
+//   } catch (error) {
+//     const message = error instanceof Error ? error.message : 'Failed to update patient';
+//     return { success: false, error: message };
+//   }
+// };
 
-/**
- * Delete patient
- */
-export const deletePatient = (id: string): ApiResponse => {
-  try {
-    const patientIndex = dummyPatients.findIndex(p => p.id === id);
+// /**
+//  * Delete patient
+//  */
+// export const deletePatient = (id: string): ApiResponse => {
+//   try {
+//     const patientIndex = dummyPatients.findIndex(p => p.id === id);
     
-    if (patientIndex === -1) {
-      return { success: false, error: 'Patient not found' };
-    }
+//     if (patientIndex === -1) {
+//       return { success: false, error: 'Patient not found' };
+//     }
 
-    dummyPatients.splice(patientIndex, 1);
-    return { success: true };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to delete patient';
-    return { success: false, error: message };
-  }
-};
+//     dummyPatients.splice(patientIndex, 1);
+//     return { success: true };
+//   } catch (error) {
+//     const message = error instanceof Error ? error.message : 'Failed to delete patient';
+//     return { success: false, error: message };
+//   }
+// };
 
 /**
  * Search patients by name or ID
  */
 export const searchPatientsByName = async (searchTerm: string): Promise<Patient[]> => {
   try {
-    const response = await fetch(getApiUrl(`patients?q=${encodeURIComponent(searchTerm)}`), {
+    const response = await fetchWithAuth(getApiUrl(`patients?q=${encodeURIComponent(searchTerm)}`), {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
     });
 
     if (!response.ok) {
