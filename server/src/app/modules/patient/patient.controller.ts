@@ -54,13 +54,19 @@ export class PatientController {
         return sendError(res, 'Patient ID is required', HTTP_STATUS.BAD_REQUEST);
       }
 
+      console.log('Searching for patient with identifier:', id);
+      console.log('Identifier length:', id.length);
+      console.log('Identifier trimmed:', id.trim());
+
       // Try flexible lookup (patient_id, NFC card UID, or user_id)
       const patient = await PatientModel.findByAnyId(id);
 
       if (!patient) {
+        console.log('Patient not found for identifier:', id);
         return sendError(res, 'Patient not found', HTTP_STATUS.NOT_FOUND);
       }
 
+      console.log('Patient found:', patient.patient_number, patient.name);
       const transformedPatient = PatientService.transformPatient(patient);
 
       return sendSuccess(res, 'Patient retrieved successfully', transformedPatient);

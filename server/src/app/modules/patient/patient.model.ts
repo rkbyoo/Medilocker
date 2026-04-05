@@ -129,6 +129,7 @@ export class PatientModel {
     emergency_contact_name?: string;
     emergency_contact_number?: string;
     photo_url?: string;
+    nfc_card_uid?: string;
   }) {
     // Create user first
     const user = await prisma.user.create({
@@ -164,6 +165,7 @@ export class PatientModel {
         emergency_contact_name: data.emergency_contact_name,
         emergency_contact_number: data.emergency_contact_number,
         photo_url: data.photo_url,
+        nfc_card_uid: data.nfc_card_uid,
       },
       include: {
         user: true,
@@ -218,10 +220,11 @@ export class PatientModel {
   }
 
   /**
-   * Get patient by NFC card UID
+   * Get patient by NFC card UID (case-insensitive, trimmed)
    */
   static async findByNfcCardUid(nfcCardUid: string) {
-    return await prisma.patient.findUnique({
+    // Try exact match first
+    const exactMatch = await prisma.patient.findUnique({
       where: { nfc_card_uid: nfcCardUid },
       include: {
         user: true,
@@ -229,36 +232,67 @@ export class PatientModel {
         chronicConditions: true,
       },
     });
+
+    if (exactMatch) {
+      return exactMatch;
+    }
+
+    // Try case-insensitive search with trimmed value
+    const trimmedUid = nfcCardUid.trim();
+    const caseInsensitiveMatch = await prisma.patient.findFirst({
+      where: {
+        nfc_card_uid: {
+          equals: trimmedUid,
+          mode: 'insensitive',
+        },
+      },
+      include: {
+        user: true,
+        allergies: true,
+        chronicConditions: true,
+      },
+    });
+
+    return caseInsensitiveMatch;
   }
 
   /**
    * Find patient by ID, patient number, NFC card UID, or user ID (flexible lookup)
    */
   static async findByAnyId(identifier: string) {
+    console.log('findByAnyId called with:', identifier);
+
     // Try 10-digit patient number first (most common use case)
     if (identifier.match(/^\d{10}$/)) {
+      console.log('Trying patient number lookup...');
       const byPatientNumber = await this.findByPatientNumber(identifier);
       if (byPatientNumber) {
+        console.log('Found by patient number');
         return byPatientNumber;
       }
     }
 
     // Try patient_id (UUID format)
     if (identifier.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      console.log('Trying patient UUID lookup...');
       return await this.findById(identifier);
     }
 
     // Try NFC card UID
+    console.log('Trying NFC card UID lookup...');
     const byNfc = await this.findByNfcCardUid(identifier);
     if (byNfc) {
+      console.log('Found by NFC card UID');
       return byNfc;
     }
 
     // Try user_id (UUID format)
     if (identifier.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      console.log('Trying user UUID lookup...');
       return await this.findByUserId(identifier);
     }
 
+    console.log('No patient found with identifier:', identifier);
     return null;
   }
 

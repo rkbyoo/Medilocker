@@ -19,6 +19,7 @@ export const CreatePatientDto = z.object({
   allergies: z.array(z.string()).default([]),
   chronicConditions: z.array(z.string()).default([]),
   photo: z.string().url().optional().or(z.literal('')),
+  nfcCardUid: z.string().max(100).optional(),
 });
 
 // Patient Update DTO (all fields optional)

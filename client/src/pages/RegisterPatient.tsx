@@ -29,7 +29,8 @@ const RegisterPatient = () => {
     emergencyContactName: '',
     emergencyContactNumber: '',
     allergies: [],
-    chronicConditions: []
+    chronicConditions: [],
+    nfcCardUid: ''
   });
 
   const [allergiesText, setAllergiesText] = useState('');
@@ -168,6 +169,18 @@ const RegisterPatient = () => {
                       onChange={(e) => updateField('guardianPhone', e.target.value)}
                       required
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="nfcCardUid" className="text-base font-medium">NFC Card UID</Label>
+                    <Input
+                      id="nfcCardUid"
+                      className="text-base h-10"
+                      value={formData.nfcCardUid}
+                      onChange={(e) => updateField('nfcCardUid', e.target.value)}
+                      placeholder="Scan NFC card or enter manually"
+                    />
+                    <p className="text-xs text-muted-foreground">Optional: Link an NFC card for quick patient lookup</p>
                   </div>
                 </div>
 

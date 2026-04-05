@@ -84,14 +84,20 @@ const ExistingPatient = () => {
     // Listen for NFC card detection
     const unsubscribeCard = window.electronAPI.nfc.onCardDetected(async (uid: string) => {
       console.log('NFC Card UID received:', uid);
+      console.log('UID length:', uid.length);
+      console.log('UID trimmed:', uid.trim());
+      console.log('UID uppercase:', uid.trim().toUpperCase());
       toast.info(`NFC Card detected: ${uid}`);
       
-      // Auto-search patient by NFC UID
-      setPatientId(uid);
+      // Auto-search patient by NFC UID (trim whitespace)
+      const cleanUid = uid.trim();
+      setPatientId(cleanUid);
       
       setIsSearching(true);
       try {
-        const patient = await patientsApi.getPatientById(uid);
+        console.log('Searching for patient with UID:', cleanUid);
+        const patient = await patientsApi.getPatientById(cleanUid);
+        console.log('Patient search result:', patient);
         if (patient) {
           setFoundPatient(patient);
           toast.success('Patient found via NFC!');
@@ -100,6 +106,7 @@ const ExistingPatient = () => {
           toast.error('No patient found with this NFC card. Please register first.');
         }
       } catch (error) {
+        console.error('Error searching for patient:', error);
         toast.error('Error searching for patient');
       } finally {
         setIsSearching(false);
@@ -350,7 +357,7 @@ const ExistingPatient = () => {
                         <div className="flex-1 flex gap-4">
                           <Input
                             id="patientId"
-                            placeholder="Enter 10-digit Patient ID, NFC Card UID, Name, or Phone"
+                            placeholder="Enter 10-digit Patient ID, NFC Card UID"
                             value={patientId}
                             onChange={(e) => setPatientId(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
