@@ -37,6 +37,7 @@ export class PatientService {
       emergency_contact_name: data.emergencyContactName,
       emergency_contact_number: data.emergencyContactNumber,
       photo_url: data.photo,
+      nfc_card_uid: data.nfcCardUid,
     });
 
     // Add allergies if provided
