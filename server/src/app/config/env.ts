@@ -27,4 +27,9 @@ export const config = {
     accessTokenExpiry: '15m' as const,
     refreshTokenExpiry: '7d' as const,
   },
+  twilio: {
+    accountSid: process.env.TWILIO_ACCOUNT_SID as string,
+    authToken: process.env.TWILIO_AUTH_TOKEN as string,
+    verifyServiceSid: process.env.TWILIO_VERIFY_SERVICE_SID as string,
+  },
 };

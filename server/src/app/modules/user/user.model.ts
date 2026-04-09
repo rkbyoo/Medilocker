@@ -10,6 +10,13 @@ export class UserModel {
     return user as DatabaseUser | null;
   }
 
+  static async findByPhone(phone: string): Promise<DatabaseUser | null> {
+    const user = await prisma.user.findFirst({
+      where: { phone },
+    });
+    return user as DatabaseUser | null;
+  }
+
   static async findById(userId: string): Promise<DatabaseUser | null> {
     const user = await prisma.user.findUnique({
       where: { user_id: userId },

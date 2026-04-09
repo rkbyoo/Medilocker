@@ -6,6 +6,10 @@ export class UserService {
     return await UserModel.findByEmail(email);
   }
 
+  static async getUserByPhone(phone: string): Promise<DatabaseUser | null> {
+    return await UserModel.findByPhone(phone);
+  }
+
   static async getUserById(userId: string): Promise<DatabaseUser | null> {
     return await UserModel.findById(userId);
   }

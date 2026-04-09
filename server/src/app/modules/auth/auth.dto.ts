@@ -18,6 +18,17 @@ export const RefreshTokenDto = z.object({
   refresh_token: z.string().min(1),
 });
 
+export const SendOtpDto = z.object({
+  phone: z.string().min(7).max(20),
+});
+
+export const VerifyOtpDto = z.object({
+  phone: z.string().min(7).max(20),
+  code: z.string().length(6),
+});
+
 export type RegisterRequest = z.infer<typeof RegisterDto>;
 export type LoginRequest = z.infer<typeof LoginDto>;
 export type RefreshTokenRequest = z.infer<typeof RefreshTokenDto>;
+export type SendOtpRequest = z.infer<typeof SendOtpDto>;
+export type VerifyOtpRequest = z.infer<typeof VerifyOtpDto>;

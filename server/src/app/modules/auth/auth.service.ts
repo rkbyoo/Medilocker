@@ -128,7 +128,7 @@ export class AuthService {
     await this.deleteRefreshToken(refreshToken);
   }
 
-  private static async storeRefreshToken(userId: string, refreshToken: string): Promise<void> {
+  static async storeRefreshToken(userId: string, refreshToken: string): Promise<void> {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
 
