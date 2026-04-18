@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:add_2_calendar/add_2_calendar.dart' as calendar;
 import 'package:maps_launcher/maps_launcher.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import '../../core/constants/app_colors.dart';
 import '../../core/models/appointment.dart';
 
@@ -36,6 +41,13 @@ class AppointmentDetailScreen extends StatelessWidget {
             fontSize: 18,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share_outlined, color: AppColors.textPrimary),
+            onPressed: () => _generateAndSharePDF(context, timeStr, dateStr),
+          ),
+          const SizedBox(width: 16),
+        ],
         leading: IconButton(
           icon: const Icon(Icons.close, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
@@ -251,10 +263,11 @@ class AppointmentDetailScreen extends StatelessWidget {
   }
 
   Widget _buildBottomAction(BuildContext context, DateTime? dt) {
+    final now = DateTime.now();
     final status = appointment.status.toLowerCase();
-    final isStale = status == 'cancelled' || status == 'completed';
-
-    if (isStale) return const SizedBox.shrink();
+    final isStale = status == 'cancelled' || 
+                    status == 'completed' || 
+                    (dt != null && dt.isBefore(now));
 
     return Container(
       padding: const EdgeInsets.fromLTRB(40, 0, 40, 40),
@@ -263,10 +276,15 @@ class AppointmentDetailScreen extends StatelessWidget {
         height: 64,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.textPrimary, width: 1.5),
+          border: Border.all(
+            color: isStale 
+              ? AppColors.textSecondary.withValues(alpha: 0.2) 
+              : AppColors.textPrimary, 
+            width: 1.5
+          ),
         ),
         child: ElevatedButton(
-          onPressed: () async {
+          onPressed: isStale ? null : () async {
             if (dt != null) {
               try {
                 final calendar.Event event = calendar.Event(
@@ -312,20 +330,152 @@ class AppointmentDetailScreen extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.textPrimary,
             foregroundColor: Colors.white,
+            disabledBackgroundColor: AppColors.textSecondary.withValues(alpha: 0.1),
+            disabledForegroundColor: AppColors.textSecondary.withValues(alpha: 0.4),
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
           ),
-          child: const Text(
-            'Add to Google Calendar',
-            style: TextStyle(
+          child: Text(
+            isStale ? 'Archived Appointment' : 'Add to Calendar',
+            style: const TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 14,
               letterSpacing: 0.5,
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _generateAndSharePDF(BuildContext context, String timeStr, String dateStr) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context pwContext) {
+          return pw.Padding(
+            padding: const pw.EdgeInsets.all(40),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(
+                      appointment.status.toUpperCase(),
+                      style: pw.TextStyle(
+                        color: PdfColors.blue600,
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                    ),
+                    pw.Text(
+                      'REF: ${appointment.appointmentId.substring(0, 8).toUpperCase()}',
+                      style: const pw.TextStyle(
+                        fontSize: 9,
+                        color: PdfColors.grey400,
+                      ),
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 16),
+                pw.Text(
+                  timeStr,
+                  style: pw.TextStyle(
+                    fontSize: 48,
+                    fontWeight: pw.FontWeight.normal,
+                    color: PdfColors.black,
+                  ),
+                ),
+                pw.SizedBox(height: 8),
+                pw.Text(
+                  dateStr.toUpperCase(),
+                  style: pw.TextStyle(
+                    fontSize: 14,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.black,
+                  ),
+                ),
+                pw.SizedBox(height: 60),
+                _buildPDFSection('Healthcare Provider', appointment.doctor.fullName, appointment.department),
+                _buildPDFSection('Reason for Visit', appointment.reason.isNotEmpty ? appointment.reason : 'General Checkup', null),
+                _buildPDFSection('Visit Location', appointment.hospital.name, appointment.hospital.address),
+                
+                pw.Spacer(),
+                pw.Divider(thickness: 0.5, color: PdfColors.grey300),
+                pw.SizedBox(height: 10),
+                pw.Center(
+                  child: pw.Text(
+                    'Generated via MediLocker - Your Digital Health Records',
+                    style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    try {
+      final output = await getTemporaryDirectory();
+      final file = File("${output.path}/appointment_${appointment.appointmentId.substring(0, 8)}.pdf");
+      await file.writeAsBytes(await pdf.save());
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Medical Appointment Details - ${appointment.doctor.fullName}',
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to generate sharing file')),
+        );
+      }
+    }
+  }
+
+  pw.Widget _buildPDFSection(String label, String value, String? subtitle) {
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.symmetric(vertical: 20),
+      decoration: const pw.BoxDecoration(
+        border: pw.Border(top: pw.BorderSide(color: PdfColors.grey200, width: 0.5)),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            label.toUpperCase(),
+            style: const pw.TextStyle(
+              fontSize: 9,
+              color: PdfColors.grey500,
+            ),
+          ),
+          pw.SizedBox(height: 6),
+          pw.Text(
+            value,
+            style: pw.TextStyle(
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.black,
+            ),
+          ),
+          if (subtitle != null) ...[
+            pw.SizedBox(height: 2),
+            pw.Text(
+              subtitle,
+              style: const pw.TextStyle(
+                fontSize: 11,
+                color: PdfColors.grey600,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
