@@ -352,70 +352,95 @@ class AppointmentDetailScreen extends StatelessWidget {
 
   Future<void> _generateAndSharePDF(BuildContext context, String timeStr, String dateStr) async {
     final pdf = pw.Document();
+    final now = DateTime.now();
+    DateTime? dt;
+    try {
+      dt = DateTime.parse(appointment.scheduledDateTime).toLocal();
+    } catch (_) {}
+
+    final status = appointment.status.toLowerCase();
+    final isStale = status == 'cancelled' || 
+                    status == 'completed' || 
+                    (dt != null && dt.isBefore(now));
+    
+    final timelineStage = isStale ? 'ARCHIVED RECORD' : 'UPCOMING VISIT';
 
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(50),
         build: (pw.Context pwContext) {
-          return pw.Padding(
-            padding: const pw.EdgeInsets.all(40),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text(
-                      appointment.status.toUpperCase(),
-                      style: pw.TextStyle(
-                        color: PdfColors.blue600,
-                        fontWeight: pw.FontWeight.bold,
-                        fontSize: 10,
-                      ),
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Header
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(
+                    timelineStage,
+                    style: pw.TextStyle(
+                      color: isStale ? PdfColors.grey500 : PdfColors.blue700,
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 10,
+                      letterSpacing: 1.5,
                     ),
-                    pw.Text(
-                      'REF: ${appointment.appointmentId.substring(0, 8).toUpperCase()}',
-                      style: const pw.TextStyle(
-                        fontSize: 9,
-                        color: PdfColors.grey400,
-                      ),
+                  ),
+                  pw.Text(
+                    'ID: ${appointment.appointmentId.substring(0, 8).toUpperCase()}',
+                    style: const pw.TextStyle(
+                      fontSize: 9,
+                      color: PdfColors.grey400,
                     ),
-                  ],
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 12),
+              pw.Divider(thickness: 0.5, color: PdfColors.grey200),
+              pw.SizedBox(height: 32),
+
+              // Hero
+              pw.Text(
+                timeStr,
+                style: pw.TextStyle(
+                  fontSize: 56,
+                  fontWeight: pw.FontWeight.normal,
+                  color: PdfColors.black,
+                  letterSpacing: -2,
                 ),
-                pw.SizedBox(height: 16),
-                pw.Text(
-                  timeStr,
+              ),
+              pw.SizedBox(height: 4),
+              pw.Text(
+                dateStr.toUpperCase(),
+                style: pw.TextStyle(
+                  fontSize: 14,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.black,
+                  letterSpacing: 2,
+                ),
+              ),
+              pw.SizedBox(height: 48),
+
+              // Grid
+              _buildPDFSection('Current Status', appointment.status.toUpperCase(), null),
+              _buildPDFSection('Healthcare Provider', appointment.doctor.fullName, appointment.department),
+              _buildPDFSection('Reason for Visit', appointment.reason.isNotEmpty ? appointment.reason : 'General Checkup', null),
+              _buildPDFSection('Visit Location', appointment.hospital.name, appointment.hospital.address),
+              
+              pw.SizedBox(height: 40),
+              pw.Divider(thickness: 0.5, color: PdfColors.grey200),
+              pw.SizedBox(height: 20),
+              pw.Center(
+                child: pw.Text(
+                  'MEDI LOCKER - DIGITAL HEALTH PASSPORT',
                   style: pw.TextStyle(
-                    fontSize: 48,
-                    fontWeight: pw.FontWeight.normal,
-                    color: PdfColors.black,
+                    fontSize: 8, 
+                    color: PdfColors.grey500,
+                    letterSpacing: 1,
                   ),
                 ),
-                pw.SizedBox(height: 8),
-                pw.Text(
-                  dateStr.toUpperCase(),
-                  style: pw.TextStyle(
-                    fontSize: 14,
-                    fontWeight: pw.FontWeight.bold,
-                    color: PdfColors.black,
-                  ),
-                ),
-                pw.SizedBox(height: 60),
-                _buildPDFSection('Healthcare Provider', appointment.doctor.fullName, appointment.department),
-                _buildPDFSection('Reason for Visit', appointment.reason.isNotEmpty ? appointment.reason : 'General Checkup', null),
-                _buildPDFSection('Visit Location', appointment.hospital.name, appointment.hospital.address),
-                
-                pw.Spacer(),
-                pw.Divider(thickness: 0.5, color: PdfColors.grey300),
-                pw.SizedBox(height: 10),
-                pw.Center(
-                  child: pw.Text(
-                    'Generated via MediLocker - Your Digital Health Records',
-                    style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
@@ -426,14 +451,16 @@ class AppointmentDetailScreen extends StatelessWidget {
       final file = File("${output.path}/appointment_${appointment.appointmentId.substring(0, 8)}.pdf");
       await file.writeAsBytes(await pdf.save());
 
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'Medical Appointment Details - ${appointment.doctor.fullName}',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          subject: 'Medical Appointment Details - ${appointment.doctor.fullName}',
+        ),
       );
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to generate sharing file')),
+          SnackBar(content: Text('Failed to share: ${e.toString().split('\n').first}')),
         );
       }
     }
@@ -442,7 +469,7 @@ class AppointmentDetailScreen extends StatelessWidget {
   pw.Widget _buildPDFSection(String label, String value, String? subtitle) {
     return pw.Container(
       width: double.infinity,
-      padding: const pw.EdgeInsets.symmetric(vertical: 20),
+      padding: const pw.EdgeInsets.symmetric(vertical: 16),
       decoration: const pw.BoxDecoration(
         border: pw.Border(top: pw.BorderSide(color: PdfColors.grey200, width: 0.5)),
       ),
@@ -452,15 +479,16 @@ class AppointmentDetailScreen extends StatelessWidget {
           pw.Text(
             label.toUpperCase(),
             style: const pw.TextStyle(
-              fontSize: 9,
+              fontSize: 8,
               color: PdfColors.grey500,
+              letterSpacing: 1,
             ),
           ),
-          pw.SizedBox(height: 6),
+          pw.SizedBox(height: 4),
           pw.Text(
             value,
             style: pw.TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.black,
             ),
@@ -470,7 +498,7 @@ class AppointmentDetailScreen extends StatelessWidget {
             pw.Text(
               subtitle,
               style: const pw.TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 color: PdfColors.grey600,
               ),
             ),
