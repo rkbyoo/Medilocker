@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/providers/patient_provider.dart';
+import 'package:intl/intl.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -18,15 +19,100 @@ class _DashboardScreenState extends State<DashboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final pp = context.read<PatientProvider>();
       if (pp.patient == null && !pp.isLoading) {
-        pp.fetchProfile();
+        pp.fetchProfile().then((_) {
+          if (pp.patient != null) {
+            pp.fetchAppointments();
+            pp.fetchVisits();
+            pp.fetchBills();
+          }
+        });
+      } else if (pp.patient != null && !pp.isLoading) {
+        if (pp.appointments.isEmpty) pp.fetchAppointments();
+        if (pp.visits.isEmpty) pp.fetchVisits();
+        if (pp.bills.isEmpty) pp.fetchBills();
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final patient = context.watch<PatientProvider>().patient;
+    final provider = context.watch<PatientProvider>();
+    final patient = provider.patient;
     final patientName = patient?.name.split(' ').first ?? 'Patient';
+
+    // 1. Next Appointment
+    final now = DateTime.now();
+    var upcomingAppts = provider.appointments.where((a) {
+      if (a.scheduledDateTime.isEmpty) return false;
+      try {
+        return DateTime.parse(a.scheduledDateTime).isAfter(now);
+      } catch (e) { return false; }
+    }).toList();
+    upcomingAppts.sort((a, b) => a.scheduledDateTime.compareTo(b.scheduledDateTime));
+    final nextAppointment = upcomingAppts.isNotEmpty ? upcomingAppts.first : null;
+
+    String nextApptSubtitle = nextAppointment != null ? 'Dr. ${nextAppointment.doctor.fullName}' : 'No appointments';
+    String nextApptDetail = nextAppointment != null 
+        ? DateFormat('MMM d, h:mm a').format(DateTime.parse(nextAppointment.scheduledDateTime)) 
+        : 'Schedule one now';
+
+    // 2. Recent Visit
+    var visitsList = List.of(provider.visits);
+    visitsList.sort((a, b) => b.visitDate.compareTo(a.visitDate));
+    final recentVisit = visitsList.isNotEmpty ? visitsList.first : null;
+    
+    String recentVisitSubtitle = recentVisit != null ? (recentVisit.diagnosis.isNotEmpty ? recentVisit.diagnosis : 'Visit') : 'No visits';
+    String recentVisitDetail = recentVisit != null 
+        ? DateFormat('MMM d, yyyy').format(DateTime.parse(recentVisit.visitDate)) 
+        : 'No history';
+
+    // 3. Pending Bills
+    var pendingBills = provider.bills.where((b) => b.paymentStatus.toLowerCase() == 'pending').toList();
+    double totalPending = pendingBills.fold(0.0, (sum, b) => sum + b.totalAmount);
+    String pendingBillSubtitle = '${pendingBills.length} Bills';
+    String pendingBillDetail = '₹${totalPending.toStringAsFixed(0)}';
+
+    // 4. Recent Activity (Latest reports, bills)
+    List<Widget> recentActivityWidgets = [];
+    var allReports = provider.visits.expand((v) => v.reports).toList();
+    allReports.sort((a, b) => b.uploadedAt.compareTo(a.uploadedAt));
+    if (allReports.isNotEmpty) {
+      final r = allReports.first;
+      recentActivityWidgets.add(_buildActivityItem(
+        context,
+        icon: Icons.description,
+        title: 'Report Available',
+        subtitle: '${r.reportType} - ${r.title}',
+      ));
+    }
+    if (pendingBills.isNotEmpty) {
+      final b = pendingBills.first;
+      recentActivityWidgets.add(_buildActivityItem(
+        context,
+        icon: Icons.receipt,
+        title: 'New Bill Generated',
+        subtitle: '₹${b.totalAmount.toStringAsFixed(0)} on ${DateFormat('MMM d').format(DateTime.parse(b.visitDate))}',
+      ));
+    }
+    if (provider.appointments.isNotEmpty) {
+      var pastAppts = List.of(provider.appointments);
+      pastAppts.sort((a, b) => b.scheduledDateTime.compareTo(a.scheduledDateTime));
+      final a = pastAppts.first;
+      recentActivityWidgets.add(_buildActivityItem(
+        context,
+        icon: Icons.check_circle,
+        title: 'Appointment ${a.status}',
+        subtitle: 'Dr. ${a.doctor.fullName} - ${DateFormat('MMM d').format(DateTime.parse(a.scheduledDateTime))}',
+      ));
+    }
+    if (recentActivityWidgets.isEmpty) {
+      recentActivityWidgets.add(
+        const Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Text('No recent activities.', style: TextStyle(color: Colors.grey)),
+        )
+      );
+    }
 
     return Scaffold(
 
@@ -74,24 +160,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     context,
                     icon: Icons.calendar_today,
                     title: 'Next Appointment',
-                    subtitle: 'Dr. Smith',
-                    detail: 'Tomorrow, 10:00 AM',
+                    subtitle: nextApptSubtitle,
+                    detail: nextApptDetail,
                     color: AppColors.primary,
                   ),
                   _buildSummaryCard(
                     context,
                     icon: Icons.medical_services,
                     title: 'Recent Visit',
-                    subtitle: 'General Checkup',
-                    detail: '2 days ago',
+                    subtitle: recentVisitSubtitle,
+                    detail: recentVisitDetail,
                     color: AppColors.success,
                   ),
                   _buildSummaryCard(
                     context,
                     icon: Icons.receipt,
                     title: 'Pending Bills',
-                    subtitle: '2 Bills',
-                    detail: '₹2,500',
+                    subtitle: pendingBillSubtitle,
+                    detail: pendingBillDetail,
                     color: AppColors.warning,
                   ),
                 ],
@@ -150,24 +236,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
             ),
             const SizedBox(height: 16),
-            _buildActivityItem(
-              context,
-              icon: Icons.description,
-              title: 'Lab Report Available',
-              subtitle: 'Blood Test - 2 hours ago',
-            ),
-            _buildActivityItem(
-              context,
-              icon: Icons.check_circle,
-              title: 'Appointment Confirmed',
-              subtitle: 'Dr. Smith - Yesterday',
-            ),
-            _buildActivityItem(
-              context,
-              icon: Icons.receipt,
-              title: 'New Bill Generated',
-              subtitle: '₹1,200 - 3 days ago',
-            ),
+            ...recentActivityWidgets,
           ],
         ),
       ),

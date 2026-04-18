@@ -78,7 +78,10 @@ class PatientProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await ApiService.get(ApiConfig.appointmentsEndpoint);
+      final endpoint = _patient != null 
+          ? '${ApiConfig.appointmentsEndpoint}?patient_id=${_patient!.patientId}'
+          : ApiConfig.appointmentsEndpoint;
+      final response = await ApiService.get(endpoint);
       _appointments = (response['data'] as List)
           .map((json) => Appointment.fromJson(json))
           .toList();
@@ -96,7 +99,10 @@ class PatientProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await ApiService.get(ApiConfig.visitsEndpoint);
+      final endpoint = _patient != null 
+          ? '${ApiConfig.visitsEndpoint}?patient_id=${_patient!.patientId}'
+          : ApiConfig.visitsEndpoint;
+      final response = await ApiService.get(endpoint);
       _visits = (response['data'] as List)
           .map((json) => Visit.fromJson(json))
           .toList();
@@ -114,7 +120,10 @@ class PatientProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await ApiService.get(ApiConfig.billsEndpoint);
+      final endpoint = _patient != null 
+          ? '${ApiConfig.billsEndpoint}?patient_id=${_patient!.patientId}'
+          : ApiConfig.billsEndpoint;
+      final response = await ApiService.get(endpoint);
       _bills = (response['data'] as List)
           .map((json) => Bill.fromJson(json))
           .toList();
