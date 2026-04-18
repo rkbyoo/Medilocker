@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/models/bill.dart';
+import '../../core/services/bill_pdf_service.dart';
 
 class BillDetailScreen extends StatelessWidget {
   final Bill bill;
@@ -58,33 +59,53 @@ class BillDetailScreen extends StatelessWidget {
             _buildTotalSummary(context),
             
             const SizedBox(height: 32),
-            if (bill.paymentStatus.toLowerCase() == 'pending')
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Payment logic
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'PAY NOW',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
+            _buildActionButtons(context),
+            const SizedBox(height: 16),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Row(
+      children: [
+        // Share Button (Always visible)
+        Expanded(
+          flex: 2,
+          child: OutlinedButton.icon(
+            onPressed: () => BillPdfService.generateAndShareBill(bill),
+            icon: const Icon(Icons.share_outlined, size: 20),
+            label: const Text('SHARE RECEIPT'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              side: const BorderSide(color: AppColors.primary),
+              foregroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ),
+        if (bill.paymentStatus.toLowerCase() == 'pending') ...[
+          const SizedBox(width: 12),
+          // Pay Now Button (Only if pending)
+          Expanded(
+            flex: 3,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                // Payment logic
+              },
+              icon: const Icon(Icons.payment, size: 20, color: Colors.white),
+              label: const Text('PAY NOW'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -217,6 +238,8 @@ class BillDetailScreen extends StatelessWidget {
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
+          shape: const RoundedRectangleBorder(side: BorderSide.none),
+          collapsedShape: const RoundedRectangleBorder(side: BorderSide.none),
           title: Text(
             title,
             style: const TextStyle(
@@ -225,11 +248,21 @@ class BillDetailScreen extends StatelessWidget {
               color: AppColors.textPrimary,
             ),
           ),
-          trailing: Text(
-            '₹${section.sectionTotal.toStringAsFixed(2)}',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
+          trailing: SizedBox(
+            width: 120,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  '₹${section.sectionTotal.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+              ],
             ),
           ),
           children: [
@@ -296,16 +329,16 @@ class BillDetailScreen extends StatelessWidget {
               const Text(
                 'Total Amount',
                 style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
                 '₹${bill.totalAmount.toStringAsFixed(2)}',
                 style: const TextStyle(
-                  fontSize: 22,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],
