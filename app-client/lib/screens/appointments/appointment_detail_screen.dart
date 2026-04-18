@@ -52,7 +52,7 @@ class AppointmentDetailScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 60),
-                      
+
                       // Status Label (Top Right-ish)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -66,7 +66,9 @@ class AppointmentDetailScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.textSecondary.withValues(alpha: 0.4),
+                                color: AppColors.textSecondary.withValues(
+                                  alpha: 0.4,
+                                ),
                                 letterSpacing: 1,
                               ),
                             ),
@@ -75,7 +77,7 @@ class AppointmentDetailScreen extends StatelessWidget {
                       ),
 
                       const SizedBox(height: 16),
-                      
+
                       // Date & Time Hero
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -86,7 +88,8 @@ class AppointmentDetailScreen extends StatelessWidget {
                               timeStr,
                               style: const TextStyle(
                                 fontSize: 64,
-                                fontWeight: FontWeight.w200, // Ultra light for premium feel
+                                fontWeight: FontWeight
+                                    .w200, // Ultra light for premium feel
                                 color: AppColors.textPrimary,
                                 letterSpacing: -3,
                                 height: 0.9,
@@ -109,16 +112,27 @@ class AppointmentDetailScreen extends StatelessWidget {
                       const SizedBox(height: 80),
 
                       // Information Grid
-                      _buildEditorialSection('Healthcare Provider', appointment.doctor.fullName, subtitle: appointment.department),
-                      _buildEditorialSection('Reason for Visit', appointment.reason.isNotEmpty ? appointment.reason : 'General Checkup'),
                       _buildEditorialSection(
-                        'Visit Location', 
-                        appointment.hospital.name, 
+                        'Healthcare Provider',
+                        appointment.doctor.fullName,
+                        subtitle: appointment.department,
+                      ),
+                      _buildEditorialSection(
+                        'Reason for Visit',
+                        appointment.reason.isNotEmpty
+                            ? appointment.reason
+                            : 'General Checkup',
+                      ),
+                      _buildEditorialSection(
+                        'Visit Location',
+                        appointment.hospital.name,
                         subtitle: appointment.hospital.address,
-                        onAction: () => MapsLauncher.launchQuery(appointment.hospital.address),
+                        onAction: () => MapsLauncher.launchQuery(
+                          appointment.hospital.address,
+                        ),
                         actionLabel: 'OPEN MAPS',
                       ),
-                      
+
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -140,33 +154,33 @@ class AppointmentDetailScreen extends StatelessWidget {
     if (status == 'confirmed') color = AppColors.success;
     if (status == 'cancelled') color = AppColors.emergency;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          appointment.status.toUpperCase(),
-          style: TextStyle(
-            color: color,
-            fontWeight: FontWeight.w900,
-            fontSize: 10,
-            letterSpacing: 1.5,
-          ),
-        ),
-      ],
+    return Text(
+      appointment.status.toUpperCase(),
+      style: TextStyle(
+        color: color,
+        fontWeight: FontWeight.w900,
+        fontSize: 10,
+        letterSpacing: 1.5,
+      ),
     );
   }
 
-  Widget _buildEditorialSection(String label, String value, {String? subtitle, VoidCallback? onAction, String? actionLabel}) {
+  Widget _buildEditorialSection(
+    String label,
+    String value, {
+    String? subtitle,
+    VoidCallback? onAction,
+    String? actionLabel,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.divider.withValues(alpha: 0.6), width: 0.5)),
+        border: Border(
+          top: BorderSide(
+            color: AppColors.divider.withValues(alpha: 0.6),
+            width: 0.5,
+          ),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,7 +271,8 @@ class AppointmentDetailScreen extends StatelessWidget {
               try {
                 final calendar.Event event = calendar.Event(
                   title: 'Appointment with ${appointment.doctor.fullName}',
-                  description: 'Reason: ${appointment.reason.isEmpty ? "General Checkup" : appointment.reason}\n'
+                  description:
+                      'Reason: ${appointment.reason.isEmpty ? "General Checkup" : appointment.reason}\n'
                       'Department: ${appointment.department}\n'
                       'Hospital: ${appointment.hospital.name}',
                   location: appointment.hospital.address,
@@ -268,17 +283,23 @@ class AppointmentDetailScreen extends StatelessWidget {
                   ),
                 );
 
-                final bool success = await calendar.Add2Calendar.addEvent2Cal(event);
-                
+                final bool success = await calendar.Add2Calendar.addEvent2Cal(
+                  event,
+                );
+
                 if (!success && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Could not open calendar app')),
+                    const SnackBar(
+                      content: Text('Could not open calendar app'),
+                    ),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: ${e.toString().split('\n').first}')),
+                    SnackBar(
+                      content: Text('Error: ${e.toString().split('\n').first}'),
+                    ),
                   );
                 }
               }
