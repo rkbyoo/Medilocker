@@ -1,29 +1,29 @@
 class ApiConfig {
-  static const baseUrl = 'http://localhost:3000/api';
-  static const mobileBaseUrl = '$baseUrl/mobile';
-  
-  // Auth endpoints
-  static const validateEndpoint = '$mobileBaseUrl/auth/validate';
-  static const sendOtpEndpoint = '$mobileBaseUrl/auth/send-otp';
-  static const verifyOtpEndpoint = '$mobileBaseUrl/auth/verify-otp';
-  static const refreshEndpoint = '$mobileBaseUrl/auth/refresh';
-  static const logoutEndpoint = '$mobileBaseUrl/auth/logout';
-  
-  // Patient endpoints
-  static const profileEndpoint = '$mobileBaseUrl/patient/profile';
-  static const allergiesEndpoint = '$mobileBaseUrl/patient/allergies';
-  static const conditionsEndpoint = '$mobileBaseUrl/patient/conditions';
-  
+  // LAN IP of your development machine (run `ipconfig` to confirm)
+  // Physical device must be on the same Wi-Fi network as this machine.
+  static const baseUrl = 'http://172.20.72.66:4000/api';
+
+  // Auth endpoints  → /api/auth/otp/send  |  /api/auth/otp/verify
+  static const sendOtpEndpoint    = '$baseUrl/auth/otp/send';
+  static const verifyOtpEndpoint  = '$baseUrl/auth/otp/verify';
+  static const refreshEndpoint    = '$baseUrl/auth/refresh';
+  static const logoutEndpoint     = '$baseUrl/auth/logout';
+
+  // Patient endpoints (protected – requires Bearer token)
+  static const profileEndpoint    = '$baseUrl/patients/me';
+  static const allergiesEndpoint  = '$baseUrl/patients/me/allergies';
+  static const conditionsEndpoint = '$baseUrl/patients/me/conditions';
+
   // Visits endpoints
-  static const visitsEndpoint = '$mobileBaseUrl/visits';
-  
+  static const visitsEndpoint     = '$baseUrl/visits';
+
   // Bills endpoints
-  static const billsEndpoint = '$mobileBaseUrl/bills';
-  
+  static const billsEndpoint      = '$baseUrl/bills';
+
   // Appointments endpoints
-  static const appointmentsEndpoint = '$mobileBaseUrl/appointments';
-  static const slotsEndpoint = '$mobileBaseUrl/appointments/slots';
-  
+  static const appointmentsEndpoint = '$baseUrl/appointments';
+  static const slotsEndpoint        = '$baseUrl/appointments/slots';
+
   // Notifications endpoints
-  static const notificationsEndpoint = '$mobileBaseUrl/notifications';
+  static const notificationsEndpoint = '$baseUrl/notifications';
 }

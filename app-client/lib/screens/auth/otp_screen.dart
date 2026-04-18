@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/providers/patient_provider.dart';
 import '../home/main_screen.dart';
 
 class OtpScreen extends StatefulWidget {
@@ -47,10 +48,12 @@ class _OtpScreenState extends State<OtpScreen> {
     }
 
     final authProvider = context.read<AuthProvider>();
+    final patientProvider = context.read<PatientProvider>();
     final success = await authProvider.verifyOtp(
       widget.phoneNumber,
       widget.patientNumber,
       otp,
+      patientProvider: patientProvider,
     );
 
     if (success && mounted) {
@@ -59,8 +62,13 @@ class _OtpScreenState extends State<OtpScreen> {
         MaterialPageRoute(builder: (context) => const MainScreen()),
       );
     } else if (mounted) {
+      final msg = authProvider.errorMessage ?? 'Invalid OTP. Please try again.';
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid OTP. Please try again.')),
+        SnackBar(
+          content: Text(msg),
+          backgroundColor: Colors.red.shade700,
+          duration: const Duration(seconds: 5),
+        ),
       );
     }
   }

@@ -20,10 +20,12 @@ export const RefreshTokenDto = z.object({
 
 export const SendOtpDto = z.object({
   phone: z.string().min(7).max(20),
+  patient_number: z.string().length(10),
 });
 
 export const VerifyOtpDto = z.object({
   phone: z.string().min(7).max(20),
+  patient_number: z.string().length(10),
   code: z.string().length(6),
 });
 

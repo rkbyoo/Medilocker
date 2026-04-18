@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
+import { PatientModel } from '../patient/patient.model';
+import { PatientService } from '../patient/patient.service';
 import { sendSuccess, sendError } from '../../utils/response';
 import { logAccess, ACCESS_ACTIONS } from '../../utils/logger';
 import { HTTP_STATUS } from '../../constants/statusCodes';
@@ -96,9 +98,24 @@ export class AuthController {
 
   static async sendOtp(req: Request, res: Response): Promise<Response> {
     try {
-      const { phone } = req.body;
-      if (!phone) return sendError(res, 'Phone number is required', HTTP_STATUS.BAD_REQUEST);
-      await sendOtp(phone);
+      const { phone, patient_number } = req.body;
+      if (!phone || !patient_number)
+        return sendError(res, 'Phone number and patient number are required', HTTP_STATUS.BAD_REQUEST);
+
+      // Validate that the patient_number + phone pair exists in the DB
+      const patient = await PatientModel.findByPatientNumber(patient_number);
+      if (!patient)
+        return sendError(res, 'Patient not found. Please check your patient number.', HTTP_STATUS.NOT_FOUND);
+
+      const patientPhone = patient.phone_number || patient.user?.phone;
+      // Normalize: strip non-digits then compare last 10 digits
+      const normalize = (p: string) => p.replace(/\D/g, '').slice(-10);
+      if (!patientPhone || normalize(patientPhone) !== normalize(phone))
+        return sendError(res, 'Phone number does not match our records for this patient.', HTTP_STATUS.UNAUTHORIZED);
+
+      // Format phone with country code for Twilio (assume +91 if no country code)
+      const formattedPhone = phone.startsWith('+') ? phone : `+91${phone.replace(/\D/g, '').slice(-10)}`;
+      await sendOtp(formattedPhone);
       await logAccess(null, 'OTP_SENT', true, req);
       return sendSuccess(res, 'OTP sent successfully');
     } catch (error: any) {
@@ -109,13 +126,26 @@ export class AuthController {
 
   static async verifyOtp(req: Request, res: Response): Promise<Response> {
     try {
-      const { phone, code } = req.body;
-      if (!phone || !code) return sendError(res, 'Phone and code are required', HTTP_STATUS.BAD_REQUEST);
+      const { phone, code, patient_number } = req.body;
+      if (!phone || !code || !patient_number)
+        return sendError(res, 'Phone, patient number, and code are required', HTTP_STATUS.BAD_REQUEST);
 
-      const approved = await verifyOtp(phone, code);
+      // Re-validate patient_number + phone pair
+      const patient = await PatientModel.findByPatientNumber(patient_number);
+      if (!patient)
+        return sendError(res, AUTH_MESSAGES.USER_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+
+      const patientPhone = patient.phone_number || patient.user?.phone;
+      const normalize = (p: string) => p.replace(/\D/g, '').slice(-10);
+      if (!patientPhone || normalize(patientPhone) !== normalize(phone))
+        return sendError(res, 'Phone number does not match our records for this patient.', HTTP_STATUS.UNAUTHORIZED);
+
+      // Verify OTP with Twilio
+      const formattedPhone = phone.startsWith('+') ? phone : `+91${phone.replace(/\D/g, '').slice(-10)}`;
+      const approved = await verifyOtp(formattedPhone, code);
       if (!approved) return sendError(res, 'Invalid or expired OTP', HTTP_STATUS.UNAUTHORIZED);
 
-      const user = await UserService.getUserByPhone(phone);
+      const user = patient.user;
       if (!user) return sendError(res, AUTH_MESSAGES.USER_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 
       const accessToken = generateAccessToken({ user_id: user.user_id, email: user.email, role: user.role });
@@ -124,10 +154,21 @@ export class AuthController {
       await UserService.updateUserLastLogin(user.user_id);
       await logAccess(user.user_id, ACCESS_ACTIONS.LOGIN_SUCCESS, true, req);
 
+      // Transform patient data for the mobile app
+      const patientData = PatientService.transformPatient({
+        ...patient,
+        allergies: patient.allergies,
+        chronicConditions: patient.chronicConditions,
+      });
+
+      // Normalize Prisma's `null` → `undefined` so the shape matches DatabaseUser
+      const dbUser = { ...user, phone: user.phone ?? undefined };
+
       return sendSuccess(res, AUTH_MESSAGES.LOGIN_SUCCESS, {
-        user: UserService.sanitizeUser(user),
+        user: UserService.sanitizeUser(dbUser),
         access_token: accessToken,
         refresh_token: refreshToken,
+        patient: patientData,
       });
     } catch (error: any) {
       console.error('Verify OTP error:', error);

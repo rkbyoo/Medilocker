@@ -1,78 +1,98 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:medilocker/core/services/auth_service.dart';
+import 'package:medilocker/core/services/api_service.dart';
+import 'patient_provider.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
   bool _isAuthenticated = false;
-  bool _isLoading = false;
-  bool _isDemoMode = false;
-
-  // Demo credentials
-  static const String _demoPhone = '9876543210';
-  static const String _demoPatientNumber = '1234567890';
-  static const String _demoOTP = '123456';
+  bool _isLoading = false;          // button-level spinner (sendOtp / verifyOtp)
+  bool _isCheckingAuth = true;      // startup-only: reading SharedPreferences
+  String? _errorMessage;
 
   bool get isAuthenticated => _isAuthenticated;
   bool get isLoading => _isLoading;
-  bool get isDemoMode => _isDemoMode;
+  bool get isCheckingAuth => _isCheckingAuth;
+  String? get errorMessage => _errorMessage;
+
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
 
   Future<void> checkAuthStatus() async {
-    _isLoading = true;
+    _isCheckingAuth = true;
     notifyListeners();
-    
     _isAuthenticated = await _authService.isLoggedIn();
-    
-    _isLoading = false;
+    _isCheckingAuth = false;
     notifyListeners();
   }
 
   Future<bool> sendOtp(String phoneNumber, String patientNumber) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
-    
-    // Check if demo credentials
-    if (phoneNumber == _demoPhone && patientNumber == _demoPatientNumber) {
-      _isDemoMode = true;
+
+    try {
+      await _authService.sendOtp(phoneNumber, patientNumber);
       _isLoading = false;
       notifyListeners();
       return true;
+    } on ApiException catch (e) {
+      developer.log('sendOtp [${e.statusCode}]: ${e.message}',
+          name: 'AuthProvider');
+      _errorMessage = e.message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      developer.log('sendOtp unexpected: $e', name: 'AuthProvider');
+      _errorMessage = 'Could not reach server. Check your connection.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
-    
-    final success = await _authService.sendOtp(phoneNumber, patientNumber);
-    
-    _isLoading = false;
-    notifyListeners();
-    
-    return success;
   }
 
-  Future<bool> verifyOtp(String phoneNumber, String patientNumber, String otp) async {
+  Future<bool> verifyOtp(
+    String phoneNumber,
+    String patientNumber,
+    String otp, {
+    PatientProvider? patientProvider,
+  }) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
-    
-    // Check if demo mode
-    if (_isDemoMode && otp == _demoOTP) {
+
+    try {
+      await _authService.verifyOtp(phoneNumber, patientNumber, otp);
       _isAuthenticated = true;
+      patientProvider?.fetchProfile();
       _isLoading = false;
       notifyListeners();
       return true;
+    } on ApiException catch (e) {
+      developer.log('verifyOtp [${e.statusCode}]: ${e.message}',
+          name: 'AuthProvider');
+      _errorMessage = e.message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      developer.log('verifyOtp unexpected: $e', name: 'AuthProvider');
+      _errorMessage = 'Could not reach server. Check your connection.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
-    
-    final success = await _authService.verifyOtp(phoneNumber, patientNumber, otp);
-    if (success) {
-      _isAuthenticated = true;
-    }
-    
-    _isLoading = false;
-    notifyListeners();
-    
-    return success;
   }
 
-  Future<void> logout() async {
+  Future<void> logout({PatientProvider? patientProvider}) async {
     await _authService.logout();
+    await patientProvider?.clearPatient();
     _isAuthenticated = false;
-    _isDemoMode = false;
+    _errorMessage = null;
     notifyListeners();
   }
 }

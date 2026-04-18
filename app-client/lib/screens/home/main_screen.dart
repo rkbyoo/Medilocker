@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
-import '../../core/providers/auth_provider.dart';
 import '../../core/providers/patient_provider.dart';
 import 'dashboard_screen.dart';
 import '../appointments/appointments_screen.dart';
@@ -32,19 +31,13 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authProvider = context.read<AuthProvider>();
       final patientProvider = context.read<PatientProvider>();
-      
-      // If in demo mode, load demo data
-      if (authProvider.isDemoMode) {
-        patientProvider.setDemoMode(true);
-      } else {
-        // Load real data from API
-        patientProvider.fetchProfile();
-        patientProvider.fetchAppointments();
-        patientProvider.fetchVisits();
-        patientProvider.fetchBills();
-      }
+      // fetchProfile reads from SharedPreferences cache first (set during OTP verify),
+      // so this is instant on first open — no extra network round-trip needed.
+      patientProvider.fetchProfile();
+      patientProvider.fetchAppointments();
+      patientProvider.fetchVisits();
+      patientProvider.fetchBills();
     });
   }
 

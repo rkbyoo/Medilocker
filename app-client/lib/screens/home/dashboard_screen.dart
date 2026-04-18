@@ -1,21 +1,57 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/providers/patient_provider.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final pp = context.read<PatientProvider>();
+      if (pp.patient == null && !pp.isLoading) {
+        pp.fetchProfile();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final patient = context.watch<PatientProvider>().patient;
+    final patientName = patient?.name.split(' ').first ?? 'Patient';
+
     return Scaffold(
+
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          AppStrings.appName,
-          style: TextStyle(color: AppColors.textPrimary),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Hello, $patientName! 👋',
+              style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold),
+            ),
+            Text(
+              AppStrings.appName,
+              style: const TextStyle(
+                  color: AppColors.textSecondary, fontSize: 12),
+            ),
+          ],
         ),
+
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary),

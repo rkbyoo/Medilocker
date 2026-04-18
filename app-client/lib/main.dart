@@ -103,14 +103,14 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
-        if (authProvider.isLoading) {
+        // Only block UI during the one-time startup token check.
+        // isLoading (sendOtp/verifyOtp) must NOT replace the current screen.
+        if (authProvider.isCheckingAuth) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
-        
+
         return authProvider.isAuthenticated
             ? const MainScreen()
             : const LoginScreen();

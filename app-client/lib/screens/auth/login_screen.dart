@@ -33,7 +33,16 @@ class _LoginScreenState extends State<LoginScreen> {
       _patientNumberController.text,
     );
 
-    if (success && mounted) {
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ OTP sent! Check your SMS.'),
+          backgroundColor: Color(0xFF2E7D32),
+          duration: Duration(seconds: 3),
+        ),
+      );
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -43,9 +52,14 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       );
-    } else if (mounted) {
+    } else {
+      final msg = authProvider.errorMessage ?? 'Failed to send OTP. Please try again.';
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to send OTP. Please try again.')),
+        SnackBar(
+          content: Text(msg),
+          backgroundColor: Colors.red.shade700,
+          duration: const Duration(seconds: 5),
+        ),
       );
     }
   }
