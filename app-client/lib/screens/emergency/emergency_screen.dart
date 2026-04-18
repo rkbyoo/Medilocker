@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -5,31 +6,66 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/patient_provider.dart';
 
-class EmergencyScreen extends StatelessWidget {
+class EmergencyScreen extends StatefulWidget {
   const EmergencyScreen({super.key});
 
-  Future<void> _makePhoneCall(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
+  @override
+  State<EmergencyScreen> createState() => _EmergencyScreenState();
+}
+
+class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  bool _isFront = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _flipCard() {
+    if (_isFront) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+    setState(() {
+      _isFront = !_isFront;
+    });
+  }
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
     if (await canLaunchUrl(launchUri)) {
       await launchUrl(launchUri);
-    } else {
-      debugPrint('Could not launch $launchUri');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: AppColors.emergency,
+        backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: true,
         title: const Text(
-          'Emergency',
-          style: TextStyle(color: Colors.white),
+          'EMERGENCY ID',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w900,
+            fontSize: 14,
+            letterSpacing: 2,
+          ),
         ),
       ),
       body: Consumer<PatientProvider>(
@@ -39,190 +75,91 @@ class EmergencyScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Try to get hospital from the latest appointment or visit
-          String hospitalName = 'Unknown Hospital';
-          String hospitalAddress = 'No address on file';
-          String hospitalPhone = '';
-
-          if (provider.appointments.isNotEmpty) {
-            final appt = provider.appointments.first;
-            hospitalName = appt.hospital.name;
-            hospitalAddress = appt.hospital.address;
-            hospitalPhone = appt.hospital.contactNumber;
-          } else if (provider.visits.isNotEmpty) {
-            final visit = provider.visits.first;
-            hospitalName = visit.hospital.name;
-            hospitalAddress = visit.hospital.address;
-            hospitalPhone = visit.hospital.contactNumber;
-          }
-
-          final emergencyContact = patient.emergencyContactNumber.isNotEmpty ? patient.emergencyContactNumber : hospitalPhone;
-          final emergencyName = patient.emergencyContactName.isNotEmpty ? patient.emergencyContactName : 'Emergency Contact';
+          final emergencyContact = patient.emergencyContactNumber.isNotEmpty 
+              ? patient.emergencyContactNumber 
+              : '';
+          final emergencyName = patient.emergencyContactName.isNotEmpty 
+              ? patient.emergencyContactName 
+              : 'Emergency Contact';
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                // Emergency Call Button
-                Container(
-                  width: double.infinity,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: AppColors.emergency,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.emergency.withValues(alpha: 0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        if (emergencyContact.isNotEmpty) {
-                          _makePhoneCall(emergencyContact);
-                        } else if (hospitalPhone.isNotEmpty) {
-                          _makePhoneCall(hospitalPhone);
-                        } else {
-                          // Default 911 if no records found
-                          _makePhoneCall('911');
-                        }
+                const SizedBox(height: 40),
+                
+                // Flippable Card
+                Center(
+                  child: GestureDetector(
+                    onHorizontalDragEnd: (details) {
+                      if (details.primaryVelocity!.abs() > 100) {
+                        _flipCard();
+                      }
+                    },
+                    onTap: _flipCard,
+                    child: AnimatedBuilder(
+                      animation: _controller,
+                      builder: (context, child) {
+                        double angle = _controller.value * pi;
+                        bool isBack = angle > pi / 2;
+                        return Transform(
+                          transform: Matrix4.identity()
+                            ..setEntry(3, 2, 0.0015) // enhanced perspective
+                            ..rotateY(angle),
+                          alignment: Alignment.center,
+                          child: isBack
+                              ? Transform(
+                                  transform: Matrix4.identity()..rotateY(pi),
+                                  alignment: Alignment.center,
+                                  child: _buildCardBack(patient),
+                                )
+                              : _buildCardFront(patient, emergencyName, emergencyContact),
+                        );
                       },
-                      borderRadius: BorderRadius.circular(16),
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.phone,
-                            size: 64,
-                            color: Colors.white,
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                            'Call Emergency',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Tap to call',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 24),
-                
-                // Medical ID Card
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
+
+                // Interaction Guide
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 40),
                   child: Column(
                     children: [
+                      Icon(Icons.swipe_outlined, color: AppColors.textSecondary, size: 24),
+                      SizedBox(height: 8),
                       Text(
-                        'Medical ID Card',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      const SizedBox(height: 16),
-                      QrImageView(
-                        data: patient.patientNumber,
-                        version: QrVersions.auto,
-                        size: 200,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildInfoRow(context, 'Name', patient.name),
-                      _buildInfoRow(context, 'Patient Number', patient.patientNumber),
-                      _buildInfoRow(context, 'Blood Group', patient.bloodGroup.isNotEmpty ? patient.bloodGroup : 'Unknown', isHighlight: true),
-                      _buildInfoRow(context, 'Emergency Contact', emergencyContact.isNotEmpty ? emergencyContact : 'Not set'),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.warning.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          'Show this to medical personnel in case of emergency',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: AppColors.warning,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        'SWIPE OR TAP TO REVEAL MEDICAL DETAILS',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textSecondary,
+                          letterSpacing: 1.5,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-                
-                // Hospital Info
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Hospital Information',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildContactRow(
-                        context,
-                        icon: Icons.location_on,
-                        title: hospitalName,
-                        subtitle: hospitalAddress.isNotEmpty ? hospitalAddress : 'No Address',
-                        onTap: null,
-                      ),
-                      const SizedBox(height: 12),
-                      _buildContactRow(
-                        context,
-                        icon: Icons.phone,
-                        title: emergencyName,
-                        subtitle: emergencyContact.isNotEmpty ? emergencyContact : 'No Emergency Contact',
-                        onTap: emergencyContact.isNotEmpty ? () => _makePhoneCall(emergencyContact) : null,
-                      ),
-                      const SizedBox(height: 12),
-                      if (hospitalPhone.isNotEmpty)
-                        _buildContactRow(
-                          context,
-                          icon: Icons.phone,
-                          title: 'Hospital Reception',
-                          subtitle: hospitalPhone,
-                          onTap: () => _makePhoneCall(hospitalPhone),
-                        ),
-                    ],
-                  ),
+
+                const SizedBox(height: 60),
+
+                // Critical Actions Section
+                _buildActionSection(
+                  'Primary Emergency Contact', 
+                  emergencyName, 
+                  subtitle: emergencyContact,
+                  onCall: () => _makePhoneCall(emergencyContact),
                 ),
+                
+                if (provider.appointments.isNotEmpty)
+                  _buildActionSection(
+                    'Recent Healthcare Hub', 
+                    provider.appointments.first.hospital.name, 
+                    subtitle: provider.appointments.first.hospital.contactNumber,
+                    onCall: () => _makePhoneCall(provider.appointments.first.hospital.contactNumber),
+                  ),
+
+                const SizedBox(height: 40),
               ],
             ),
           );
@@ -231,68 +168,302 @@ class EmergencyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, String label, String value,
-      {bool isHighlight = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+  Widget _buildCardFront(dynamic patient, String contactName, String contactPhone) {
+    return Container(
+      width: 330,
+      height: 200,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.textPrimary,
+            AppColors.textPrimary.withValues(alpha: 0.85),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 30,
+            offset: const Offset(0, 15),
           ),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isHighlight ? AppColors.emergency : AppColors.textPrimary,
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 24,
+            right: 24,
+            child: Icon(Icons.nfc_rounded, color: Colors.white.withValues(alpha: 0.3), size: 28),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top: Name
+                Text(
+                  patient.name.toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
+                  ),
                 ),
+                const SizedBox(height: 12),
+                
+                // Middle: Patient ID
+                Row(
+                  children: [
+                    Text(
+                      'PATIENT ID  ',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.4),
+                        fontSize: 8,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    Text(
+                      patient.patientNumber.toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const Spacer(),
+                
+                // Bottom: EMG Contact
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'EMG. CONTACT',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.4),
+                            fontSize: 8,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          contactPhone,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    GestureDetector(
+                      onTap: () => _makePhoneCall(contactPhone),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.emergency,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.emergency.withValues(alpha: 0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.call, color: Colors.white, size: 14),
+                            SizedBox(width: 6),
+                            Text(
+                              'CALL',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildContactRow(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
+  Widget _buildCardBack(dynamic patient) {
+    // Generate medical notes from real data
+    String allergies = patient.allergies.isEmpty 
+        ? 'NO KNOWN ALLERGIES' 
+        : patient.allergies.map((a) => a.allergyName.toUpperCase()).join(', ');
+    
+    String conditions = patient.chronicConditions.isEmpty 
+        ? 'NONE RECORDED' 
+        : patient.chronicConditions.map((c) => c.conditionName.toUpperCase()).join(', ');
+
+    return Container(
+      width: 330,
+      height: 200,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.textPrimary, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 30,
+            offset: const Offset(0, 15),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildBackInfo('BLOOD GROUP', patient.bloodGroup.isNotEmpty ? patient.bloodGroup : 'N/A', isImportant: true),
+                  const SizedBox(height: 12),
+                  _buildBackInfo('ALLERGIES', allergies, isSmall: true),
+                  const SizedBox(height: 8),
+                  _buildBackInfo('CHRONIC CONDITIONS', conditions, isSmall: true),
+                  const Spacer(),
+                  Text(
+                    'SCAN FOR RECORDS',
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textSecondary.withValues(alpha: 0.5),
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const VerticalDivider(width: 32, thickness: 0.5),
+            Expanded(
+              flex: 2,
+              child: Center(
+                child: QrImageView(
+                  data: patient.patientNumber,
+                  version: QrVersions.auto,
+                  size: 100,
+                  eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: AppColors.textPrimary),
+                  dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: AppColors.textPrimary),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackInfo(String label, String value, {bool isImportant = false, bool isSmall = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 8,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textSecondary.withValues(alpha: 0.7),
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: isSmall ? 10 : 18,
+            fontWeight: isImportant ? FontWeight.w900 : FontWeight.w600,
+            color: isImportant ? AppColors.emergency : AppColors.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionSection(String label, String title, {required String subtitle, required VoidCallback onCall}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.divider.withValues(alpha: 0.5), width: 0.5)),
+      ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: AppColors.primary),
-          ),
-          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
+                  label.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textSecondary.withValues(alpha: 0.6),
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
                   title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 Text(
                   subtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
+            ),
+          ),
+          GestureDetector(
+            onTap: onCall,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.04),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.phone_rounded, 
+                color: AppColors.primary, 
+                size: 20
+              ),
             ),
           ),
         ],
