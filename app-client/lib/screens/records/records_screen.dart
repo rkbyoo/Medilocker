@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/patient_provider.dart';
+import '../../core/models/visit.dart';
 import 'prescription_detail_screen.dart';
 
 class RecordsScreen extends StatefulWidget {
@@ -12,454 +13,458 @@ class RecordsScreen extends StatefulWidget {
   State<RecordsScreen> createState() => _RecordsScreenState();
 }
 
-class _RecordsScreenState extends State<RecordsScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
+class _RecordsScreenState extends State<RecordsScreen> {
+  String _activeFilter = 'ALL';
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  List<Visit> _getFilteredVisits(List<Visit> visits) {
+    List<Visit> filtered = List<Visit>.from(visits);
+
+    if (_activeFilter == 'REPORTS') {
+      filtered = filtered.where((v) => v.reports.isNotEmpty).toList();
+    } else if (_activeFilter == 'MEDS') {
+      filtered = filtered.where((v) => v.prescriptions.isNotEmpty).toList();
+    } else if (_activeFilter == 'VISITS') {
+      filtered = filtered
+          .where((v) => v.visitType.toUpperCase().contains('CONSULT'))
+          .toList();
+      if (filtered.isEmpty) filtered = List<Visit>.from(visits);
+    }
+
+    final query = _searchController.text.toLowerCase();
+    if (query.isNotEmpty) {
+      filtered = filtered.where((v) {
+        return v.diagnosis.toLowerCase().contains(query) ||
+            v.doctor.fullName.toLowerCase().contains(query) ||
+            v.hospital.name.toLowerCase().contains(query);
+      }).toList();
+    }
+
+    filtered.sort((a, b) => b.visitDate.compareTo(a.visitDate));
+    return filtered;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Medical Records',
-          style: TextStyle(color: AppColors.textPrimary),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: AppColors.textPrimary),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.filter_list, color: AppColors.textPrimary),
-            onPressed: () {},
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.textSecondary,
-          indicatorColor: AppColors.primary,
-          tabs: const [
-            Tab(text: 'Visits'),
-            Tab(text: 'Reports'),
-            Tab(text: 'Prescriptions'),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildVisitsTab(),
-          _buildReportsTab(),
-          _buildPrescriptionsTab(),
-        ],
-      ),
-    );
-  }
+        body: Consumer<PatientProvider>(
+          builder: (context, provider, child) {
+            final filteredVisits = _getFilteredVisits(provider.visits);
 
-  Widget _buildVisitsTab() {
-    return Consumer<PatientProvider>(
-      builder: (context, provider, child) {
-        final visits = provider.visits;
-
-        if (visits.isEmpty) {
-          return const Center(child: Text("No visits found"));
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-          itemCount: visits.length,
-          itemBuilder: (context, index) {
-            final visit = visits[index];
-            
-            String timeStr = 'Unknown Date';
-            try {
-              if (visit.visitDate.isNotEmpty) {
-                 DateTime dt = DateTime.parse(visit.visitDate);
-                 timeStr = DateFormat('MMM dd, yyyy').format(dt);
-              }
-            } catch (_) {}
-
-            return _buildVisitCard(
-              context,
-              date: timeStr,
-              hospital: visit.hospital.name.isNotEmpty ? visit.hospital.name : 'Unknown Hospital',
-              doctor: visit.doctor.fullName.isNotEmpty ? visit.doctor.fullName : 'Unknown Doctor',
-              department: visit.doctor.specialization.isNotEmpty ? visit.doctor.specialization : 'General',
-              visitType: visit.visitType.toUpperCase(),
-              hasPrescription: visit.prescriptions.isNotEmpty,
-              reportsCount: visit.reports.length,
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildReportsTab() {
-    return Consumer<PatientProvider>(
-      builder: (context, provider, child) {
-        final reports = provider.visits.expand((v) => v.reports).toList();
-
-        if (reports.isEmpty) {
-          return const Center(child: Text("No medical reports found"));
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-          itemCount: reports.length,
-          itemBuilder: (context, index) {
-            final report = reports[index];
-            
-            String timeStr = 'Unknown Date';
-            try {
-              if (report.uploadedAt.isNotEmpty) {
-                 DateTime dt = DateTime.parse(report.uploadedAt);
-                 timeStr = DateFormat('MMM dd, yyyy').format(dt);
-              }
-            } catch (_) {}
-
-            return _buildReportCard(
-              context,
-              title: report.title.isNotEmpty ? report.title : report.reportType,
-              date: timeStr,
-              hospital: report.hospitalName.isNotEmpty ? report.hospitalName : 'Hospital',
-              type: report.reportType,
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildPrescriptionsTab() {
-    return Consumer<PatientProvider>(
-      builder: (context, provider, child) {
-        final prescriptions = provider.visits.expand((v) {
-          // Attach doctor info from visit for UI display
-          return v.prescriptions.map((p) => {'prescription': p, 'doctorName': v.doctor.fullName});
-        }).toList();
-
-        if (prescriptions.isEmpty) {
-          return const Center(child: Text("No prescriptions found"));
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-          itemCount: prescriptions.length,
-          itemBuilder: (context, index) {
-            final data = prescriptions[index];
-            final p = data['prescription'] as dynamic; // It's of type Prescription
-            final doctorName = data['doctorName'] as String;
-            
-            String timeStr = 'Unknown Date';
-            try {
-              if (p.prescribedDate.isNotEmpty) {
-                 DateTime dt = DateTime.parse(p.prescribedDate);
-                 timeStr = DateFormat('MMM dd, yyyy').format(dt);
-              }
-            } catch (_) {}
-
-            return _buildPrescriptionCard(
-              context,
-              doctor: doctorName.isNotEmpty ? doctorName : 'Unknown Doctor',
-              date: timeStr,
-              medicationsCount: p.medications.length,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => PrescriptionDetailScreen(
-                      prescription: p,
-                      doctorName: doctorName.isNotEmpty ? doctorName : 'Unknown Doctor',
+            return CustomScrollView(
+              slivers: [
+                _buildSliverAppBar(),
+                _buildPersistentSearch(),
+                _buildFilterChips(),
+                if (filteredVisits.isEmpty)
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _EmptyState(isSearch: true),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        return _buildTimelineEvent(
+                          context,
+                          filteredVisits[index],
+                        );
+                      }, childCount: filteredVisits.length),
                     ),
                   ),
-                );
-              },
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              ],
             );
           },
-        );
-      },
+        ),
+      ),
     );
   }
 
-  Widget _buildVisitCard(
-    BuildContext context, {
-    required String date,
-    required String hospital,
-    required String doctor,
-    required String department,
-    required String visitType,
-    required bool hasPrescription,
-    required int reportsCount,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+  Widget _buildSliverAppBar() {
+    return SliverAppBar(
+      expandedHeight: 80, // Tighter height for top-left alignment
+      backgroundColor: Colors.white,
+      elevation: 0,
+      pinned: true,
+      centerTitle: false,
+      flexibleSpace: const FlexibleSpaceBar(
+        titlePadding: EdgeInsets.fromLTRB(24, 0, 24, 12),
+        title: Text(
+          'CLINICAL HISTORY',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w900,
+            fontSize: 16,
+            letterSpacing: 2,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPersistentSearch() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: ColorScheme.fromSwatch().copyWith(
+                primary: AppColors.textPrimary,
+              ),
+            ),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) => setState(() {}),
+              cursorColor: AppColors.textPrimary,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              decoration: InputDecoration(
+                hintText: 'Search diagnosis, doctor, or hub...',
+                hintStyle: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary.withValues(alpha: 0.5),
+                ),
+                icon: const Icon(
+                  Icons.search_rounded,
+                  size: 20,
+                  color: AppColors.textSecondary,
+                ),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? GestureDetector(
+                        onTap: () {
+                          _searchController.clear();
+                          setState(() {});
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.only(right: 6),
+                          child: Icon(
+                            Icons.cancel_rounded,
+                            size: 18,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      )
+                    : null,
+                suffixIconConstraints: const BoxConstraints(
+                  minWidth: 0,
+                  minHeight: 0,
+                ),
+                border: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                isDense: true,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChips() {
+    final filters = ['ALL', 'VISITS', 'REPORTS', 'MEDS'];
+    return SliverToBoxAdapter(
+      child: Container(
+        height: 40,
+        margin: const EdgeInsets.only(top: 20),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          itemCount: filters.length,
+          itemBuilder: (context, index) {
+            final filter = filters[index];
+            final isActive = _activeFilter == filter;
+            return GestureDetector(
+              onTap: () => setState(() => _activeFilter = filter),
+              child: Container(
+                margin: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                decoration: BoxDecoration(
+                  color: isActive ? AppColors.textPrimary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isActive ? AppColors.textPrimary : AppColors.divider,
+                    width: 1,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    filter,
+                    style: TextStyle(
+                      color: isActive ? Colors.white : AppColors.textSecondary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimelineEvent(BuildContext context, Visit visit) {
+    final date = DateTime.tryParse(visit.visitDate) ?? DateTime.now();
+    final dayStr = DateFormat('dd').format(date);
+    final monthStr = DateFormat('MMM').format(date).toUpperCase();
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 50,
+            child: Column(
+              children: [
+                Text(
+                  dayStr,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  monthStr,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textSecondary.withValues(alpha: 0.6),
+                    letterSpacing: 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 32,
+            child: Column(
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.textPrimary,
+                      width: 2.5,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Container(width: 1.5, color: AppColors.divider),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildClinicalCard(context, visit),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildClinicalCard(BuildContext context, Visit visit) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.divider.withValues(alpha: 0.5),
+          width: 0.5,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
+                  color: AppColors.textPrimary,
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  visitType,
+                  visit.visitType.toUpperCase(),
                   style: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
+                    color: Colors.white,
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1,
                   ),
                 ),
               ),
-              Text(
-                date,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+              const Spacer(),
+              Icon(
+                Icons.more_horiz,
+                color: AppColors.textSecondary.withValues(alpha: 0.4),
+                size: 18,
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
-            hospital,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            visit.diagnosis.isEmpty ? 'General Consultation' : visit.diagnosis,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
-            '$doctor • $department',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              if (hasPrescription)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.medication, size: 16, color: AppColors.success),
-                      SizedBox(width: 4),
-                      Text(
-                        'Prescription',
-                        style: TextStyle(
-                          color: AppColors.success,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              if (hasPrescription && reportsCount > 0) const SizedBox(width: 8),
-              if (reportsCount > 0)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.description, size: 16, color: AppColors.warning),
-                      const SizedBox(width: 4),
-                      Text(
-                        '$reportsCount Reports',
-                        style: const TextStyle(
-                          color: AppColors.warning,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReportCard(
-    BuildContext context, {
-    required String title,
-    required String date,
-    required String hospital,
-    required String type,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+            '${visit.doctor.fullName} • ${visit.hospital.name}',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary.withValues(alpha: 0.7),
+              fontWeight: FontWeight.w500,
             ),
-            child: const Icon(Icons.description, color: AppColors.warning),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+
+          if (visit.prescriptions.isNotEmpty || visit.reports.isNotEmpty) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Divider(height: 1, thickness: 0.5),
+            ),
+            Row(
               children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '$date • $hospital',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                ),
+                if (visit.prescriptions.isNotEmpty)
+                  _buildAssetPill(
+                    Icons.medication_outlined,
+                    'PRESCRIPTION',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PrescriptionDetailScreen(
+                            prescription: visit.prescriptions.first,
+                            doctorName: visit.doctor.fullName,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                if (visit.prescriptions.isNotEmpty && visit.reports.isNotEmpty)
+                  const SizedBox(width: 8),
+                if (visit.reports.isNotEmpty)
+                  _buildAssetPill(
+                    Icons.description_outlined,
+                    '${visit.reports.length} REPORTS',
+                  ),
               ],
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Text(
-              'PDF',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildPrescriptionCard(
-    BuildContext context, {
-    required String doctor,
-    required String date,
-    required int medicationsCount,
-    VoidCallback? onTap,
-  }) {
+  Widget _buildAssetPill(IconData icon, String label, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.divider, width: 0.5),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  doctor,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                Text(
-                  date,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
+            Icon(icon, size: 14, color: AppColors.textPrimary),
+            const SizedBox(width: 6),
             Text(
-              '$medicationsCount medications prescribed',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.download, size: 18),
-                    label: const Text('Download'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.share, size: 18),
-                    label: const Text('Share'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                    ),
-                  ),
-                ),
-              ],
+              label,
+              style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+                letterSpacing: 0.5,
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  final bool isSearch;
+  const _EmptyState({this.isSearch = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            isSearch ? Icons.search_off_rounded : Icons.history_edu_rounded,
+            size: 64,
+            color: AppColors.divider,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            isSearch ? 'NO RESULTS FOUND' : 'NO CLINICAL HISTORY',
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              color: AppColors.textSecondary,
+              letterSpacing: 2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            isSearch
+                ? 'Try a different search query or filter.'
+                : 'Your medical journey will appear here.',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
+            ),
+          ),
+        ],
       ),
     );
   }
