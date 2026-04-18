@@ -183,20 +183,16 @@ class _RecordsScreenState extends State<RecordsScreen> {
     final filters = ['ALL', 'VISITS', 'REPORTS', 'MEDS'];
     return SliverToBoxAdapter(
       child: Container(
-        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
         margin: const EdgeInsets.only(top: 20),
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          itemCount: filters.length,
-          itemBuilder: (context, index) {
-            final filter = filters[index];
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: filters.map((filter) {
             final isActive = _activeFilter == filter;
             return GestureDetector(
               onTap: () => setState(() => _activeFilter = filter),
               child: Container(
-                margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 22),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 decoration: BoxDecoration(
                   color: isActive ? AppColors.textPrimary : Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
@@ -205,20 +201,18 @@ class _RecordsScreenState extends State<RecordsScreen> {
                     width: 1,
                   ),
                 ),
-                child: Center(
-                  child: Text(
-                    filter,
-                    style: TextStyle(
-                      color: isActive ? Colors.white : AppColors.textSecondary,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1,
-                    ),
+                child: Text(
+                  filter,
+                  style: TextStyle(
+                    color: isActive ? Colors.white : AppColors.textSecondary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1,
                   ),
                 ),
               ),
             );
-          },
+          }).toList(),
         ),
       ),
     );
