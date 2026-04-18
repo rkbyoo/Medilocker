@@ -70,41 +70,52 @@ class BillDetailScreen extends StatelessWidget {
   Widget _buildActionButtons(BuildContext context) {
     return Row(
       children: [
-        // Share Button (Always visible)
-        Expanded(
-          flex: 2,
-          child: OutlinedButton.icon(
+        // Share Button (Modern Circular/Minimalist)
+        Container(
+          height: 52,
+          width: 52,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: IconButton(
             onPressed: () => BillPdfService.generateAndShareBill(bill),
-            icon: const Icon(Icons.share_outlined, size: 20),
-            label: const Text('SHARE RECEIPT'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              side: const BorderSide(color: AppColors.primary),
-              foregroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
+            icon: const Icon(Icons.share_outlined, color: AppColors.textPrimary, size: 22),
+            tooltip: 'Share Receipt',
           ),
         ),
-        if (bill.paymentStatus.toLowerCase() == 'pending') ...[
-          const SizedBox(width: 12),
-          // Pay Now Button (Only if pending)
-          Expanded(
-            flex: 3,
-            child: ElevatedButton.icon(
+        const SizedBox(width: 16),
+        // Primary Action Button
+        Expanded(
+          child: SizedBox(
+            height: 52,
+            child: ElevatedButton(
               onPressed: () {
                 // Payment logic
               },
-              icon: const Icon(Icons.payment, size: 20, color: Colors.white),
-              label: const Text('PAY NOW'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                backgroundColor: bill.paymentStatus.toLowerCase() == 'pending' 
+                    ? AppColors.primary 
+                    : AppColors.success,
+                foregroundColor: Colors.white,
                 elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: Text(
+                bill.paymentStatus.toLowerCase() == 'pending' ? 'PAY NOW' : 'VIEWED',
+                style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
               ),
             ),
           ),
-        ],
+        ),
       ],
     );
   }
