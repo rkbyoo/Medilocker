@@ -99,7 +99,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
       final authProvider = context.read<AuthProvider>();
       final patientProvider = context.read<PatientProvider>();
       authProvider.checkAuthStatus();
-      
+
       // Auto-logout on 401 Unauthorized globally
       ApiService.onUnauthenticated = () {
         authProvider.logout(patientProvider: patientProvider);
