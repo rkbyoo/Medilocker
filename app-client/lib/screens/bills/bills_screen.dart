@@ -190,7 +190,7 @@ class _BillsScreenState extends State<BillsScreen> with SingleTickerProviderStat
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       itemCount: bills.length,
       itemBuilder: (context, index) {
         final bill = bills[index];

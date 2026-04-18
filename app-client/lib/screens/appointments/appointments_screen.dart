@@ -90,7 +90,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           itemCount: upcomingAppts.length,
           itemBuilder: (context, index) {
             final appt = upcomingAppts[index];
@@ -133,7 +133,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           itemCount: pastAppts.length,
           itemBuilder: (context, index) {
             final appt = pastAppts[index];

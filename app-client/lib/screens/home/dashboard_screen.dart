@@ -314,6 +314,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 16),
             ...recentActivityWidgets,
+            const SizedBox(height: 100),
           ],
         ),
       ),

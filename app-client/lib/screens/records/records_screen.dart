@@ -82,7 +82,7 @@ class _RecordsScreenState extends State<RecordsScreen>
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           itemCount: visits.length,
           itemBuilder: (context, index) {
             final visit = visits[index];
@@ -121,7 +121,7 @@ class _RecordsScreenState extends State<RecordsScreen>
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           itemCount: reports.length,
           itemBuilder: (context, index) {
             final report = reports[index];
@@ -160,7 +160,7 @@ class _RecordsScreenState extends State<RecordsScreen>
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           itemCount: prescriptions.length,
           itemBuilder: (context, index) {
             final data = prescriptions[index];
