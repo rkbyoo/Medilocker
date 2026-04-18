@@ -61,6 +61,7 @@ dependencies:
   
   # Biometric
   local_auth: ^2.1.8
+  url_launcher: ^6.3.2
   
   # Notifications (optional - can be added later)
   # flutter_local_notifications: ^17.2.3
