@@ -19,7 +19,8 @@ class PrescriptionDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<PrescriptionDetailScreen> createState() => _PrescriptionDetailScreenState();
+  State<PrescriptionDetailScreen> createState() =>
+      _PrescriptionDetailScreenState();
 }
 
 class _PrescriptionDetailScreenState extends State<PrescriptionDetailScreen> {
@@ -42,23 +43,47 @@ class _PrescriptionDetailScreenState extends State<PrescriptionDetailScreen> {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                   // Header
-                   pw.Row(
+                  // Header
+                  pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Text('PHYSICIAN', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
-                          pw.Text(widget.doctorName.toUpperCase(), style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                          pw.Text(
+                            'PHYSICIAN',
+                            style: pw.TextStyle(
+                              fontSize: 8,
+                              color: PdfColors.grey700,
+                            ),
+                          ),
+                          pw.Text(
+                            widget.doctorName.toUpperCase(),
+                            style: pw.TextStyle(
+                              fontSize: 18,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                       pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.end,
                         children: [
-                          pw.Text('ISSUED ON', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
-                          pw.Text(dateStr, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                          pw.Text(
+                            'ISSUED ON',
+                            style: pw.TextStyle(
+                              fontSize: 8,
+                              color: PdfColors.grey700,
+                            ),
+                          ),
+                          pw.Text(
+                            dateStr,
+                            style: pw.TextStyle(
+                              fontWeight: pw.FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -67,52 +92,137 @@ class _PrescriptionDetailScreenState extends State<PrescriptionDetailScreen> {
 
                   // Clinical Summary
                   if (widget.prescription.prescriptionText.isNotEmpty) ...[
-                    pw.Text('CLINICAL SUMMARY', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                    pw.Text(
+                      'CLINICAL SUMMARY',
+                      style: pw.TextStyle(
+                        fontSize: 10,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
                     pw.Divider(thickness: 1, color: PdfColors.black),
                     pw.SizedBox(height: 10),
-                    pw.Text(widget.prescription.prescriptionText, style: const pw.TextStyle(fontSize: 12)),
+                    pw.Text(
+                      widget.prescription.prescriptionText,
+                      style: const pw.TextStyle(fontSize: 12),
+                    ),
                     pw.SizedBox(height: 40),
                   ],
 
                   // Medication Table
-                  pw.Text('MEDICATION PLAN', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                  pw.Text(
+                    'MEDICATION PLAN',
+                    style: pw.TextStyle(
+                      fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
                   pw.Divider(thickness: 1, color: PdfColors.black),
                   pw.SizedBox(height: 10),
-                  
+
                   pw.Container(
                     decoration: pw.BoxDecoration(
                       border: pw.Border.all(color: PdfColors.black, width: 1),
                     ),
                     child: pw.Column(
-                      children: widget.prescription.medications.map((med) => pw.Container(
-                        padding: const pw.EdgeInsets.all(12),
-                        decoration: pw.BoxDecoration(
-                          border: pw.Border(bottom: med == widget.prescription.medications.last ? pw.BorderSide.none : const pw.BorderSide(color: PdfColors.black, width: 0.5)),
-                        ),
-                        child: pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: [
-                            pw.Text(med.drugName.toUpperCase(), style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
-                            pw.SizedBox(height: 8),
-                            pw.Row(
-                              children: [
-                                pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                                  pw.Text('DOSAGE', style: const pw.TextStyle(fontSize: 7)),
-                                  pw.Text(med.dosage, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                                ])),
-                                pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                                  pw.Text('FREQUENCY', style: const pw.TextStyle(fontSize: 7)),
-                                  pw.Text(med.frequency, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                                ])),
-                                pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                                  pw.Text('DURATION', style: const pw.TextStyle(fontSize: 7)),
-                                  pw.Text(med.duration, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                                ])),
-                              ],
+                      children: widget.prescription.medications
+                          .map(
+                            (med) => pw.Container(
+                              padding: const pw.EdgeInsets.all(12),
+                              decoration: pw.BoxDecoration(
+                                border: pw.Border(
+                                  bottom:
+                                      med ==
+                                          widget.prescription.medications.last
+                                      ? pw.BorderSide.none
+                                      : const pw.BorderSide(
+                                          color: PdfColors.black,
+                                          width: 0.5,
+                                        ),
+                                ),
+                              ),
+                              child: pw.Column(
+                                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                children: [
+                                  pw.Text(
+                                    med.drugName.toUpperCase(),
+                                    style: pw.TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: pw.FontWeight.bold,
+                                    ),
+                                  ),
+                                  pw.SizedBox(height: 8),
+                                  pw.Row(
+                                    children: [
+                                      pw.Expanded(
+                                        child: pw.Column(
+                                          crossAxisAlignment:
+                                              pw.CrossAxisAlignment.start,
+                                          children: [
+                                            pw.Text(
+                                              'DOSAGE',
+                                              style: const pw.TextStyle(
+                                                fontSize: 7,
+                                              ),
+                                            ),
+                                            pw.Text(
+                                              med.dosage,
+                                              style: pw.TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: pw.FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      pw.Expanded(
+                                        child: pw.Column(
+                                          crossAxisAlignment:
+                                              pw.CrossAxisAlignment.start,
+                                          children: [
+                                            pw.Text(
+                                              'FREQUENCY',
+                                              style: const pw.TextStyle(
+                                                fontSize: 7,
+                                              ),
+                                            ),
+                                            pw.Text(
+                                              med.frequency,
+                                              style: pw.TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: pw.FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      pw.Expanded(
+                                        child: pw.Column(
+                                          crossAxisAlignment:
+                                              pw.CrossAxisAlignment.start,
+                                          children: [
+                                            pw.Text(
+                                              'DURATION',
+                                              style: const pw.TextStyle(
+                                                fontSize: 7,
+                                              ),
+                                            ),
+                                            pw.Text(
+                                              med.duration,
+                                              style: pw.TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: pw.FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
-                      )).toList(),
+                          )
+                          .toList(),
                     ),
                   ),
 
@@ -122,8 +232,20 @@ class _PrescriptionDetailScreenState extends State<PrescriptionDetailScreen> {
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
-                      pw.Text('MEDI LOCKER DIGITAL HEALTH RECORD', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500)),
-                      pw.Text('OFFICIAL DOCUMENT', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500)),
+                      pw.Text(
+                        'MEDI LOCKER DIGITAL HEALTH RECORD',
+                        style: const pw.TextStyle(
+                          fontSize: 8,
+                          color: PdfColors.grey500,
+                        ),
+                      ),
+                      pw.Text(
+                        'OFFICIAL DOCUMENT',
+                        style: const pw.TextStyle(
+                          fontSize: 8,
+                          color: PdfColors.grey500,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -134,19 +256,20 @@ class _PrescriptionDetailScreenState extends State<PrescriptionDetailScreen> {
       );
 
       final output = await getTemporaryDirectory();
-      final file = File("${output.path}/prescription_${widget.prescription.prescriptionId}.pdf");
+      final file = File(
+        "${output.path}/prescription_${widget.prescription.prescriptionId}.pdf",
+      );
       await file.writeAsBytes(await pdf.save());
 
       // ignore: deprecated_member_use
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        subject: 'Prescription from Dr. ${widget.doctorName}',
-      );
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], subject: 'Prescription from Dr. ${widget.doctorName}');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error generating PDF: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error generating PDF: $e')));
     } finally {
       setState(() => _isGenerating = false);
     }
@@ -154,7 +277,8 @@ class _PrescriptionDetailScreenState extends State<PrescriptionDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final date = DateTime.tryParse(widget.prescription.prescribedDate) ?? DateTime.now();
+    final date =
+        DateTime.tryParse(widget.prescription.prescribedDate) ?? DateTime.now();
     final dateStr = DateFormat('MMMM dd, yyyy').format(date);
 
     return Scaffold(
@@ -174,11 +298,24 @@ class _PrescriptionDetailScreenState extends State<PrescriptionDetailScreen> {
         ),
         actions: [
           if (_isGenerating)
-            const Center(child: Padding(padding: EdgeInsets.only(right: 16), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))),
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.only(right: 16),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            ),
           if (!_isGenerating)
             IconButton(
               onPressed: _generateAndSharePDF,
-              icon: const Icon(Icons.share_rounded, color: AppColors.textPrimary, size: 22),
+              icon: const Icon(
+                Icons.share_rounded,
+                color: AppColors.textPrimary,
+                size: 22,
+              ),
             ),
           const SizedBox(width: 8),
         ],
@@ -259,8 +396,8 @@ class _PrescriptionDetailScreenState extends State<PrescriptionDetailScreen> {
                 ),
               ),
               const Padding(
-                  padding: EdgeInsets.only(top: 8, bottom: 16),
-                  child: Divider(thickness: 1, color: AppColors.textPrimary),
+                padding: EdgeInsets.only(top: 8, bottom: 16),
+                child: Divider(thickness: 1, color: AppColors.textPrimary),
               ),
               Text(
                 widget.prescription.prescriptionText,
@@ -276,7 +413,7 @@ class _PrescriptionDetailScreenState extends State<PrescriptionDetailScreen> {
 
             // Medications enclosed in a "Table" format
             const Text(
-              'MEDICATION PLAN',
+              'MEDICATIONS',
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w900,
@@ -285,12 +422,20 @@ class _PrescriptionDetailScreenState extends State<PrescriptionDetailScreen> {
               ),
             ),
             const Padding(
-                padding: EdgeInsets.only(top: 8, bottom: 20),
-                child: Divider(thickness: 1, color: AppColors.textPrimary),
+              padding: EdgeInsets.only(top: 8, bottom: 20),
+              child: Divider(thickness: 1, color: AppColors.textPrimary),
             ),
-            
+
             if (widget.prescription.medications.isEmpty)
-              const Center(child: Text('NO MEDICATIONS RECORDED', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)))
+              const Center(
+                child: Text(
+                  'NO MEDICATIONS RECORDED',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              )
             else
               _buildMedicationsTable(),
 
@@ -324,7 +469,9 @@ class _PrescriptionDetailScreenState extends State<PrescriptionDetailScreen> {
           return Container(
             decoration: BoxDecoration(
               border: Border(
-                bottom: isLast ? BorderSide.none : const BorderSide(color: AppColors.textPrimary, width: 1),
+                bottom: isLast
+                    ? BorderSide.none
+                    : const BorderSide(color: AppColors.textPrimary, width: 1),
               ),
             ),
             child: _buildMedicationRow(med),
