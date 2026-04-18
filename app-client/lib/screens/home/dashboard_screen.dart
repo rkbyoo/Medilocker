@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_strings.dart';
 import '../../core/providers/patient_provider.dart';
 import 'package:intl/intl.dart';
 import '../appointments/appointments_screen.dart';
@@ -126,15 +125,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         icon: Icons.description,
         title: 'Report Available',
         subtitle: '${r.reportType} - ${r.title}',
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecordsScreen())),
       ));
     }
     if (pendingBills.isNotEmpty) {
       final b = pendingBills.first;
       recentActivityWidgets.add(_buildActivityItem(
         context,
-        icon: Icons.receipt,
+        icon: Icons.receipt_long,
         title: 'New Bill Generated',
-        subtitle: '₹${b.totalAmount.toStringAsFixed(0)} on ${DateFormat('MMM d').format(DateTime.parse(b.visitDate))}',
+        subtitle: '₹${b.totalAmount.toStringAsFixed(0)} - Action Required',
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BillsScreen())),
       ));
     }
     if (provider.appointments.isNotEmpty) {
@@ -143,9 +144,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final a = pastAppts.first;
       recentActivityWidgets.add(_buildActivityItem(
         context,
-        icon: Icons.check_circle,
-        title: 'Appointment ${a.status}',
-        subtitle: '${formatDoc(a.doctor.fullName)} - ${DateFormat('MMM d').format(DateTime.parse(a.scheduledDateTime))}',
+        icon: Icons.event_available,
+        title: 'Appointment Status',
+        subtitle: '${formatDoc(a.doctor.fullName)} - ${a.status}',
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AppointmentsScreen())),
       ));
     }
     if (recentActivityWidgets.isEmpty) {
@@ -163,20 +165,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
           children: [
-            Text(
-              'Hello, $patientName! 👋',
-              style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.person, color: AppColors.primary, size: 20),
             ),
-            Text(
-              AppStrings.appName,
-              style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 12),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Hello, $patientName',
+                  style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'MediLocker Health',
+                  style: TextStyle(
+                      color: AppColors.textSecondary.withValues(alpha: 0.7), 
+                      fontSize: 11,
+                      letterSpacing: 0.5,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -245,7 +263,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 _buildActionCard(
                   context,
-                  icon: Icons.add_circle_outline,
+                  icon: Icons.calendar_month,
                   title: 'Book Appointment',
                   color: AppColors.primary,
                   onTap: () => Navigator.push(
@@ -255,7 +273,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 _buildActionCard(
                   context,
-                  icon: Icons.folder_open,
+                  icon: Icons.folder_shared,
                   title: 'Medical Records',
                   color: AppColors.success,
                   onTap: () => Navigator.push(
@@ -265,7 +283,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 _buildActionCard(
                   context,
-                  icon: Icons.receipt_long,
+                  icon: Icons.payments,
                   title: 'My Bills',
                   color: AppColors.warning,
                   onTap: () => Navigator.push(
@@ -275,7 +293,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 _buildActionCard(
                   context,
-                  icon: Icons.emergency,
+                  icon: Icons.medical_services,
                   title: 'Emergency',
                   color: AppColors.emergency,
                   onTap: () => Navigator.push(
@@ -311,47 +329,81 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required Color color,
   }) {
     return Container(
-      width: 280,
+      width: 240,
       margin: const EdgeInsets.only(right: 16),
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color,
+            color.withValues(alpha: 0.8),
+          ],
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Icon(icon, color: color, size: 32),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+          Positioned(
+            right: -20,
+            top: -20,
+            child: Icon(
+              icon,
+              size: 100,
+              color: Colors.white.withValues(alpha: 0.1),
+            ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 24),
                 ),
-          ),
-          const Spacer(),
-          Text(
-            detail,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w600,
+                const Spacer(),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  detail,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -409,47 +461,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required IconData icon,
     required String title,
     required String subtitle,
+    required VoidCallback onTap,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: AppColors.primary),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                ),
-              ],
-            ),
-          ),
-          const Icon(Icons.chevron_right, color: AppColors.textSecondary),
         ],
+      ),
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.all(12),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: AppColors.primary, size: 24),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+        ),
+        trailing: const Icon(Icons.chevron_right, size: 20),
       ),
     );
   }
