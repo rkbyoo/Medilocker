@@ -4,6 +4,10 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/providers/patient_provider.dart';
 import 'package:intl/intl.dart';
+import '../appointments/appointments_screen.dart';
+import '../records/records_screen.dart';
+import '../bills/bills_screen.dart';
+import '../emergency/emergency_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -40,21 +44,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final patient = provider.patient;
     final patientName = patient?.name.split(' ').first ?? 'Patient';
 
-    // 1. Next Appointment
+    // 1. Next Appointment / Follow-up Logic
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    String formatDoc(String name) {
+      if (name.isEmpty) return '';
+      return name.toLowerCase().startsWith('dr') ? name : 'Dr. $name';
+    }
+    
+    DateTime? nextDateTime;
+    String nextApptSubtitle = 'No upcoming appointments';
+    String nextApptDetail = 'Schedule one now';
+
+    // Check formal appointments
     var upcomingAppts = provider.appointments.where((a) {
       if (a.scheduledDateTime.isEmpty) return false;
+      if (a.status.toLowerCase() == 'completed' || a.status.toLowerCase() == 'cancelled') return false;
       try {
-        return DateTime.parse(a.scheduledDateTime).isAfter(now);
-      } catch (e) { return false; }
+        return DateTime.parse(a.scheduledDateTime).toLocal().isAfter(now);
+      } catch (e) {
+        // Ignore parse errors
+        return false;
+      }
     }).toList();
     upcomingAppts.sort((a, b) => a.scheduledDateTime.compareTo(b.scheduledDateTime));
-    final nextAppointment = upcomingAppts.isNotEmpty ? upcomingAppts.first : null;
 
-    String nextApptSubtitle = nextAppointment != null ? 'Dr. ${nextAppointment.doctor.fullName}' : 'No appointments';
-    String nextApptDetail = nextAppointment != null 
-        ? DateFormat('MMM d, h:mm a').format(DateTime.parse(nextAppointment.scheduledDateTime)) 
-        : 'Schedule one now';
+    if (upcomingAppts.isNotEmpty) {
+      final a = upcomingAppts.first;
+      nextDateTime = DateTime.parse(a.scheduledDateTime).toLocal();
+      nextApptSubtitle = a.doctor.fullName.isNotEmpty ? formatDoc(a.doctor.fullName) : 'Upcoming Appointment';
+      nextApptDetail = DateFormat('MMM d, h:mm a').format(nextDateTime);
+    }
+
+    // Include next_visit_date from visits if it's sooner or no appointment exists
+    for (var v in provider.visits) {
+      if (v.nextVisitDate != null && v.nextVisitDate!.isNotEmpty) {
+        try {
+          DateTime nvDate = DateTime.parse(v.nextVisitDate!).toLocal();
+          DateTime nvDay = DateTime(nvDate.year, nvDate.month, nvDate.day);
+          
+          // Constraint: keep showing if today, hide if crossed (greater or crossed then no appointments)
+          if (!nvDay.isBefore(today)) {
+            // Pick the earliest available date
+            if (nextDateTime == null || nvDate.isBefore(nextDateTime)) {
+              nextDateTime = nvDate;
+              nextApptSubtitle = v.doctor.fullName.isNotEmpty ? formatDoc(v.doctor.fullName) : 'Follow-up Visit';
+              nextApptDetail = DateFormat('MMM d, yyyy').format(nvDate);
+            }
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+    }
 
     // 2. Recent Visit
     var visitsList = List.of(provider.visits);
@@ -102,7 +145,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         context,
         icon: Icons.check_circle,
         title: 'Appointment ${a.status}',
-        subtitle: 'Dr. ${a.doctor.fullName} - ${DateFormat('MMM d').format(DateTime.parse(a.scheduledDateTime))}',
+        subtitle: '${formatDoc(a.doctor.fullName)} - ${DateFormat('MMM d').format(DateTime.parse(a.scheduledDateTime))}',
       ));
     }
     if (recentActivityWidgets.isEmpty) {
@@ -205,24 +248,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   icon: Icons.add_circle_outline,
                   title: 'Book Appointment',
                   color: AppColors.primary,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AppointmentsScreen()),
+                  ),
                 ),
                 _buildActionCard(
                   context,
                   icon: Icons.folder_open,
                   title: 'Medical Records',
                   color: AppColors.success,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RecordsScreen()),
+                  ),
                 ),
                 _buildActionCard(
                   context,
                   icon: Icons.receipt_long,
                   title: 'My Bills',
                   color: AppColors.warning,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const BillsScreen()),
+                  ),
                 ),
                 _buildActionCard(
                   context,
                   icon: Icons.emergency,
                   title: 'Emergency',
                   color: AppColors.emergency,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EmergencyScreen()),
+                  ),
                 ),
               ],
             ),
@@ -260,7 +319,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -280,6 +339,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 4),
           Text(
             subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -302,6 +363,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required IconData icon,
     required String title,
     required Color color,
+    required VoidCallback onTap,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -309,7 +371,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -318,7 +380,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {},
+          onTap: onTap,
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -360,7 +422,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: AppColors.primary),

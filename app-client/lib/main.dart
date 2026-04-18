@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'core/constants/app_colors.dart';
 import 'core/providers/auth_provider.dart';
 import 'core/providers/patient_provider.dart';
+import 'core/services/api_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/main_screen.dart';
 
@@ -95,7 +96,14 @@ class _AuthWrapperState extends State<AuthWrapper> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthProvider>().checkAuthStatus();
+      final authProvider = context.read<AuthProvider>();
+      final patientProvider = context.read<PatientProvider>();
+      authProvider.checkAuthStatus();
+      
+      // Auto-logout on 401 Unauthorized globally
+      ApiService.onUnauthenticated = () {
+        authProvider.logout(patientProvider: patientProvider);
+      };
     });
   }
 

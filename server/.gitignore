@@ -13,6 +13,7 @@ dist/
 
 # Prisma
 prisma/migrations/
+prisma/generated/
 
 # Logs
 logs/

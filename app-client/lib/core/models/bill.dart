@@ -8,6 +8,7 @@ class Bill {
   final String paymentStatus;
   final String? paymentDate;
   final String visitDate;
+  final String? createdAt;
   final Hospital hospital;
   final List<BillSection> sections;
 
@@ -19,6 +20,7 @@ class Bill {
     required this.paymentStatus,
     this.paymentDate,
     required this.visitDate,
+    this.createdAt,
     required this.hospital,
     this.sections = const [],
   });
@@ -27,11 +29,12 @@ class Bill {
     return Bill(
       billId: json['bill_id'] ?? '',
       visitId: json['visit_id'] ?? '',
-      totalAmount: (json['total_amount'] ?? 0).toDouble(),
+      totalAmount: double.tryParse(json['total_amount']?.toString() ?? '') ?? 0.0,
       currency: json['currency'] ?? 'INR',
       paymentStatus: json['payment_status'] ?? '',
       paymentDate: json['payment_date'],
       visitDate: json['visit_date'] ?? '',
+      createdAt: json['created_at'],
       hospital: Hospital.fromJson(json['hospital'] ?? {}),
       sections: (json['sections'] as List?)
               ?.map((e) => BillSection.fromJson(e))
@@ -58,7 +61,7 @@ class BillSection {
     return BillSection(
       sectionId: json['section_id'] ?? '',
       sectionType: json['section_type'] ?? '',
-      sectionTotal: (json['section_total'] ?? 0).toDouble(),
+      sectionTotal: double.tryParse(json['section_total']?.toString() ?? '') ?? 0.0,
       items: (json['items'] as List?)
               ?.map((e) => BillItem.fromJson(e))
               .toList() ??
@@ -86,9 +89,9 @@ class BillItem {
     return BillItem(
       itemId: json['item_id'] ?? '',
       description: json['description'] ?? '',
-      quantity: json['quantity'] ?? 0,
-      unitPrice: (json['unit_price'] ?? 0).toDouble(),
-      totalPrice: (json['total_price'] ?? 0).toDouble(),
+      quantity: int.tryParse(json['quantity']?.toString() ?? '') ?? 0,
+      unitPrice: double.tryParse(json['unit_price']?.toString() ?? '') ?? 0.0,
+      totalPrice: double.tryParse(json['total_price']?.toString() ?? '') ?? 0.0,
     );
   }
 }

@@ -34,8 +34,19 @@ class Appointment {
       department: json['department'] ?? '',
       reason: json['reason'] ?? '',
       notes: json['notes'],
-      doctor: Doctor.fromJson(json['doctor'] ?? {}),
-      hospital: Hospital.fromJson(json['hospital'] ?? {}),
+      doctor: json['doctor'] != null ? Doctor.fromJson(json['doctor']) : Doctor(
+        doctorId: json['doctor_id'] ?? '',
+        fullName: json['doctor_name'] ?? '',
+        specialization: json['department'] ?? '',
+        hospitalId: json['hospital_id'] ?? '',
+        hospitalName: json['hospital_name'] ?? '',
+      ),
+      hospital: json['hospital'] != null ? Hospital.fromJson(json['hospital']) : Hospital(
+        hospitalId: json['hospital_id'] ?? '',
+        name: json['hospital_name'] ?? '',
+        address: '',
+        contactNumber: '',
+      ),
       cancelledAt: json['cancelled_at'],
       cancelledReason: json['cancelled_reason'],
     );

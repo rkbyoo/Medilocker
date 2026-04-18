@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/providers/patient_provider.dart';
 
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});
@@ -16,6 +19,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<PatientProvider>().fetchAppointments();
+      }
+    });
   }
 
   @override
@@ -63,36 +71,85 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
   }
 
   Widget _buildUpcomingTab() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: 3,
-      itemBuilder: (context, index) {
-        return _buildAppointmentCard(
-          context,
-          doctorName: 'Dr. John Smith',
-          department: 'Cardiology',
-          hospital: 'City Hospital',
-          dateTime: 'Tomorrow, 10:00 AM',
-          status: 'Confirmed',
-          statusColor: AppColors.success,
+    return Consumer<PatientProvider>(
+      builder: (context, provider, child) {
+        final now = DateTime.now();
+        final upcomingAppts = provider.appointments.where((a) {
+          if (a.scheduledDateTime.isEmpty) return false;
+          if (a.status.toLowerCase() == 'completed' || a.status.toLowerCase() == 'cancelled') return false;
+          try {
+            return DateTime.parse(a.scheduledDateTime).toLocal().isAfter(now);
+          } catch (_) {
+            return false;
+          }
+        }).toList()
+          ..sort((a, b) => a.scheduledDateTime.compareTo(b.scheduledDateTime));
+
+        if (upcomingAppts.isEmpty) {
+          return const Center(child: Text("No upcoming appointments found"));
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: upcomingAppts.length,
+          itemBuilder: (context, index) {
+            final appt = upcomingAppts[index];
+            DateTime dt = DateTime.parse(appt.scheduledDateTime).toLocal();
+            final timeStr = DateFormat('MMM dd, yyyy - hh:mm a').format(dt);
+
+            return _buildAppointmentCard(
+              context,
+              doctorName: appt.doctor.fullName.isNotEmpty ? appt.doctor.fullName : 'Unknown Doctor',
+              department: appt.department,
+              hospital: appt.hospital.name,
+              dateTime: timeStr,
+              status: appt.status.toUpperCase(),
+              statusColor: AppColors.success,
+            );
+          },
         );
       },
     );
   }
 
   Widget _buildPastTab() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: 5,
-      itemBuilder: (context, index) {
-        return _buildAppointmentCard(
-          context,
-          doctorName: 'Dr. Sarah Johnson',
-          department: 'General Medicine',
-          hospital: 'Central Hospital',
-          dateTime: '${index + 1} days ago',
-          status: 'Completed',
-          statusColor: AppColors.textSecondary,
+    return Consumer<PatientProvider>(
+      builder: (context, provider, child) {
+        final now = DateTime.now();
+        final pastAppts = provider.appointments.where((a) {
+          if (a.scheduledDateTime.isEmpty) return false;
+          // Completed or cancelled are always past, otherwise check timer
+          if (a.status.toLowerCase() == 'completed' || a.status.toLowerCase() == 'cancelled') return true;
+          try {
+            return DateTime.parse(a.scheduledDateTime).toLocal().isBefore(now);
+          } catch (_) {
+            return false;
+          }
+        }).toList()
+          ..sort((a, b) => b.scheduledDateTime.compareTo(a.scheduledDateTime));
+
+        if (pastAppts.isEmpty) {
+          return const Center(child: Text("No past appointments found"));
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: pastAppts.length,
+          itemBuilder: (context, index) {
+            final appt = pastAppts[index];
+            DateTime dt = DateTime.parse(appt.scheduledDateTime).toLocal();
+            final timeStr = DateFormat('MMM dd, yyyy - hh:mm a').format(dt);
+
+            return _buildAppointmentCard(
+              context,
+              doctorName: appt.doctor.fullName.isNotEmpty ? appt.doctor.fullName : 'Unknown Doctor',
+              department: appt.department,
+              hospital: appt.hospital.name,
+              dateTime: timeStr,
+              status: appt.status.toUpperCase(),
+              statusColor: AppColors.textSecondary,
+            );
+          },
         );
       },
     );
@@ -115,7 +172,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -130,7 +187,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(

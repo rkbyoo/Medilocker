@@ -39,8 +39,19 @@ class Visit {
       notes: json['notes'] ?? '',
       advice: json['advice'] ?? '',
       nextVisitDate: json['next_visit_date'],
-      hospital: Hospital.fromJson(json['hospital'] ?? {}),
-      doctor: Doctor.fromJson(json['doctor'] ?? {}),
+      hospital: json['hospital'] != null ? Hospital.fromJson(json['hospital']) : Hospital(
+        hospitalId: json['hospital_id'] ?? '',
+        name: json['hospital_name'] ?? '',
+        address: '',
+        contactNumber: '',
+      ),
+      doctor: json['doctor'] != null ? Doctor.fromJson(json['doctor']) : Doctor(
+        doctorId: json['doctor_id'] ?? '',
+        fullName: json['doctor_name'] ?? '',
+        specialization: json['department'] ?? '',
+        hospitalId: json['hospital_id'] ?? '',
+        hospitalName: json['hospital_name'] ?? '',
+      ),
       prescriptions: (json['prescriptions'] as List?)
               ?.map((e) => Prescription.fromJson(e))
               .toList() ??
@@ -58,6 +69,7 @@ class Prescription {
   final String visitId;
   final String prescribedBy;
   final String prescribedDate;
+  final String prescriptionText;
   final List<Medication> medications;
 
   Prescription({
@@ -65,6 +77,7 @@ class Prescription {
     required this.visitId,
     required this.prescribedBy,
     required this.prescribedDate,
+    required this.prescriptionText,
     this.medications = const [],
   });
 
@@ -73,7 +86,8 @@ class Prescription {
       prescriptionId: json['prescription_id'] ?? '',
       visitId: json['visit_id'] ?? '',
       prescribedBy: json['prescribed_by'] ?? '',
-      prescribedDate: json['prescribed_date'] ?? '',
+      prescribedDate: json['created_at'] ?? json['prescribed_date'] ?? '',
+      prescriptionText: json['prescription_text'] ?? '',
       medications: (json['medications'] as List?)
               ?.map((e) => Medication.fromJson(e))
               .toList() ??

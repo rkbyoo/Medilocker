@@ -1,8 +1,7 @@
 import 'dart:convert';
-import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../config/api_config.dart';
 
 /// Thrown by [ApiService] for non-2xx responses.
 class ApiException implements Exception {
@@ -15,6 +14,8 @@ class ApiException implements Exception {
 }
 
 class ApiService {
+  static void Function()? onUnauthenticated;
+
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token');
@@ -30,47 +31,55 @@ class ApiService {
 
   static Future<dynamic> get(String endpoint) async {
     final headers = await getHeaders();
+    debugPrint('\n=====================================\n[REQ] GET $endpoint\nHeaders: $headers\n=====================================');
     final response = await http.get(Uri.parse(endpoint), headers: headers);
+    debugPrint('\n=====================================\n[RES] GET $endpoint\nStatus: ${response.statusCode}\nBody: ${response.body}\n=====================================');
     return _handleResponse(response);
   }
 
   static Future<dynamic> post(
       String endpoint, Map<String, dynamic> body) async {
     final headers = await getHeaders();
-    developer.log('POST $endpoint  body: ${jsonEncode(body)}',
-        name: 'ApiService');
+    debugPrint('\n=====================================\n[REQ] POST $endpoint\nHeaders: $headers\nBody: ${jsonEncode(body)}\n=====================================');
     final response = await http.post(
       Uri.parse(endpoint),
       headers: headers,
       body: jsonEncode(body),
     );
-    developer.log(
-        'POST $endpoint  status: ${response.statusCode}  body: ${response.body}',
-        name: 'ApiService');
+    debugPrint(
+        '\n=====================================\n[RES] POST $endpoint\nStatus: ${response.statusCode}\nBody: ${response.body}\n=====================================');
     return _handleResponse(response);
   }
 
   static Future<dynamic> put(
       String endpoint, Map<String, dynamic> body) async {
     final headers = await getHeaders();
+    debugPrint('\n=====================================\n[REQ] PUT $endpoint\nHeaders: $headers\nBody: ${jsonEncode(body)}\n=====================================');
     final response = await http.put(
       Uri.parse(endpoint),
       headers: headers,
       body: jsonEncode(body),
     );
+    debugPrint('\n=====================================\n[RES] PUT $endpoint\nStatus: ${response.statusCode}\nBody: ${response.body}\n=====================================');
     return _handleResponse(response);
   }
 
   static Future<dynamic> delete(String endpoint) async {
     final headers = await getHeaders();
+    debugPrint('\n=====================================\n[REQ] DELETE $endpoint\nHeaders: $headers\n=====================================');
     final response =
         await http.delete(Uri.parse(endpoint), headers: headers);
+    debugPrint('\n=====================================\n[RES] DELETE $endpoint\nStatus: ${response.statusCode}\nBody: ${response.body}\n=====================================');
     return _handleResponse(response);
   }
 
   static dynamic _handleResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return jsonDecode(response.body);
+    }
+
+    if (response.statusCode == 401) {
+      onUnauthenticated?.call();
     }
 
     // Try to extract a human-readable message from the JSON body
