@@ -5,6 +5,7 @@ import { userRoutes } from '../modules/user';
 import { patientRoutes } from '../modules/patient';
 import { appointmentRoutes } from '../modules/appointment';
 import { visitRoutes } from '../modules/visit';
+import { billRoutes } from '../modules/bill';
 import { errorHandler, notFoundHandler } from '../middlewares/error.middleware';
 
 const app = express();
@@ -54,6 +55,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/visits', visitRoutes);
+app.use('/api/bills', billRoutes);
 
 // Error handling
 app.use(notFoundHandler);

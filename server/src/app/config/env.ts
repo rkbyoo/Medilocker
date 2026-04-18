@@ -24,7 +24,7 @@ export const config = {
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET as string,
     refreshSecret: process.env.JWT_REFRESH_SECRET as string,
-    accessTokenExpiry: '15m' as const,
+    accessTokenExpiry: '24h' as const,
     refreshTokenExpiry: '7d' as const,
   },
   twilio: {
