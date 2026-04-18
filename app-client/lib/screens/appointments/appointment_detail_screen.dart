@@ -41,77 +41,95 @@ class AppointmentDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 20),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 60),
+                      
+                      // Status Label (Top Right-ish)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            _buildMinimalStatus(),
+                            Text(
+                              'REF: ${appointment.appointmentId.substring(0, 8).toUpperCase()}',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondary.withValues(alpha: 0.4),
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
-                  // Status Dot & Label
-                  _buildMinimalStatus(),
-                  const SizedBox(height: 16),
+                      const SizedBox(height: 16),
+                      
+                      // Date & Time Hero
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              timeStr,
+                              style: const TextStyle(
+                                fontSize: 64,
+                                fontWeight: FontWeight.w200, // Ultra light for premium feel
+                                color: AppColors.textPrimary,
+                                letterSpacing: -3,
+                                height: 0.9,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              dateStr.toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textPrimary,
+                                letterSpacing: 2.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
-                  // Time & Date
-                  Text(
-                    timeStr,
-                    style: const TextStyle(
-                      fontSize: 42,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.textPrimary,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                  Text(
-                    dateStr,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.textSecondary.withValues(alpha: 0.8),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 48),
+                      const SizedBox(height: 80),
 
-                  // Doctor Row
-                  _buildMinimalRow(
-                    icon: Icons.person_outline_rounded,
-                    label: 'Healthcare Provider',
-                    value: appointment.doctor.fullName,
-                    subValue: appointment.department,
+                      // Information Grid
+                      _buildEditorialSection('Healthcare Provider', appointment.doctor.fullName, subtitle: appointment.department),
+                      _buildEditorialSection('Reason for Visit', appointment.reason.isNotEmpty ? appointment.reason : 'General Checkup'),
+                      _buildEditorialSection(
+                        'Visit Location', 
+                        appointment.hospital.name, 
+                        subtitle: appointment.hospital.address,
+                        onAction: () => MapsLauncher.launchQuery(appointment.hospital.address),
+                        actionLabel: 'OPEN MAPS',
+                      ),
+                      
+                      const SizedBox(height: 40),
+                    ],
                   ),
-                  const Divider(height: 48, thickness: 0.5),
-
-                  // Location Row
-                  _buildMinimalRow(
-                    icon: Icons.location_on_outlined,
-                    label: 'Visit Location',
-                    value: appointment.hospital.name,
-                    subValue: appointment.hospital.address,
-                    onAction: () =>
-                        MapsLauncher.launchQuery(appointment.hospital.address),
-                    actionIcon: Icons.directions_outlined,
-                  ),
-                  const Divider(height: 48, thickness: 0.5),
-
-                  // Reason Row
-                  _buildMinimalRow(
-                    icon: Icons.info_outline_rounded,
-                    label: 'Reason for Visit',
-                    value: appointment.reason.isNotEmpty
-                        ? appointment.reason
-                        : 'General Checkup',
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
 
-          // Fixed Bottom Action
-          _buildBottomAction(dt),
-        ],
+              // Minimal Bottom Button
+              _buildBottomAction(context, dt),
+            ],
+          );
+        },
       ),
     );
   }
@@ -126,8 +144,8 @@ class AppointmentDetailScreen extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 8,
-          height: 8,
+          width: 6,
+          height: 6,
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 8),
@@ -135,123 +153,156 @@ class AppointmentDetailScreen extends StatelessWidget {
           appointment.status.toUpperCase(),
           style: TextStyle(
             color: color,
-            fontWeight: FontWeight.w800,
-            fontSize: 11,
-            letterSpacing: 1.2,
+            fontWeight: FontWeight.w900,
+            fontSize: 10,
+            letterSpacing: 1.5,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildMinimalRow({
-    required IconData icon,
-    required String label,
-    required String value,
-    String? subValue,
-    VoidCallback? onAction,
-    IconData? actionIcon,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: AppColors.primary.withValues(alpha: 0.6), size: 24),
-        const SizedBox(width: 20),
-        Expanded(
-          child: Column(
+  Widget _buildEditorialSection(String label, String value, {String? subtitle, VoidCallback? onAction, String? actionLabel}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.divider.withValues(alpha: 0.6), width: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textSecondary.withValues(alpha: 0.6),
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                        height: 1.2,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              if (subValue != null) ...[
-                const SizedBox(height: 2),
-                Text(
-                  subValue,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                    height: 1.4,
+              if (onAction != null)
+                TextButton(
+                  onPressed: onAction,
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    actionLabel ?? 'ACTION',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.primary,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
-              ],
             ],
           ),
-        ),
-        if (onAction != null)
-          IconButton(
-            onPressed: onAction,
-            icon: Icon(actionIcon, color: AppColors.primary),
-            visualDensity: VisualDensity.compact,
-          ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildBottomAction(DateTime? dt) {
-    // We'll show the button if it's not cancelled or completed
-    // This handles cases where test data dates might be in the past
+  Widget _buildBottomAction(BuildContext context, DateTime? dt) {
     final status = appointment.status.toLowerCase();
     final isStale = status == 'cancelled' || status == 'completed';
 
     if (isStale) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
-      child: SizedBox(
+      padding: const EdgeInsets.fromLTRB(40, 0, 40, 40),
+      child: Container(
         width: double.infinity,
-        height: 60,
+        height: 64,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.textPrimary, width: 1.5),
+        ),
         child: ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             if (dt != null) {
-              final calendar.Event event = calendar.Event(
-                title: 'Appointment with ${appointment.doctor.fullName}',
-                description:
-                    'Hospital: ${appointment.hospital.name}\nDepartment: ${appointment.department}',
-                location: appointment.hospital.address,
-                startDate: dt,
-                endDate: dt.add(const Duration(hours: 1)),
+              try {
+                final calendar.Event event = calendar.Event(
+                  title: 'Appointment with ${appointment.doctor.fullName}',
+                  description: 'Reason: ${appointment.reason.isEmpty ? "General Checkup" : appointment.reason}\n'
+                      'Department: ${appointment.department}\n'
+                      'Hospital: ${appointment.hospital.name}',
+                  location: appointment.hospital.address,
+                  startDate: dt,
+                  endDate: dt.add(const Duration(hours: 1)),
+                  iosParams: const calendar.IOSParams(
+                    reminder: Duration(minutes: 30),
+                  ),
+                );
+
+                final bool success = await calendar.Add2Calendar.addEvent2Cal(event);
+                
+                if (!success && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Could not open calendar app')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: ${e.toString().split('\n').first}')),
+                  );
+                }
+              }
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Invalid appointment date')),
               );
-              calendar.Add2Calendar.addEvent2Cal(event);
             }
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
+            backgroundColor: AppColors.textPrimary,
             foregroundColor: Colors.white,
             elevation: 0,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.calendar_month_rounded, size: 20),
-              SizedBox(width: 12),
-              Text(
-                'ADD TO GOOGLE CALENDAR',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
-                  fontSize: 13,
-                ),
-              ),
-            ],
+          child: const Text(
+            'Add to Google Calendar',
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+              letterSpacing: 0.5,
+            ),
           ),
         ),
       ),
