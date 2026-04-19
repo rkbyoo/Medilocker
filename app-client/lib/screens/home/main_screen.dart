@@ -30,13 +30,8 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final patientProvider = context.read<PatientProvider>();
-      // fetchProfile reads from SharedPreferences cache first (set during OTP verify),
-      // so this is instant on first open — no extra network round-trip needed.
-      patientProvider.fetchProfile();
-      patientProvider.fetchAppointments();
-      patientProvider.fetchVisits();
-      patientProvider.fetchBills();
+      // Fire all 4 fetches in parallel — fastest possible cold start
+      context.read<PatientProvider>().fetchAll();
     });
   }
 

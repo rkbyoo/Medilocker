@@ -200,14 +200,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
 
         actions: [
+          if (provider.isOffline)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child: Tooltip(
+                message: 'Offline (Showing Cached Data)',
+                child: Icon(Icons.cloud_off, color: Colors.redAccent, size: 24),
+              ),
+            ),
           IconButton(
             icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary),
             onPressed: () {},
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await context.read<PatientProvider>().fetchAll(forceRefresh: true);
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -317,6 +329,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 100),
           ],
         ),
+      ),
       ),
     );
   }

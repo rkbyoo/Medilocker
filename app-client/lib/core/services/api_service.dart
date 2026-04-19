@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 
 /// Thrown by [ApiService] for non-2xx responses.
 class ApiException implements Exception {
@@ -29,23 +30,72 @@ class ApiService {
     };
   }
 
+  static Future<bool> _attemptRefresh() async {
+    final prefs = await SharedPreferences.getInstance();
+    final refreshToken = prefs.getString('refresh_token');
+    if (refreshToken == null) return false;
+
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConfig.refreshEndpoint),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refresh_token': refreshToken}),
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body)['data'];
+        if (data != null && data['access_token'] != null) {
+          await prefs.setString('auth_token', data['access_token']);
+          if (data['refresh_token'] != null) {
+            await prefs.setString('refresh_token', data['refresh_token']);
+          }
+          return true;
+        }
+      }
+    } catch (_) {
+      // Ignore errors during refresh and fall through to return false
+    }
+    
+    return false;
+  }
+
   static Future<dynamic> get(String endpoint) async {
-    final headers = await getHeaders();
+    var headers = await getHeaders();
     debugPrint('\n=====================================\n[REQ] GET $endpoint\nHeaders: $headers\n=====================================');
-    final response = await http.get(Uri.parse(endpoint), headers: headers);
+    var response = await http
+        .get(Uri.parse(endpoint), headers: headers)
+        .timeout(const Duration(seconds: 15));
+        
+    if (response.statusCode == 401 && !endpoint.contains('/auth/')) {
+      if (await _attemptRefresh()) {
+        headers = await getHeaders();
+        response = await http.get(Uri.parse(endpoint), headers: headers).timeout(const Duration(seconds: 15));
+      }
+    }
+    
     debugPrint('\n=====================================\n[RES] GET $endpoint\nStatus: ${response.statusCode}\nBody: ${response.body}\n=====================================');
     return _handleResponse(response);
   }
 
   static Future<dynamic> post(
       String endpoint, Map<String, dynamic> body) async {
-    final headers = await getHeaders();
+    var headers = await getHeaders();
     debugPrint('\n=====================================\n[REQ] POST $endpoint\nHeaders: $headers\nBody: ${jsonEncode(body)}\n=====================================');
-    final response = await http.post(
-      Uri.parse(endpoint),
-      headers: headers,
-      body: jsonEncode(body),
-    );
+    var response = await http
+        .post(
+          Uri.parse(endpoint),
+          headers: headers,
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 15));
+        
+    if (response.statusCode == 401 && !endpoint.contains('/auth/')) {
+      if (await _attemptRefresh()) {
+        headers = await getHeaders();
+        response = await http.post(Uri.parse(endpoint), headers: headers, body: jsonEncode(body)).timeout(const Duration(seconds: 15));
+      }
+    }
+        
     debugPrint(
         '\n=====================================\n[RES] POST $endpoint\nStatus: ${response.statusCode}\nBody: ${response.body}\n=====================================');
     return _handleResponse(response);
@@ -53,22 +103,41 @@ class ApiService {
 
   static Future<dynamic> put(
       String endpoint, Map<String, dynamic> body) async {
-    final headers = await getHeaders();
+    var headers = await getHeaders();
     debugPrint('\n=====================================\n[REQ] PUT $endpoint\nHeaders: $headers\nBody: ${jsonEncode(body)}\n=====================================');
-    final response = await http.put(
-      Uri.parse(endpoint),
-      headers: headers,
-      body: jsonEncode(body),
-    );
+    var response = await http
+        .put(
+          Uri.parse(endpoint),
+          headers: headers,
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 15));
+        
+    if (response.statusCode == 401 && !endpoint.contains('/auth/')) {
+      if (await _attemptRefresh()) {
+        headers = await getHeaders();
+        response = await http.put(Uri.parse(endpoint), headers: headers, body: jsonEncode(body)).timeout(const Duration(seconds: 15));
+      }
+    }
+        
     debugPrint('\n=====================================\n[RES] PUT $endpoint\nStatus: ${response.statusCode}\nBody: ${response.body}\n=====================================');
     return _handleResponse(response);
   }
 
   static Future<dynamic> delete(String endpoint) async {
-    final headers = await getHeaders();
+    var headers = await getHeaders();
     debugPrint('\n=====================================\n[REQ] DELETE $endpoint\nHeaders: $headers\n=====================================');
-    final response =
-        await http.delete(Uri.parse(endpoint), headers: headers);
+    var response = await http
+        .delete(Uri.parse(endpoint), headers: headers)
+        .timeout(const Duration(seconds: 15));
+        
+    if (response.statusCode == 401 && !endpoint.contains('/auth/')) {
+      if (await _attemptRefresh()) {
+        headers = await getHeaders();
+        response = await http.delete(Uri.parse(endpoint), headers: headers).timeout(const Duration(seconds: 15));
+      }
+    }
+        
     debugPrint('\n=====================================\n[RES] DELETE $endpoint\nStatus: ${response.statusCode}\nBody: ${response.body}\n=====================================');
     return _handleResponse(response);
   }
@@ -80,6 +149,7 @@ class ApiService {
 
     if (response.statusCode == 401) {
       onUnauthenticated?.call();
+      throw ApiException(401, "Session expired. Please log in again.");
     }
 
     // Try to extract a human-readable message from the JSON body

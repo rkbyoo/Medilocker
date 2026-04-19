@@ -18,6 +18,19 @@ class _RecordsScreenState extends State<RecordsScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final pp = context.read<PatientProvider>();
+        if (pp.visits.isEmpty) {
+          pp.fetchVisits();
+        }
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -58,32 +71,44 @@ class _RecordsScreenState extends State<RecordsScreen> {
         backgroundColor: Colors.white,
         body: Consumer<PatientProvider>(
           builder: (context, provider, child) {
+            // Show spinner only on initial load with no data
+            if (provider.isLoadingVisits && provider.visits.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
             final filteredVisits = _getFilteredVisits(provider.visits);
 
-            return CustomScrollView(
-              slivers: [
-                _buildSliverAppBar(),
-                _buildPersistentSearch(),
-                _buildFilterChips(),
-                if (filteredVisits.isEmpty)
-                  const SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _EmptyState(isSearch: true),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        return _buildTimelineEvent(
-                          context,
-                          filteredVisits[index],
-                        );
-                      }, childCount: filteredVisits.length),
+            return RefreshIndicator(
+              onRefresh: () async {
+                FocusScope.of(context).unfocus();
+                await provider.fetchVisits(forceRefresh: true);
+              },
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  _buildSliverAppBar(),
+                  _buildPersistentSearch(),
+                  _buildFilterChips(),
+                  if (filteredVisits.isEmpty)
+                    const SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _EmptyState(isSearch: true),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          return _buildTimelineEvent(
+                            context,
+                            filteredVisits[index],
+                          );
+                        }, childCount: filteredVisits.length),
+                      ),
                     ),
-                  ),
-                const SliverToBoxAdapter(child: SizedBox(height: 100)),
-              ],
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                ],
+              ),
             );
           },
         ),

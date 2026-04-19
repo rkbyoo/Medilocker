@@ -19,9 +19,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final pp = context.read<PatientProvider>();
-      if (pp.patient == null && !pp.isLoading) {
-        pp.fetchProfile();
+      if (mounted) {
+        // Always fetch fresh profile when opening this screen.
+        // forceRefresh: true bypasses the 5-min TTL so the user
+        // always sees their latest data on the profile page.
+        context.read<PatientProvider>().fetchProfile(forceRefresh: true);
       }
     });
   }

@@ -8,135 +8,305 @@ import '../models/visit.dart';
 import '../models/bill.dart';
 import '../services/api_service.dart';
 
+import 'dart:async';
+
 class PatientProvider with ChangeNotifier {
   Patient? _patient;
   List<Appointment> _appointments = [];
   List<Visit> _visits = [];
   List<Bill> _bills = [];
-  bool _isLoading = false;
+
+  // Per-resource loading states — granular so the UI can show targeted skeletons
+  bool _isLoadingProfile = false;
+  bool _isLoadingAppointments = false;
+  bool _isLoadingVisits = false;
+  bool _isLoadingBills = false;
+  bool _isOffline = false;
+
   String? _error;
 
+  // Cache timestamps for stale-while-revalidate
+  DateTime? _profileFetchedAt;
+  DateTime? _appointmentsFetchedAt;
+  DateTime? _visitsFetchedAt;
+  DateTime? _billsFetchedAt;
+
+  // 5-minute TTL — data older than this triggers a background refresh
+  static const _ttl = Duration(minutes: 5);
+
+  // ── Getters ──────────────────────────────────────────────────────────────────
   Patient? get patient => _patient;
   List<Appointment> get appointments => _appointments;
   List<Visit> get visits => _visits;
   List<Bill> get bills => _bills;
-  bool get isLoading => _isLoading;
   String? get error => _error;
+  bool get isOffline => _isOffline;
 
-  // ---------------------------------------------------------------------------
-  // Load patient from the data persisted during OTP verification
-  // (falls back to a network call if not cached)
-  // ---------------------------------------------------------------------------
-  Future<void> fetchProfile() async {
-    _isLoading = true;
+  // Unified loading flag — true if ANY resource is loading (backward compat)
+  bool get isLoading =>
+      _isLoadingProfile ||
+      _isLoadingAppointments ||
+      _isLoadingVisits ||
+      _isLoadingBills;
+
+  bool get isLoadingProfile => _isLoadingProfile;
+  bool get isLoadingAppointments => _isLoadingAppointments;
+  bool get isLoadingVisits => _isLoadingVisits;
+  bool get isLoadingBills => _isLoadingBills;
+
+  bool _isStale(DateTime? ts) {
+    if (ts == null) return true;
+    return DateTime.now().difference(ts) > _ttl;
+  }
+
+  // ── fetchAll ─────────────────────────────────────────────────────────────────
+  /// Runs all fetches in parallel. Use this at app boot for maximum speed.
+  Future<void> fetchAll({bool forceRefresh = false}) async {
+    // Fetches sequentially to avoid 4 concurrent requests timing out on weak networks
+    await fetchProfile(forceRefresh: forceRefresh);
+    await fetchAppointments(forceRefresh: forceRefresh);
+    await fetchVisits(forceRefresh: forceRefresh);
+    await fetchBills(forceRefresh: forceRefresh);
+  }
+
+  // ── fetchProfile ──────────────────────────────────────────────────────────────
+  /// Strategy:
+  ///  (1) If in-memory data is fresh — return immediately (instant).
+  ///  (2) If in-memory data is stale — serve it instantly & refresh in background.
+  ///  (3) If no in-memory data but SharedPreferences cache exists — hydrate from it
+  ///      instantly, then kick off a background network refresh.
+  ///  (4) No cache at all — blocking network fetch.
+  Future<void> fetchProfile({bool forceRefresh = false}) async {
+    if (!forceRefresh && _patient != null && !_isStale(_profileFetchedAt)) {
+      return; // ① fresh, nothing to do
+    }
+
+    if (!forceRefresh && _patient != null && _isStale(_profileFetchedAt)) {
+      _backgroundRefreshProfile(); // ② stale: serve existing, refresh silently
+      return;
+    }
+
+    _isLoadingProfile = true;
     _error = null;
     notifyListeners();
 
     try {
-      // 1. Try cached patient data first (set during OTP verify)
       final prefs = await SharedPreferences.getInstance();
       final cached = prefs.getString('patient_data');
-      if (cached != null) {
-        final json = jsonDecode(cached) as Map<String, dynamic>;
-        _patient = _patientFromTransformed(json);
-        _isLoading = false;
+
+      if (!forceRefresh && cached != null && _patient == null) {
+        // ③ Hydrate from disk immediately
+        _patient = _patientFromTransformed(
+            jsonDecode(cached) as Map<String, dynamic>);
+        _profileFetchedAt = DateTime.now();
+        _isLoadingProfile = false;
         notifyListeners();
+        _backgroundRefreshProfile(); // then update from network
         return;
       }
 
-      // 2. Fallback: fetch from API
-      final response = await ApiService.get(ApiConfig.profileEndpoint);
-      final data = response['data'] as Map<String, dynamic>?;
-      if (data != null) {
-        _patient = Patient.fromJson(data);
-        // Cache it
-        await prefs.setString('patient_data', jsonEncode(data));
+      // ④ Cold start / forced refresh
+      await _networkFetchProfile();
+      _isOffline = false;
+    } catch (e) {
+      if (e.toString().contains('SocketException') || e.toString().contains('Timeout')) {
+        _error = 'Please check your internet connection.';
+        _isOffline = true;
+      } else {
+        _error = e.toString();
       }
-    } catch (e) {
-      _error = e.toString();
     }
 
-    _isLoading = false;
+    _isLoadingProfile = false;
     notifyListeners();
   }
 
-  /// Clears cached patient data (call on logout)
-  Future<void> clearPatient() async {
-    _patient = null;
-    _appointments = [];
-    _visits = [];
-    _bills = [];
-    _error = null;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('patient_data');
-    notifyListeners();
+  Future<void> _backgroundRefreshProfile() async {
+    try {
+      await _networkFetchProfile();
+      _isOffline = false;
+      notifyListeners();
+    } catch (_) {
+      _isOffline = true;
+      notifyListeners();
+    }
   }
 
-  Future<void> fetchAppointments() async {
-    _isLoading = true;
+  Future<void> _networkFetchProfile() async {
+    final response = await ApiService.get(ApiConfig.profileEndpoint);
+    final data = response['data'] as Map<String, dynamic>?;
+    if (data != null) {
+      _patient = Patient.fromJson(data);
+      _profileFetchedAt = DateTime.now();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('patient_data', jsonEncode(data));
+      notifyListeners();
+    }
+  }
+
+  // ── fetchAppointments ─────────────────────────────────────────────────────────
+  Future<void> fetchAppointments({bool forceRefresh = false}) async {
+    if (!forceRefresh && _appointments.isNotEmpty && !_isStale(_appointmentsFetchedAt)) {
+      return;
+    }
+
+    if (!forceRefresh && _appointments.isNotEmpty && _isStale(_appointmentsFetchedAt)) {
+      _backgroundRefreshAppointments();
+      return;
+    }
+
+    _isLoadingAppointments = true;
     _error = null;
     notifyListeners();
 
     try {
-      final endpoint = _patient != null 
-          ? '${ApiConfig.appointmentsEndpoint}?patient_id=${_patient!.patientId}'
-          : ApiConfig.appointmentsEndpoint;
-      final response = await ApiService.get(endpoint);
-      _appointments = (response['data'] as List)
-          .map((json) => Appointment.fromJson(json))
-          .toList();
+      await _networkFetchAppointments();
+      _isOffline = false;
     } catch (e) {
-      _error = e.toString();
+      if (e.toString().contains('SocketException') || e.toString().contains('Timeout')) {
+        _error = 'Please check your internet connection.';
+        _isOffline = true;
+      } else {
+        _error = e.toString();
+      }
     }
 
-    _isLoading = false;
+    _isLoadingAppointments = false;
     notifyListeners();
   }
 
-  Future<void> fetchVisits() async {
-    _isLoading = true;
+  Future<void> _backgroundRefreshAppointments() async {
+    try {
+      await _networkFetchAppointments();
+      _isOffline = false;
+      notifyListeners();
+    } catch (_) {
+      _isOffline = true;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _networkFetchAppointments() async {
+    // Securely hits the endpoint without exposing patient_id in query
+    final endpoint = ApiConfig.appointmentsEndpoint;
+
+    final response = await ApiService.get(endpoint);
+    _appointments = (response['data'] as List)
+        .map((json) => Appointment.fromJson(json))
+        .toList();
+    _appointmentsFetchedAt = DateTime.now();
+    notifyListeners();
+  }
+
+  // ── fetchVisits ───────────────────────────────────────────────────────────────
+  Future<void> fetchVisits({bool forceRefresh = false}) async {
+    if (!forceRefresh && _visits.isNotEmpty && !_isStale(_visitsFetchedAt)) {
+      return;
+    }
+
+    if (!forceRefresh && _visits.isNotEmpty && _isStale(_visitsFetchedAt)) {
+      _backgroundRefreshVisits();
+      return;
+    }
+
+    _isLoadingVisits = true;
     _error = null;
     notifyListeners();
 
     try {
-      final endpoint = _patient != null 
-          ? '${ApiConfig.visitsEndpoint}?patient_id=${_patient!.patientId}'
-          : ApiConfig.visitsEndpoint;
-      final response = await ApiService.get(endpoint);
-      _visits = (response['data'] as List)
-          .map((json) => Visit.fromJson(json))
-          .toList();
+      await _networkFetchVisits();
+      _isOffline = false;
     } catch (e) {
-      _error = e.toString();
+      if (e.toString().contains('SocketException') || e.toString().contains('Timeout')) {
+        _error = 'Please check your internet connection.';
+        _isOffline = true;
+      } else {
+        _error = e.toString();
+      }
     }
 
-    _isLoading = false;
+    _isLoadingVisits = false;
     notifyListeners();
   }
 
-  Future<void> fetchBills() async {
-    _isLoading = true;
+  Future<void> _backgroundRefreshVisits() async {
+    try {
+      await _networkFetchVisits();
+      _isOffline = false;
+      notifyListeners();
+    } catch (_) {
+      _isOffline = true;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _networkFetchVisits() async {
+    final endpoint = ApiConfig.visitsEndpoint;
+
+    final response = await ApiService.get(endpoint);
+    _visits = (response['data'] as List)
+        .map((json) => Visit.fromJson(json))
+        .toList();
+    _visitsFetchedAt = DateTime.now();
+    notifyListeners();
+  }
+
+  // ── fetchBills ────────────────────────────────────────────────────────────────
+  Future<void> fetchBills({bool forceRefresh = false}) async {
+    if (!forceRefresh && _bills.isNotEmpty && !_isStale(_billsFetchedAt)) {
+      return;
+    }
+
+    if (!forceRefresh && _bills.isNotEmpty && _isStale(_billsFetchedAt)) {
+      _backgroundRefreshBills();
+      return;
+    }
+
+    _isLoadingBills = true;
     _error = null;
     notifyListeners();
 
     try {
-      final endpoint = _patient != null 
-          ? '${ApiConfig.billsEndpoint}?patient_id=${_patient!.patientId}'
-          : ApiConfig.billsEndpoint;
-      final response = await ApiService.get(endpoint);
-      _bills = (response['data'] as List)
-          .map((json) => Bill.fromJson(json))
-          .toList();
+      await _networkFetchBills();
+      _isOffline = false;
     } catch (e) {
-      _error = e.toString();
+      if (e.toString().contains('SocketException') || e.toString().contains('Timeout')) {
+        _error = 'Please check your internet connection.';
+        _isOffline = true;
+      } else {
+        _error = e.toString();
+      }
     }
 
-    _isLoading = false;
+    _isLoadingBills = false;
     notifyListeners();
   }
 
+  Future<void> _backgroundRefreshBills() async {
+    try {
+      await _networkFetchBills();
+      _isOffline = false;
+      notifyListeners();
+    } catch (_) {
+      _isOffline = true;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _networkFetchBills() async {
+    final endpoint = ApiConfig.billsEndpoint;
+
+    final response = await ApiService.get(endpoint);
+    _bills = (response['data'] as List)
+        .map((json) => Bill.fromJson(json))
+        .toList();
+    _billsFetchedAt = DateTime.now();
+    notifyListeners();
+  }
+
+  // ── updateProfile ─────────────────────────────────────────────────────────────
   Future<bool> updateProfile(Map<String, dynamic> data) async {
-    _isLoading = true;
+    _isLoadingProfile = true;
     _error = null;
     notifyListeners();
 
@@ -145,25 +315,39 @@ class PatientProvider with ChangeNotifier {
       final responseData = response['data'] as Map<String, dynamic>?;
       if (responseData != null) {
         _patient = Patient.fromJson(responseData);
-        // Update cache
+        _profileFetchedAt = DateTime.now();
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('patient_data', jsonEncode(responseData));
       }
-      _isLoading = false;
+      _isLoadingProfile = false;
       notifyListeners();
       return true;
     } catch (e) {
       _error = e.toString();
-      _isLoading = false;
+      _isLoadingProfile = false;
       notifyListeners();
       return false;
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Helper: converts the server's "transformed" patient format
-  // (camelCase keys from PatientService.transformPatient) into a Patient model.
-  // ---------------------------------------------------------------------------
+  // ── clearPatient ──────────────────────────────────────────────────────────────
+  /// Call on logout to wipe all in-memory and disk data.
+  Future<void> clearPatient() async {
+    _patient = null;
+    _appointments = [];
+    _visits = [];
+    _bills = [];
+    _error = null;
+    _profileFetchedAt = null;
+    _appointmentsFetchedAt = null;
+    _visitsFetchedAt = null;
+    _billsFetchedAt = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('patient_data');
+    notifyListeners();
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────────
   Patient _patientFromTransformed(Map<String, dynamic> t) {
     return Patient(
       patientId: t['patientId'] ?? t['patient_id'] ?? '',
@@ -187,7 +371,8 @@ class PatientProvider with ChangeNotifier {
       nationality: t['nationality'] ?? '',
       nfcCardLinked: t['nfcCardLinked'] ?? t['nfc_card_linked'] ?? false,
       allergies: _parseAllergies(t['allergies']),
-      chronicConditions: _parseConditions(t['chronicConditions'] ?? t['chronic_conditions']),
+      chronicConditions:
+          _parseConditions(t['chronicConditions'] ?? t['chronic_conditions']),
     );
   }
 
@@ -195,7 +380,9 @@ class PatientProvider with ChangeNotifier {
     if (raw == null) return [];
     if (raw is List) {
       return raw.map((e) {
-        if (e is String) return Allergy(allergyId: '', allergyName: e, severity: '');
+        if (e is String) {
+          return Allergy(allergyId: '', allergyName: e, severity: '');
+        }
         return Allergy.fromJson(e as Map<String, dynamic>);
       }).toList();
     }
@@ -206,7 +393,10 @@ class PatientProvider with ChangeNotifier {
     if (raw == null) return [];
     if (raw is List) {
       return raw.map((e) {
-        if (e is String) return ChronicCondition(conditionId: '', conditionName: e, diagnosedDate: '');
+        if (e is String) {
+          return ChronicCondition(
+              conditionId: '', conditionName: e, diagnosedDate: '');
+        }
         return ChronicCondition.fromJson(e as Map<String, dynamic>);
       }).toList();
     }

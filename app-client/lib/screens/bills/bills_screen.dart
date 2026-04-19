@@ -22,10 +22,10 @@ class _BillsScreenState extends State<BillsScreen> with SingleTickerProviderStat
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _tabController?.addListener(_handleTabSelection);
-    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<PatientProvider>().fetchBills();
+        final pp = context.read<PatientProvider>();
+        if (pp.bills.isEmpty) pp.fetchBills();
       }
     });
   }
@@ -181,18 +181,33 @@ class _BillsScreenState extends State<BillsScreen> with SingleTickerProviderStat
   }
 
   Widget _buildBillList(BuildContext context, PatientProvider provider, List<Bill> bills) {
-    if (provider.isLoading && bills.isEmpty) {
+    // Show spinner only on true first load (no data at all)
+    if (provider.isLoadingBills && provider.bills.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (bills.isEmpty) {
-      return const Center(child: Text('No bills found'));
+      return RefreshIndicator(
+        onRefresh: () => provider.fetchBills(forceRefresh: true),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: const [
+            SizedBox(
+              height: 400,
+              child: Center(child: Text('No bills found')),
+            ),
+          ],
+        ),
+      );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-      itemCount: bills.length,
-      itemBuilder: (context, index) {
+    return RefreshIndicator(
+      onRefresh: () => provider.fetchBills(forceRefresh: true),
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+        itemCount: bills.length,
+        itemBuilder: (context, index) {
         final bill = bills[index];
         final isPending = bill.paymentStatus.toLowerCase() == 'pending';
         
@@ -215,6 +230,7 @@ class _BillsScreenState extends State<BillsScreen> with SingleTickerProviderStat
           statusColor: isPending ? AppColors.warning : AppColors.success,
         );
       },
+      ),
     );
   }
 

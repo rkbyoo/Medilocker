@@ -54,7 +54,10 @@ class AuthService {
         developer.log('Logout API call failed (ignored): $e', name: 'AuthService');
       }
     }
-    await prefs.clear();
+    // Remove only auth-related data — preserve any future app settings
+    await prefs.remove('auth_token');
+    await prefs.remove('refresh_token');
+    await prefs.remove('patient_data');
   }
 
   Future<bool> isLoggedIn() async {

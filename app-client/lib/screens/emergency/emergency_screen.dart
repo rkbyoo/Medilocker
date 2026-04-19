@@ -24,6 +24,15 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final pp = context.read<PatientProvider>();
+        // Ensure we have appointment data for the hospital contact section
+        if (pp.appointments.isEmpty) pp.fetchAppointments();
+        // Ensure profile is loaded for the card
+        if (pp.patient == null) pp.fetchProfile();
+      }
+    });
   }
 
   @override
@@ -75,92 +84,97 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
             return const Center(child: CircularProgressIndicator());
           }
 
-          final emergencyContact = patient.emergencyContactNumber.isNotEmpty 
-              ? patient.emergencyContactNumber 
+          final emergencyContact = patient.emergencyContactNumber.isNotEmpty
+              ? patient.emergencyContactNumber
               : '';
-          final emergencyName = patient.emergencyContactName.isNotEmpty 
-              ? patient.emergencyContactName 
+          final emergencyName = patient.emergencyContactName.isNotEmpty
+              ? patient.emergencyContactName
               : 'Emergency Contact';
 
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                const SizedBox(height: 40),
-                
-                // Flippable Card
-                Center(
-                  child: GestureDetector(
-                    onHorizontalDragEnd: (details) {
-                      if (details.primaryVelocity!.abs() > 100) {
-                        _flipCard();
-                      }
-                    },
-                    onTap: _flipCard,
-                    child: AnimatedBuilder(
-                      animation: _controller,
-                      builder: (context, child) {
-                        double angle = _controller.value * pi;
-                        bool isBack = angle > pi / 2;
-                        return Transform(
-                          transform: Matrix4.identity()
-                            ..setEntry(3, 2, 0.0015) // enhanced perspective
-                            ..rotateY(angle),
-                          alignment: Alignment.center,
-                          child: isBack
-                              ? Transform(
-                                  transform: Matrix4.identity()..rotateY(pi),
-                                  alignment: Alignment.center,
-                                  child: _buildCardBack(patient),
-                                )
-                              : _buildCardFront(patient, emergencyName, emergencyContact),
-                        );
+          return RefreshIndicator(
+            onRefresh: () => provider.fetchAll(forceRefresh: true),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  const SizedBox(height: 40),
+
+                  // Flippable Card
+                  Center(
+                    child: GestureDetector(
+                      onHorizontalDragEnd: (details) {
+                        if (details.primaryVelocity!.abs() > 100) {
+                          _flipCard();
+                        }
                       },
+                      onTap: _flipCard,
+                      child: AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, child) {
+                          double angle = _controller.value * pi;
+                          bool isBack = angle > pi / 2;
+                          return Transform(
+                            transform: Matrix4.identity()
+                              ..setEntry(3, 2, 0.0015)
+                              ..rotateY(angle),
+                            alignment: Alignment.center,
+                            child: isBack
+                                ? Transform(
+                                    transform: Matrix4.identity()..rotateY(pi),
+                                    alignment: Alignment.center,
+                                    child: _buildCardBack(patient),
+                                  )
+                                : _buildCardFront(patient, emergencyName, emergencyContact),
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                // Interaction Guide
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 40),
-                  child: Column(
-                    children: [
-                      Icon(Icons.swipe_outlined, color: AppColors.textSecondary, size: 24),
-                      SizedBox(height: 8),
-                      Text(
-                        'SWIPE OR TAP TO REVEAL MEDICAL DETAILS',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textSecondary,
-                          letterSpacing: 1.5,
+                  // Interaction Guide
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 40),
+                    child: Column(
+                      children: [
+                        Icon(Icons.swipe_outlined, color: AppColors.textSecondary, size: 24),
+                        SizedBox(height: 8),
+                        Text(
+                          'SWIPE OR TAP TO REVEAL MEDICAL DETAILS',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                            letterSpacing: 1.5,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 60),
+                  const SizedBox(height: 60),
 
-                // Critical Actions Section
-                _buildActionSection(
-                  'Primary Emergency Contact', 
-                  emergencyName, 
-                  subtitle: emergencyContact,
-                  onCall: () => _makePhoneCall(emergencyContact),
-                ),
-                
-                if (provider.appointments.isNotEmpty)
+                  // Critical Actions Section
                   _buildActionSection(
-                    'Recent Healthcare Hub', 
-                    provider.appointments.first.hospital.name, 
-                    subtitle: provider.appointments.first.hospital.contactNumber,
-                    onCall: () => _makePhoneCall(provider.appointments.first.hospital.contactNumber),
+                    'Primary Emergency Contact',
+                    emergencyName,
+                    subtitle: emergencyContact,
+                    onCall: () => _makePhoneCall(emergencyContact),
                   ),
 
-                const SizedBox(height: 40),
-              ],
+                  if (provider.appointments.isNotEmpty)
+                    _buildActionSection(
+                      'Recent Healthcare Hub',
+                      provider.appointments.first.hospital.name,
+                      subtitle: provider.appointments.first.hospital.contactNumber,
+                      onCall: () => _makePhoneCall(
+                          provider.appointments.first.hospital.contactNumber),
+                    ),
+
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           );
         },

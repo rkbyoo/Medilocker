@@ -23,7 +23,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
     _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<PatientProvider>().fetchAppointments();
+        final pp = context.read<PatientProvider>();
+        // Fetch only if empty — MainScreen already loads on boot.
+        // forceRefresh=false means cache/TTL logic in provider applies.
+        if (pp.appointments.isEmpty) {
+          pp.fetchAppointments();
+        }
       }
     });
   }
@@ -69,12 +74,19 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
   Widget _buildAppointmentList({required bool isUpcoming}) {
     return Consumer<PatientProvider>(
       builder: (context, provider, child) {
+        // Show spinner only on initial load (no data yet)
+        if (provider.isLoadingAppointments && provider.appointments.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
         final now = DateTime.now();
         var appointments = provider.appointments.where((a) {
           if (a.scheduledDateTime.isEmpty) return false;
-          final isPast = a.status.toLowerCase() == 'completed' || 
+          DateTime? dt;
+          try { dt = DateTime.parse(a.scheduledDateTime).toLocal(); } catch (_) { return false; }
+          final isPast = a.status.toLowerCase() == 'completed' ||
                         a.status.toLowerCase() == 'cancelled' ||
-                        DateTime.parse(a.scheduledDateTime).toLocal().isBefore(now);
+                        dt.isBefore(now);
           return isUpcoming ? !isPast : isPast;
         }).toList();
 
@@ -85,28 +97,43 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
         }
 
         if (appointments.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+          return RefreshIndicator(
+            onRefresh: () => provider.fetchAppointments(forceRefresh: true),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               children: [
-                Icon(Icons.event_busy_rounded, size: 64, color: Colors.grey.shade300),
-                const SizedBox(height: 16),
-                Text(
-                  isUpcoming ? "No upcoming appointments" : "No past appointments",
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 16),
+                SizedBox(
+                  height: 400,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.event_busy_rounded, size: 64, color: Colors.grey.shade300),
+                        const SizedBox(height: 16),
+                        Text(
+                          isUpcoming ? "No upcoming appointments" : "No past appointments",
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
           );
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-          itemCount: appointments.length,
-          itemBuilder: (context, index) {
-            final appt = appointments[index];
-            return _buildAppointmentTicket(context, appt);
-          },
+        return RefreshIndicator(
+          onRefresh: () => provider.fetchAppointments(forceRefresh: true),
+          child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+            itemCount: appointments.length,
+            itemBuilder: (context, index) {
+              final appt = appointments[index];
+              return _buildAppointmentTicket(context, appt);
+            },
+          ),
         );
       },
     );
