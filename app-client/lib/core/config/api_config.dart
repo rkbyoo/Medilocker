@@ -1,7 +1,7 @@
 class ApiConfig {
   // LAN IP of your development machine (run `ipconfig` to confirm)
   // Physical device must be on the same Wi-Fi network as this machine.
-  static const baseUrl = 'http://172.20.72.66:4000/api';
+  static const baseUrl = 'http://140.238.163.158:8080/api';
 
   // Auth endpoints  → /api/auth/otp/send  |  /api/auth/otp/verify
   static const sendOtpEndpoint    = '$baseUrl/auth/otp/send';
