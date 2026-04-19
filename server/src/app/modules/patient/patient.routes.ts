@@ -16,6 +16,12 @@ router.post(
   PatientController.register
 );
 
+// Get the authenticated patient's own profile (MUST be before /:id)
+router.get('/me', PatientController.getMe);
+
+// Update authenticated patient's own profile
+router.put('/me', PatientController.updateMe);
+
 // Get patient by ID
 router.get('/:id', PatientController.getById);
 
