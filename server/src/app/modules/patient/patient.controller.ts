@@ -6,6 +6,60 @@ import { HTTP_STATUS } from '../../constants/statusCodes';
 
 export class PatientController {
   /**
+   * Get the authenticated patient's own profile
+   * GET /api/patients/me
+   */
+  static async getMe(req: Request, res: Response): Promise<Response> {
+    try {
+      const userId = req.user?.user_id;
+
+      if (!userId) {
+        return sendError(res, 'Unauthorized', HTTP_STATUS.UNAUTHORIZED);
+      }
+
+      const patient = await PatientModel.findByUserId(userId);
+
+      if (!patient) {
+        return sendError(res, 'Patient not found', HTTP_STATUS.NOT_FOUND);
+      }
+
+      const transformedPatient = PatientService.transformPatient(patient);
+      return sendSuccess(res, 'Patient retrieved successfully', transformedPatient);
+    } catch (error: any) {
+      console.error('Get me error:', error);
+      return sendError(res, 'Failed to retrieve patient', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
+   * Update the authenticated patient's own profile
+   * PUT /api/patients/me
+   */
+  static async updateMe(req: Request, res: Response): Promise<Response> {
+    try {
+      const userId = req.user?.user_id;
+
+      if (!userId) {
+        return sendError(res, 'Unauthorized', HTTP_STATUS.UNAUTHORIZED);
+      }
+
+      const patient = await PatientModel.findByUserId(userId);
+
+      if (!patient) {
+        return sendError(res, 'Patient not found', HTTP_STATUS.NOT_FOUND);
+      }
+
+      const updated = await PatientModel.updateById(patient.patient_id, req.body);
+      const transformedPatient = PatientService.transformPatient(updated);
+      return sendSuccess(res, 'Profile updated successfully', transformedPatient);
+    } catch (error: any) {
+      console.error('Update me error:', error);
+      return sendError(res, 'Failed to update patient', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+
+  /**
    * Register a new patient
    * POST /api/patients
    */

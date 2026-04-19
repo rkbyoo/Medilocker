@@ -192,6 +192,36 @@ export class PatientModel {
   }
 
   /**
+   * Update patient by ID
+   */
+  static async updateById(patientId: string, data: Record<string, any>) {
+    // Map camelCase fields from frontend to snake_case DB columns
+    const updateData: Record<string, any> = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.gender !== undefined) updateData.gender = data.gender;
+    if (data.bloodGroup !== undefined) updateData.blood_group = data.bloodGroup;
+    if (data.address !== undefined) updateData.address = data.address;
+    if (data.maritalStatus !== undefined) updateData.marital_status = data.maritalStatus;
+    if (data.spouseName !== undefined) updateData.spouse_name = data.spouseName;
+    if (data.emergencyContactName !== undefined) updateData.emergency_contact_name = data.emergencyContactName;
+    if (data.emergencyContactNumber !== undefined) updateData.emergency_contact_number = data.emergencyContactNumber;
+    if (data.guardianPhone !== undefined) updateData.guardian_phone = data.guardianPhone;
+    if (data.nationality !== undefined) updateData.nationality = data.nationality;
+    if (data.caste !== undefined) updateData.caste = data.caste;
+    if (data.religion !== undefined) updateData.religion = data.religion;
+
+    return await prisma.patient.update({
+      where: { patient_id: patientId },
+      data: updateData,
+      include: {
+        user: true,
+        allergies: true,
+        chronicConditions: true,
+      },
+    });
+  }
+
+  /**
    * Get patient by 10-digit patient number
    */
   static async findByPatientNumber(patientNumber: string) {

@@ -98,6 +98,16 @@ export class VisitController {
         limit: query.limit,
       };
 
+      if (req.user && req.user.role === 'patient') {
+        const patient = await prisma.patient.findUnique({
+          where: { user_id: req.user.user_id },
+          select: { patient_id: true }
+        });
+        if (patient) {
+          filters.patient_id = patient.patient_id;
+        }
+      }
+
       const visits = await VisitService.getVisits(filters);
       const transformed = visits.map(VisitService.transformVisit);
 

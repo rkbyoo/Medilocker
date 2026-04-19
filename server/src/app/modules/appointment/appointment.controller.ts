@@ -113,6 +113,16 @@ export class AppointmentController {
         date: query.date,
       };
 
+      if (req.user && req.user.role === 'patient') {
+        const patient = await prisma.patient.findUnique({
+          where: { user_id: req.user.user_id },
+          select: { patient_id: true }
+        });
+        if (patient) {
+          filters.patient_id = patient.patient_id;
+        }
+      }
+
       const appointments = await AppointmentService.getAppointments(filters);
       const transformed = appointments.map(AppointmentService.transformAppointment);
 
