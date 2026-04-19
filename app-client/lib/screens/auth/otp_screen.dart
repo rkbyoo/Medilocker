@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/patient_provider.dart';
-import '../home/main_screen.dart';
+import '../../main.dart';
 import '../../core/widgets/custom_notification.dart';
 
 class OtpScreen extends StatefulWidget {
@@ -86,9 +86,10 @@ class _OtpScreenState extends State<OtpScreen> {
 
     if (success && mounted) {
       CustomNotification.show(context, 'Verification successful');
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
+        MaterialPageRoute(builder: (context) => const AuthWrapper()),
+        (route) => false,
       );
     } else if (mounted) {
       final msg = authProvider.errorMessage ?? 'Verification failed';
@@ -149,27 +150,48 @@ class _OtpScreenState extends State<OtpScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                RichText(
-                  textAlign: TextAlign.center,
-                  text: TextSpan(
-                    style: TextStyle(
-                      color: AppColors.textSecondary.withValues(alpha: 0.6),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                Column(
+                  children: [
+                    RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: TextStyle(
+                          color: AppColors.textSecondary.withValues(alpha: 0.6),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        children: [
+                          const TextSpan(text: 'We have sent a 6-digit code to\n'),
+                          TextSpan(
+                            text: '+91 ${widget.phoneNumber}',
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    children: [
-                      const TextSpan(text: 'We have sent a 6-digit code to\n'),
-                      TextSpan(
-                        text: '+91 ${widget.phoneNumber}',
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w700,
+                    const SizedBox(height: 4),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () => Navigator.pop(context, 'wrong_number'),
+                      child: const Text(
+                        'Not your number?',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 60),
+                const SizedBox(height: 40),
 
                 // OTP Input inside AutofillGroup for better SMS detection
                 AutofillGroup(
