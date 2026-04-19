@@ -31,6 +31,9 @@ class _OtpScreenState extends State<OtpScreen> {
   void initState() {
     super.initState();
     _startTimer();
+    _focusNode.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   void _startTimer() {
@@ -202,70 +205,77 @@ class _OtpScreenState extends State<OtpScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        AutofillGroup(
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: 52,
-                            child: Stack(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: List.generate(6, (index) {
-                                    final char = _otpController.text.length > index
-                                        ? _otpController.text[index]
-                                        : '';
-                                    final isFocused = _otpController.text.length == index && _secondsRemaining > 0;
-                                    return Container(
-                                      width: 42,
-                                      height: 52,
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFF8FAFC),
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                          color: isFocused 
-                                            ? AppColors.primary 
-                                            : const Color(0xFFE2E8F0),
-                                          width: isFocused ? 2 : 1,
+                        GestureDetector(
+                          onTap: () {
+                            if (_secondsRemaining > 0) {
+                              _focusNode.requestFocus();
+                            }
+                          },
+                          child: AutofillGroup(
+                            child: SizedBox(
+                              width: double.infinity,
+                              height: 52,
+                              child: Stack(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: List.generate(6, (index) {
+                                      final char = _otpController.text.length > index
+                                          ? _otpController.text[index]
+                                          : '';
+                                      final isFocused = _otpController.text.length == index && _focusNode.hasFocus;
+                                      return Container(
+                                        width: 42,
+                                        height: 52,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF8FAFC),
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(
+                                            color: isFocused 
+                                              ? AppColors.primary 
+                                              : const Color(0xFFE2E8F0),
+                                            width: isFocused ? 2 : 1,
+                                          ),
                                         ),
-                                      ),
-                                      child: Text(
-                                        char,
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.textPrimary,
+                                        child: Text(
+                                          char,
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.textPrimary,
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  }),
-                                ),
-                                Positioned.fill(
-                                  child: TextFormField(
-                                    controller: _otpController,
-                                    focusNode: _focusNode,
-                                    enabled: _secondsRemaining > 0,
-                                    autofocus: true,
-                                    keyboardType: TextInputType.number,
-                                    maxLength: 6,
-                                    autofillHints: const [AutofillHints.oneTimeCode],
-                                    style: const TextStyle(color: Colors.transparent, fontSize: 24),
-                                    cursorColor: Colors.transparent,
-                                    decoration: const InputDecoration(
-                                      counterText: "",
-                                      filled: false,
-                                      border: InputBorder.none,
-                                      enabledBorder: InputBorder.none,
-                                      focusedBorder: InputBorder.none,
-                                      errorStyle: TextStyle(height: 0),
-                                    ),
-                                    onChanged: (val) {
-                                      setState(() {});
-                                      if (val.length == 6) _verifyOtp();
-                                    },
+                                      );
+                                    }),
                                   ),
-                                ),
-                              ],
+                                  Positioned.fill(
+                                    child: TextFormField(
+                                      controller: _otpController,
+                                      focusNode: _focusNode,
+                                      enabled: _secondsRemaining > 0,
+                                      autofocus: true,
+                                      keyboardType: TextInputType.number,
+                                      maxLength: 6,
+                                      autofillHints: const [AutofillHints.oneTimeCode],
+                                      style: const TextStyle(color: Colors.transparent, fontSize: 24),
+                                      cursorColor: Colors.transparent,
+                                      decoration: const InputDecoration(
+                                        counterText: "",
+                                        filled: false,
+                                        border: InputBorder.none,
+                                        enabledBorder: InputBorder.none,
+                                        focusedBorder: InputBorder.none,
+                                        errorStyle: TextStyle(height: 0),
+                                      ),
+                                      onChanged: (val) {
+                                        setState(() {});
+                                        if (val.length == 6) _verifyOtp();
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
