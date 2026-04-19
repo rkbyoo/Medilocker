@@ -20,10 +20,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        // Always fetch fresh profile when opening this screen.
-        // forceRefresh: true bypasses the 5-min TTL so the user
-        // always sees their latest data on the profile page.
-        context.read<PatientProvider>().fetchProfile(forceRefresh: true);
+        // Fetch profile using standard cache TTL (no force check on tab switch)
+        context.read<PatientProvider>().fetchProfile();
       }
     });
   }
@@ -132,12 +130,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           body: pp.isLoading && patient == null
               ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 20,
-                  ),
-                  child: Column(
+              : RefreshIndicator(
+                  onRefresh: () async {
+                    await context.read<PatientProvider>().fetchProfile(forceRefresh: true);
+                  },
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 20,
+                    ),
+                    child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Center(
@@ -396,6 +399,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 40),
                     ],
                   ),
+                ),
                 ),
         );
       },
