@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/patient_provider.dart';
-import '../auth/login_screen.dart';
+import '../../main.dart';
 import '../../core/widgets/custom_notification.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -370,11 +370,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               patientProvider: patientProvider,
                             );
                             if (context.mounted) {
-                              Navigator.pushReplacement(
+                              Navigator.pushAndRemoveUntil(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const LoginScreen(),
+                                  builder: (context) => const AuthWrapper(),
                                 ),
+                                (route) => false,
                               );
                             }
                           },
