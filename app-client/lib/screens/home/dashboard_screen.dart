@@ -46,12 +46,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // 1. Next Appointment / Follow-up Logic
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     String formatDoc(String name) {
       if (name.isEmpty) return '';
       return name.toLowerCase().startsWith('dr') ? name : 'Dr. $name';
     }
-    
+
     DateTime? nextDateTime;
     String nextApptSubtitle = 'No upcoming appointments';
     String nextApptDetail = 'Schedule one now';
@@ -59,7 +59,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Check formal appointments
     var upcomingAppts = provider.appointments.where((a) {
       if (a.scheduledDateTime.isEmpty) return false;
-      if (a.status.toLowerCase() == 'completed' || a.status.toLowerCase() == 'cancelled') return false;
+      if (a.status.toLowerCase() == 'completed' ||
+          a.status.toLowerCase() == 'cancelled') {
+        return false;
+      }
+
       try {
         return DateTime.parse(a.scheduledDateTime).toLocal().isAfter(now);
       } catch (e) {
@@ -67,12 +71,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return false;
       }
     }).toList();
-    upcomingAppts.sort((a, b) => a.scheduledDateTime.compareTo(b.scheduledDateTime));
+    upcomingAppts.sort(
+      (a, b) => a.scheduledDateTime.compareTo(b.scheduledDateTime),
+    );
 
     if (upcomingAppts.isNotEmpty) {
       final a = upcomingAppts.first;
       nextDateTime = DateTime.parse(a.scheduledDateTime).toLocal();
-      nextApptSubtitle = a.doctor.fullName.isNotEmpty ? formatDoc(a.doctor.fullName) : 'Upcoming Appointment';
+      nextApptSubtitle = a.doctor.fullName.isNotEmpty
+          ? formatDoc(a.doctor.fullName)
+          : 'Upcoming Appointment';
       nextApptDetail = DateFormat('MMM d, h:mm a').format(nextDateTime);
     }
 
@@ -82,13 +90,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         try {
           DateTime nvDate = DateTime.parse(v.nextVisitDate!).toLocal();
           DateTime nvDay = DateTime(nvDate.year, nvDate.month, nvDate.day);
-          
+
           // Constraint: keep showing if today, hide if crossed (greater or crossed then no appointments)
           if (!nvDay.isBefore(today)) {
             // Pick the earliest available date
             if (nextDateTime == null || nvDate.isBefore(nextDateTime)) {
               nextDateTime = nvDate;
-              nextApptSubtitle = v.doctor.fullName.isNotEmpty ? formatDoc(v.doctor.fullName) : 'Follow-up Visit';
+              nextApptSubtitle = v.doctor.fullName.isNotEmpty
+                  ? formatDoc(v.doctor.fullName)
+                  : 'Follow-up Visit';
               nextApptDetail = DateFormat('MMM d, yyyy').format(nvDate);
             }
           }
@@ -102,15 +112,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     var visitsList = List.of(provider.visits);
     visitsList.sort((a, b) => b.visitDate.compareTo(a.visitDate));
     final recentVisit = visitsList.isNotEmpty ? visitsList.first : null;
-    
-    String recentVisitSubtitle = recentVisit != null ? (recentVisit.diagnosis.isNotEmpty ? recentVisit.diagnosis : 'Visit') : 'No visits';
-    String recentVisitDetail = recentVisit != null 
-        ? DateFormat('MMM d, yyyy').format(DateTime.parse(recentVisit.visitDate)) 
+
+    String recentVisitSubtitle = recentVisit != null
+        ? (recentVisit.diagnosis.isNotEmpty ? recentVisit.diagnosis : 'Visit')
+        : 'No visits';
+    String recentVisitDetail = recentVisit != null
+        ? DateFormat(
+            'MMM d, yyyy',
+          ).format(DateTime.parse(recentVisit.visitDate))
         : 'No history';
 
     // 3. Pending Bills
-    var pendingBills = provider.bills.where((b) => b.paymentStatus.toLowerCase() == 'pending').toList();
-    double totalPending = pendingBills.fold(0.0, (sum, b) => sum + b.totalAmount);
+    var pendingBills = provider.bills
+        .where((b) => b.paymentStatus.toLowerCase() == 'pending')
+        .toList();
+    double totalPending = pendingBills.fold(
+      0.0,
+      (sum, b) => sum + b.totalAmount,
+    );
     String pendingBillSubtitle = '${pendingBills.length} Bills';
     String pendingBillDetail = '₹${totalPending.toStringAsFixed(0)}';
 
@@ -120,47 +139,66 @@ class _DashboardScreenState extends State<DashboardScreen> {
     allReports.sort((a, b) => b.uploadedAt.compareTo(a.uploadedAt));
     if (allReports.isNotEmpty) {
       final r = allReports.first;
-      recentActivityWidgets.add(_buildActivityItem(
-        context,
-        icon: Icons.description,
-        title: 'Report Available',
-        subtitle: '${r.reportType} - ${r.title}',
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecordsScreen())),
-      ));
+      recentActivityWidgets.add(
+        _buildActivityItem(
+          context,
+          icon: Icons.description,
+          title: 'Report Available',
+          subtitle: '${r.reportType} - ${r.title}',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const RecordsScreen()),
+          ),
+        ),
+      );
     }
     if (pendingBills.isNotEmpty) {
       final b = pendingBills.first;
-      recentActivityWidgets.add(_buildActivityItem(
-        context,
-        icon: Icons.receipt_long,
-        title: 'New Bill Generated',
-        subtitle: '₹${b.totalAmount.toStringAsFixed(0)} - Action Required',
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BillsScreen())),
-      ));
+      recentActivityWidgets.add(
+        _buildActivityItem(
+          context,
+          icon: Icons.receipt_long,
+          title: 'New Bill Generated',
+          subtitle: '₹${b.totalAmount.toStringAsFixed(0)} - Action Required',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const BillsScreen()),
+          ),
+        ),
+      );
     }
     if (provider.appointments.isNotEmpty) {
       var pastAppts = List.of(provider.appointments);
-      pastAppts.sort((a, b) => b.scheduledDateTime.compareTo(a.scheduledDateTime));
+      pastAppts.sort(
+        (a, b) => b.scheduledDateTime.compareTo(a.scheduledDateTime),
+      );
       final a = pastAppts.first;
-      recentActivityWidgets.add(_buildActivityItem(
-        context,
-        icon: Icons.event_available,
-        title: 'Appointment Status',
-        subtitle: '${formatDoc(a.doctor.fullName)} - ${a.status}',
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AppointmentsScreen())),
-      ));
+      recentActivityWidgets.add(
+        _buildActivityItem(
+          context,
+          icon: Icons.event_available,
+          title: 'Appointment Status',
+          subtitle: '${formatDoc(a.doctor.fullName)} - ${a.status}',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AppointmentsScreen()),
+          ),
+        ),
+      );
     }
     if (recentActivityWidgets.isEmpty) {
       recentActivityWidgets.add(
         const Padding(
           padding: EdgeInsets.all(16.0),
-          child: Text('No recent activities.', style: TextStyle(color: Colors.grey)),
-        )
+          child: Text(
+            'No recent activities.',
+            style: TextStyle(color: Colors.grey),
+          ),
+        ),
       );
     }
 
     return Scaffold(
-
       backgroundColor: AppColors.background,
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -169,12 +207,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.person, color: AppColors.primary, size: 20),
+              alignment: Alignment.center,
+              child: Text(
+                patientName.isNotEmpty ? patientName[0].toUpperCase() : 'P',
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
             ),
             const SizedBox(width: 12),
             Column(
@@ -183,16 +230,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   'Hello, $patientName',
                   style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Text(
                   'MediLocker Health',
                   style: TextStyle(
-                      color: AppColors.textSecondary.withValues(alpha: 0.7), 
-                      fontSize: 11,
-                      letterSpacing: 0.5,
+                    color: AppColors.textSecondary.withValues(alpha: 0.7),
+                    fontSize: 11,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ],
@@ -210,7 +258,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary),
+            icon: const Icon(
+              Icons.notifications_outlined,
+              color: AppColors.textPrimary,
+            ),
             onPressed: () {},
           ),
         ],
@@ -221,116 +272,120 @@ class _DashboardScreenState extends State<DashboardScreen> {
         },
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Quick Summary Cards
-            SizedBox(
-              height: 180,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Quick Summary Cards
+              SizedBox(
+                height: 180,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    _buildSummaryCard(
+                      context,
+                      icon: Icons.calendar_today,
+                      title: 'Next Appointment',
+                      subtitle: nextApptSubtitle,
+                      detail: nextApptDetail,
+                      color: AppColors.primary,
+                    ),
+                    _buildSummaryCard(
+                      context,
+                      icon: Icons.medical_services,
+                      title: 'Recent Visit',
+                      subtitle: recentVisitSubtitle,
+                      detail: recentVisitDetail,
+                      color: AppColors.success,
+                    ),
+                    _buildSummaryCard(
+                      context,
+                      icon: Icons.receipt,
+                      title: 'Pending Bills',
+                      subtitle: pendingBillSubtitle,
+                      detail: pendingBillDetail,
+                      color: AppColors.warning,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Quick Actions
+              Text(
+                'Quick Actions',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 2,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
                 children: [
-                  _buildSummaryCard(
+                  _buildActionCard(
                     context,
-                    icon: Icons.calendar_today,
-                    title: 'Next Appointment',
-                    subtitle: nextApptSubtitle,
-                    detail: nextApptDetail,
+                    icon: Icons.calendar_month,
+                    title: 'Appointments',
                     color: AppColors.primary,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AppointmentsScreen(),
+                      ),
+                    ),
                   ),
-                  _buildSummaryCard(
+                  _buildActionCard(
+                    context,
+                    icon: Icons.folder_shared,
+                    title: 'Medical Records',
+                    color: AppColors.success,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const RecordsScreen()),
+                    ),
+                  ),
+                  _buildActionCard(
+                    context,
+                    icon: Icons.payments,
+                    title: 'My Bills',
+                    color: AppColors.warning,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const BillsScreen()),
+                    ),
+                  ),
+                  _buildActionCard(
                     context,
                     icon: Icons.medical_services,
-                    title: 'Recent Visit',
-                    subtitle: recentVisitSubtitle,
-                    detail: recentVisitDetail,
-                    color: AppColors.success,
-                  ),
-                  _buildSummaryCard(
-                    context,
-                    icon: Icons.receipt,
-                    title: 'Pending Bills',
-                    subtitle: pendingBillSubtitle,
-                    detail: pendingBillDetail,
-                    color: AppColors.warning,
+                    title: 'Emergency',
+                    color: AppColors.emergency,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const EmergencyScreen(),
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
-            
-            // Quick Actions
-            Text(
-              'Quick Actions',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 16),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              children: [
-                _buildActionCard(
+              const SizedBox(height: 24),
+
+              // Recent Activity
+              Text(
+                'Recent Activity',
+                style: Theme.of(
                   context,
-                  icon: Icons.calendar_month,
-                  title: 'Book Appointment',
-                  color: AppColors.primary,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AppointmentsScreen()),
-                  ),
-                ),
-                _buildActionCard(
-                  context,
-                  icon: Icons.folder_shared,
-                  title: 'Medical Records',
-                  color: AppColors.success,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const RecordsScreen()),
-                  ),
-                ),
-                _buildActionCard(
-                  context,
-                  icon: Icons.payments,
-                  title: 'My Bills',
-                  color: AppColors.warning,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const BillsScreen()),
-                  ),
-                ),
-                _buildActionCard(
-                  context,
-                  icon: Icons.medical_services,
-                  title: 'Emergency',
-                  color: AppColors.emergency,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const EmergencyScreen()),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            
-            // Recent Activity
-            Text(
-              'Recent Activity',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 16),
-            ...recentActivityWidgets,
-            const SizedBox(height: 100),
-          ],
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              ...recentActivityWidgets,
+              const SizedBox(height: 100),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -351,10 +406,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            color,
-            color.withValues(alpha: 0.8),
-          ],
+          colors: [color, color.withValues(alpha: 0.8)],
         ),
         boxShadow: [
           BoxShadow(
@@ -459,9 +511,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ],
             ),
