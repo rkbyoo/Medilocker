@@ -1,4 +1,5 @@
 import { prisma } from '../../config/prisma';
+import { PaymentStatus } from '../../../../prisma/generated/client';
 
 export class BillService {
   /**
@@ -30,6 +31,78 @@ export class BillService {
     });
 
     return bills;
+  }
+
+  /**
+   * Create a new bill for a visit.
+   */
+  static async createBill(data: {
+    visit_id: string;
+    total_amount: number;
+    currency?: string;
+    sections?: Array<{
+      section_type: string;
+      section_total: number;
+      items?: Array<{
+        description: string;
+        quantity?: number;
+        unit_price: number;
+        total_price: number;
+      }>;
+    }>;
+  }) {
+    return prisma.bill.create({
+      data: {
+        visit_id: data.visit_id,
+        total_amount: data.total_amount,
+        currency: data.currency ?? 'INR',
+        payment_status: PaymentStatus.pending,
+        billSections: data.sections
+          ? {
+              create: data.sections.map((s) => ({
+                section_type: s.section_type as any,
+                section_total: s.section_total,
+                billItems: s.items
+                  ? {
+                      create: s.items.map((i) => ({
+                        description: i.description,
+                        quantity: i.quantity ?? 1,
+                        unit_price: i.unit_price,
+                        total_price: i.total_price,
+                      })),
+                    }
+                  : undefined,
+              })),
+            }
+          : undefined,
+      },
+      include: {
+        visit: {
+          select: { patient_id: true, visit_date: true, hospital: true },
+        },
+        billSections: { include: { billItems: true } },
+      },
+    });
+  }
+
+  /**
+   * Update bill payment status.
+   */
+  static async updateBillStatus(bill_id: string, payment_status: string) {
+    const status = payment_status as PaymentStatus;
+    return prisma.bill.update({
+      where: { bill_id },
+      data: {
+        payment_status: status,
+        payment_date: status === PaymentStatus.paid ? new Date() : undefined,
+      },
+      include: {
+        visit: {
+          select: { patient_id: true, visit_date: true, hospital: true },
+        },
+        billSections: { include: { billItems: true } },
+      },
+    });
   }
 
   /**
@@ -66,3 +139,4 @@ export class BillService {
     };
   }
 }
+

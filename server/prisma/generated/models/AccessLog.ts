@@ -455,10 +455,6 @@ export type BigIntFieldUpdateOperationsInput = {
   divide?: bigint | number
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type AccessLogCreateWithoutUserInput = {
   log_id?: bigint | number
   action: string

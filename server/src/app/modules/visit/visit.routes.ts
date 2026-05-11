@@ -42,5 +42,12 @@ router.put(
   VisitController.update
 );
 
+// Add prescription to a visit (fires prescription_ready notification)
+router.post('/:id/prescriptions', VisitController.addPrescription);
+
+// Add report/lab result to a visit (fires report_uploaded notification)
+router.post('/:id/reports', VisitController.addReport);
+
 export { router as visitRoutes };
+
 

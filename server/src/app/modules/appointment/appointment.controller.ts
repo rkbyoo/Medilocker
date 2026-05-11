@@ -5,6 +5,7 @@ import { HTTP_STATUS } from '../../constants/statusCodes';
 import type { CreateAppointmentRequest, UpdateAppointmentRequest, AppointmentQueryParams } from './appointment.dto';
 import type { DatabaseUser } from '../../types/global';
 import { prisma } from '../../config/prisma';
+import { NotificationService } from '../notification';
 
 export class AppointmentController {
   /**
@@ -70,6 +71,16 @@ export class AppointmentController {
         user.user_id
       );
       const transformed = AppointmentService.transformAppointment(appointment);
+
+      // Fire notification (non-blocking)
+      NotificationService.notifyAppointmentScheduled({
+        patient_id: appointment.patient_id,
+        doctor_name: appointment.doctor?.full_name ?? 'your doctor',
+        department: appointment.department,
+        scheduled_date_time: appointment.scheduled_date_time.toISOString(),
+        appointment_id: appointment.appointment_id,
+        hospital_name: appointment.hospital?.name ?? '',
+      }).catch((e) => console.error('Notification error (create):', e));
 
       return sendSuccess(res, 'Appointment created successfully', transformed, HTTP_STATUS.CREATED);
     } catch (error: any) {
@@ -206,6 +217,22 @@ export class AppointmentController {
       const appointment = await AppointmentService.updateAppointment(id, data);
       const transformed = AppointmentService.transformAppointment(appointment);
 
+      // Fire status-specific notifications
+      if (data.status === 'confirmed') {
+        NotificationService.notifyAppointmentConfirmed({
+          patient_id: appointment.patient_id,
+          doctor_name: appointment.doctor?.full_name ?? 'your doctor',
+          scheduled_date_time: appointment.scheduled_date_time.toISOString(),
+          appointment_id: appointment.appointment_id,
+        }).catch((e) => console.error('Notification error (confirmed):', e));
+      } else if (data.status === 'completed') {
+        NotificationService.notifyAppointmentCompleted({
+          patient_id: appointment.patient_id,
+          doctor_name: appointment.doctor?.full_name ?? 'your doctor',
+          appointment_id: appointment.appointment_id,
+        }).catch((e) => console.error('Notification error (completed):', e));
+      }
+
       return sendSuccess(res, 'Appointment updated successfully', transformed);
     } catch (error: any) {
       console.error('Update appointment error:', error);
@@ -223,6 +250,15 @@ export class AppointmentController {
 
       const appointment = await AppointmentService.cancelAppointment(id, reason);
       const transformed = AppointmentService.transformAppointment(appointment);
+
+      // Notify patient of cancellation
+      NotificationService.notifyAppointmentCancelled({
+        patient_id: appointment.patient_id,
+        doctor_name: appointment.doctor?.full_name ?? 'your doctor',
+        scheduled_date_time: appointment.scheduled_date_time.toISOString(),
+        appointment_id: appointment.appointment_id,
+        reason,
+      }).catch((e) => console.error('Notification error (cancel):', e));
 
       return sendSuccess(res, 'Appointment cancelled successfully', transformed);
     } catch (error: any) {

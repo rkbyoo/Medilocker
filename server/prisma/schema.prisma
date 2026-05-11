@@ -163,6 +163,9 @@ model Patient {
   chronicConditions   PatientChronicCondition[]
   appointments        Appointment[]
   visits              Visit[]
+  notifications       Notification[]
+  deviceTokens        DeviceToken[]
+
 
   @@index([user_id])
   @@index([patient_number])
@@ -392,9 +395,60 @@ model BillItem {
   @@map("bill_items")
 }
 
+
 ////////////////////////////////////////////////////
-// SECURITY & AUDIT
+// NOTIFICATIONS
 ////////////////////////////////////////////////////
+
+enum NotificationType {
+  appointment_scheduled
+  appointment_confirmed
+  appointment_cancelled
+  appointment_reminder
+  appointment_completed
+  visit_recorded
+  prescription_ready
+  bill_generated
+  bill_paid
+  report_uploaded
+  general
+}
+
+model Notification {
+  notification_id String           @id @default(uuid()) @db.Uuid
+  patient_id      String           @db.Uuid
+  type            NotificationType
+  title           String           @db.VarChar(255)
+  body            String           @db.Text
+  data            Json?            // extra payload (appointment_id, etc.)
+  is_read         Boolean          @default(false)
+  created_at      DateTime         @default(now())
+
+  // Relations
+  patient Patient @relation(fields: [patient_id], references: [patient_id], onDelete: Cascade)
+
+  @@index([patient_id])
+  @@index([is_read])
+  @@index([created_at])
+  @@map("notifications")
+}
+
+model DeviceToken {
+  token_id   String   @id @default(uuid()) @db.Uuid
+  patient_id String   @db.Uuid
+  fcm_token  String   @db.Text
+  platform   String   @db.VarChar(20) // android | ios
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  // Relations
+  patient Patient @relation(fields: [patient_id], references: [patient_id], onDelete: Cascade)
+
+  @@unique([patient_id, fcm_token])
+  @@index([patient_id])
+  @@map("device_tokens")
+}
+
 
 model AccessLog {
   log_id     BigInt   @id @default(autoincrement())

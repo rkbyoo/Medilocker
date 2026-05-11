@@ -108,6 +108,16 @@ export type BillSection = Prisma.BillSectionModel
  */
 export type BillItem = Prisma.BillItemModel
 /**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel
+/**
+ * Model DeviceToken
+ * 
+ */
+export type DeviceToken = Prisma.DeviceTokenModel
+/**
  * Model AccessLog
  * 
  */

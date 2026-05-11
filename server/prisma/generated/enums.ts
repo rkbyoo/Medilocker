@@ -68,3 +68,20 @@ export const BillSectionType = {
 } as const
 
 export type BillSectionType = (typeof BillSectionType)[keyof typeof BillSectionType]
+
+
+export const NotificationType = {
+  appointment_scheduled: 'appointment_scheduled',
+  appointment_confirmed: 'appointment_confirmed',
+  appointment_cancelled: 'appointment_cancelled',
+  appointment_reminder: 'appointment_reminder',
+  appointment_completed: 'appointment_completed',
+  visit_recorded: 'visit_recorded',
+  prescription_ready: 'prescription_ready',
+  bill_generated: 'bill_generated',
+  bill_paid: 'bill_paid',
+  report_uploaded: 'report_uploaded',
+  general: 'general'
+} as const
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]

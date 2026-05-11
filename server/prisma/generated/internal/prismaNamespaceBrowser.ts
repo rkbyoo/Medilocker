@@ -65,6 +65,8 @@ export const ModelName = {
   Bill: 'Bill',
   BillSection: 'BillSection',
   BillItem: 'BillItem',
+  Notification: 'Notification',
+  DeviceToken: 'DeviceToken',
   AccessLog: 'AccessLog',
   RefreshToken: 'RefreshToken'
 } as const
@@ -283,6 +285,32 @@ export const BillItemScalarFieldEnum = {
 export type BillItemScalarFieldEnum = (typeof BillItemScalarFieldEnum)[keyof typeof BillItemScalarFieldEnum]
 
 
+export const NotificationScalarFieldEnum = {
+  notification_id: 'notification_id',
+  patient_id: 'patient_id',
+  type: 'type',
+  title: 'title',
+  body: 'body',
+  data: 'data',
+  is_read: 'is_read',
+  created_at: 'created_at'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const DeviceTokenScalarFieldEnum = {
+  token_id: 'token_id',
+  patient_id: 'patient_id',
+  fcm_token: 'fcm_token',
+  platform: 'platform',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type DeviceTokenScalarFieldEnum = (typeof DeviceTokenScalarFieldEnum)[keyof typeof DeviceTokenScalarFieldEnum]
+
+
 export const AccessLogScalarFieldEnum = {
   log_id: 'log_id',
   user_id: 'user_id',
@@ -315,6 +343,14 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -329,4 +365,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

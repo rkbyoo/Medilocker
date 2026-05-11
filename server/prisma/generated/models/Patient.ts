@@ -315,6 +315,8 @@ export type PatientWhereInput = {
   chronicConditions?: Prisma.PatientChronicConditionListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
   visits?: Prisma.VisitListRelationFilter
+  notifications?: Prisma.NotificationListRelationFilter
+  deviceTokens?: Prisma.DeviceTokenListRelationFilter
 }
 
 export type PatientOrderByWithRelationInput = {
@@ -344,6 +346,8 @@ export type PatientOrderByWithRelationInput = {
   chronicConditions?: Prisma.PatientChronicConditionOrderByRelationAggregateInput
   appointments?: Prisma.AppointmentOrderByRelationAggregateInput
   visits?: Prisma.VisitOrderByRelationAggregateInput
+  notifications?: Prisma.NotificationOrderByRelationAggregateInput
+  deviceTokens?: Prisma.DeviceTokenOrderByRelationAggregateInput
 }
 
 export type PatientWhereUniqueInput = Prisma.AtLeast<{
@@ -376,6 +380,8 @@ export type PatientWhereUniqueInput = Prisma.AtLeast<{
   chronicConditions?: Prisma.PatientChronicConditionListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
   visits?: Prisma.VisitListRelationFilter
+  notifications?: Prisma.NotificationListRelationFilter
+  deviceTokens?: Prisma.DeviceTokenListRelationFilter
 }, "patient_id" | "user_id" | "patient_number" | "nfc_card_uid">
 
 export type PatientOrderByWithAggregationInput = {
@@ -458,6 +464,8 @@ export type PatientCreateInput = {
   chronicConditions?: Prisma.PatientChronicConditionCreateNestedManyWithoutPatientInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutPatientInput
   visits?: Prisma.VisitCreateNestedManyWithoutPatientInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutPatientInput
+  deviceTokens?: Prisma.DeviceTokenCreateNestedManyWithoutPatientInput
 }
 
 export type PatientUncheckedCreateInput = {
@@ -486,6 +494,8 @@ export type PatientUncheckedCreateInput = {
   chronicConditions?: Prisma.PatientChronicConditionUncheckedCreateNestedManyWithoutPatientInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutPatientInput
   visits?: Prisma.VisitUncheckedCreateNestedManyWithoutPatientInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutPatientInput
+  deviceTokens?: Prisma.DeviceTokenUncheckedCreateNestedManyWithoutPatientInput
 }
 
 export type PatientUpdateInput = {
@@ -514,6 +524,8 @@ export type PatientUpdateInput = {
   chronicConditions?: Prisma.PatientChronicConditionUpdateManyWithoutPatientNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutPatientNestedInput
   visits?: Prisma.VisitUpdateManyWithoutPatientNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutPatientNestedInput
+  deviceTokens?: Prisma.DeviceTokenUpdateManyWithoutPatientNestedInput
 }
 
 export type PatientUncheckedUpdateInput = {
@@ -542,6 +554,8 @@ export type PatientUncheckedUpdateInput = {
   chronicConditions?: Prisma.PatientChronicConditionUncheckedUpdateManyWithoutPatientNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutPatientNestedInput
   visits?: Prisma.VisitUncheckedUpdateManyWithoutPatientNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutPatientNestedInput
+  deviceTokens?: Prisma.DeviceTokenUncheckedUpdateManyWithoutPatientNestedInput
 }
 
 export type PatientCreateManyInput = {
@@ -789,6 +803,34 @@ export type PatientUpdateOneRequiredWithoutVisitsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PatientUpdateToOneWithWhereWithoutVisitsInput, Prisma.PatientUpdateWithoutVisitsInput>, Prisma.PatientUncheckedUpdateWithoutVisitsInput>
 }
 
+export type PatientCreateNestedOneWithoutNotificationsInput = {
+  create?: Prisma.XOR<Prisma.PatientCreateWithoutNotificationsInput, Prisma.PatientUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.PatientCreateOrConnectWithoutNotificationsInput
+  connect?: Prisma.PatientWhereUniqueInput
+}
+
+export type PatientUpdateOneRequiredWithoutNotificationsNestedInput = {
+  create?: Prisma.XOR<Prisma.PatientCreateWithoutNotificationsInput, Prisma.PatientUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.PatientCreateOrConnectWithoutNotificationsInput
+  upsert?: Prisma.PatientUpsertWithoutNotificationsInput
+  connect?: Prisma.PatientWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PatientUpdateToOneWithWhereWithoutNotificationsInput, Prisma.PatientUpdateWithoutNotificationsInput>, Prisma.PatientUncheckedUpdateWithoutNotificationsInput>
+}
+
+export type PatientCreateNestedOneWithoutDeviceTokensInput = {
+  create?: Prisma.XOR<Prisma.PatientCreateWithoutDeviceTokensInput, Prisma.PatientUncheckedCreateWithoutDeviceTokensInput>
+  connectOrCreate?: Prisma.PatientCreateOrConnectWithoutDeviceTokensInput
+  connect?: Prisma.PatientWhereUniqueInput
+}
+
+export type PatientUpdateOneRequiredWithoutDeviceTokensNestedInput = {
+  create?: Prisma.XOR<Prisma.PatientCreateWithoutDeviceTokensInput, Prisma.PatientUncheckedCreateWithoutDeviceTokensInput>
+  connectOrCreate?: Prisma.PatientCreateOrConnectWithoutDeviceTokensInput
+  upsert?: Prisma.PatientUpsertWithoutDeviceTokensInput
+  connect?: Prisma.PatientWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PatientUpdateToOneWithWhereWithoutDeviceTokensInput, Prisma.PatientUpdateWithoutDeviceTokensInput>, Prisma.PatientUncheckedUpdateWithoutDeviceTokensInput>
+}
+
 export type PatientCreateWithoutUserInput = {
   patient_id?: string
   patient_number: string
@@ -814,6 +856,8 @@ export type PatientCreateWithoutUserInput = {
   chronicConditions?: Prisma.PatientChronicConditionCreateNestedManyWithoutPatientInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutPatientInput
   visits?: Prisma.VisitCreateNestedManyWithoutPatientInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutPatientInput
+  deviceTokens?: Prisma.DeviceTokenCreateNestedManyWithoutPatientInput
 }
 
 export type PatientUncheckedCreateWithoutUserInput = {
@@ -841,6 +885,8 @@ export type PatientUncheckedCreateWithoutUserInput = {
   chronicConditions?: Prisma.PatientChronicConditionUncheckedCreateNestedManyWithoutPatientInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutPatientInput
   visits?: Prisma.VisitUncheckedCreateNestedManyWithoutPatientInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutPatientInput
+  deviceTokens?: Prisma.DeviceTokenUncheckedCreateNestedManyWithoutPatientInput
 }
 
 export type PatientCreateOrConnectWithoutUserInput = {
@@ -884,6 +930,8 @@ export type PatientUpdateWithoutUserInput = {
   chronicConditions?: Prisma.PatientChronicConditionUpdateManyWithoutPatientNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutPatientNestedInput
   visits?: Prisma.VisitUpdateManyWithoutPatientNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutPatientNestedInput
+  deviceTokens?: Prisma.DeviceTokenUpdateManyWithoutPatientNestedInput
 }
 
 export type PatientUncheckedUpdateWithoutUserInput = {
@@ -911,6 +959,8 @@ export type PatientUncheckedUpdateWithoutUserInput = {
   chronicConditions?: Prisma.PatientChronicConditionUncheckedUpdateManyWithoutPatientNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutPatientNestedInput
   visits?: Prisma.VisitUncheckedUpdateManyWithoutPatientNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutPatientNestedInput
+  deviceTokens?: Prisma.DeviceTokenUncheckedUpdateManyWithoutPatientNestedInput
 }
 
 export type PatientCreateWithoutAllergiesInput = {
@@ -938,6 +988,8 @@ export type PatientCreateWithoutAllergiesInput = {
   chronicConditions?: Prisma.PatientChronicConditionCreateNestedManyWithoutPatientInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutPatientInput
   visits?: Prisma.VisitCreateNestedManyWithoutPatientInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutPatientInput
+  deviceTokens?: Prisma.DeviceTokenCreateNestedManyWithoutPatientInput
 }
 
 export type PatientUncheckedCreateWithoutAllergiesInput = {
@@ -965,6 +1017,8 @@ export type PatientUncheckedCreateWithoutAllergiesInput = {
   chronicConditions?: Prisma.PatientChronicConditionUncheckedCreateNestedManyWithoutPatientInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutPatientInput
   visits?: Prisma.VisitUncheckedCreateNestedManyWithoutPatientInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutPatientInput
+  deviceTokens?: Prisma.DeviceTokenUncheckedCreateNestedManyWithoutPatientInput
 }
 
 export type PatientCreateOrConnectWithoutAllergiesInput = {
@@ -1008,6 +1062,8 @@ export type PatientUpdateWithoutAllergiesInput = {
   chronicConditions?: Prisma.PatientChronicConditionUpdateManyWithoutPatientNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutPatientNestedInput
   visits?: Prisma.VisitUpdateManyWithoutPatientNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutPatientNestedInput
+  deviceTokens?: Prisma.DeviceTokenUpdateManyWithoutPatientNestedInput
 }
 
 export type PatientUncheckedUpdateWithoutAllergiesInput = {
@@ -1035,6 +1091,8 @@ export type PatientUncheckedUpdateWithoutAllergiesInput = {
   chronicConditions?: Prisma.PatientChronicConditionUncheckedUpdateManyWithoutPatientNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutPatientNestedInput
   visits?: Prisma.VisitUncheckedUpdateManyWithoutPatientNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutPatientNestedInput
+  deviceTokens?: Prisma.DeviceTokenUncheckedUpdateManyWithoutPatientNestedInput
 }
 
 export type PatientCreateWithoutChronicConditionsInput = {
@@ -1062,6 +1120,8 @@ export type PatientCreateWithoutChronicConditionsInput = {
   allergies?: Prisma.PatientAllergyCreateNestedManyWithoutPatientInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutPatientInput
   visits?: Prisma.VisitCreateNestedManyWithoutPatientInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutPatientInput
+  deviceTokens?: Prisma.DeviceTokenCreateNestedManyWithoutPatientInput
 }
 
 export type PatientUncheckedCreateWithoutChronicConditionsInput = {
@@ -1089,6 +1149,8 @@ export type PatientUncheckedCreateWithoutChronicConditionsInput = {
   allergies?: Prisma.PatientAllergyUncheckedCreateNestedManyWithoutPatientInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutPatientInput
   visits?: Prisma.VisitUncheckedCreateNestedManyWithoutPatientInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutPatientInput
+  deviceTokens?: Prisma.DeviceTokenUncheckedCreateNestedManyWithoutPatientInput
 }
 
 export type PatientCreateOrConnectWithoutChronicConditionsInput = {
@@ -1132,6 +1194,8 @@ export type PatientUpdateWithoutChronicConditionsInput = {
   allergies?: Prisma.PatientAllergyUpdateManyWithoutPatientNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutPatientNestedInput
   visits?: Prisma.VisitUpdateManyWithoutPatientNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutPatientNestedInput
+  deviceTokens?: Prisma.DeviceTokenUpdateManyWithoutPatientNestedInput
 }
 
 export type PatientUncheckedUpdateWithoutChronicConditionsInput = {
@@ -1159,6 +1223,8 @@ export type PatientUncheckedUpdateWithoutChronicConditionsInput = {
   allergies?: Prisma.PatientAllergyUncheckedUpdateManyWithoutPatientNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutPatientNestedInput
   visits?: Prisma.VisitUncheckedUpdateManyWithoutPatientNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutPatientNestedInput
+  deviceTokens?: Prisma.DeviceTokenUncheckedUpdateManyWithoutPatientNestedInput
 }
 
 export type PatientCreateWithoutAppointmentsInput = {
@@ -1186,6 +1252,8 @@ export type PatientCreateWithoutAppointmentsInput = {
   allergies?: Prisma.PatientAllergyCreateNestedManyWithoutPatientInput
   chronicConditions?: Prisma.PatientChronicConditionCreateNestedManyWithoutPatientInput
   visits?: Prisma.VisitCreateNestedManyWithoutPatientInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutPatientInput
+  deviceTokens?: Prisma.DeviceTokenCreateNestedManyWithoutPatientInput
 }
 
 export type PatientUncheckedCreateWithoutAppointmentsInput = {
@@ -1213,6 +1281,8 @@ export type PatientUncheckedCreateWithoutAppointmentsInput = {
   allergies?: Prisma.PatientAllergyUncheckedCreateNestedManyWithoutPatientInput
   chronicConditions?: Prisma.PatientChronicConditionUncheckedCreateNestedManyWithoutPatientInput
   visits?: Prisma.VisitUncheckedCreateNestedManyWithoutPatientInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutPatientInput
+  deviceTokens?: Prisma.DeviceTokenUncheckedCreateNestedManyWithoutPatientInput
 }
 
 export type PatientCreateOrConnectWithoutAppointmentsInput = {
@@ -1256,6 +1326,8 @@ export type PatientUpdateWithoutAppointmentsInput = {
   allergies?: Prisma.PatientAllergyUpdateManyWithoutPatientNestedInput
   chronicConditions?: Prisma.PatientChronicConditionUpdateManyWithoutPatientNestedInput
   visits?: Prisma.VisitUpdateManyWithoutPatientNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutPatientNestedInput
+  deviceTokens?: Prisma.DeviceTokenUpdateManyWithoutPatientNestedInput
 }
 
 export type PatientUncheckedUpdateWithoutAppointmentsInput = {
@@ -1283,6 +1355,8 @@ export type PatientUncheckedUpdateWithoutAppointmentsInput = {
   allergies?: Prisma.PatientAllergyUncheckedUpdateManyWithoutPatientNestedInput
   chronicConditions?: Prisma.PatientChronicConditionUncheckedUpdateManyWithoutPatientNestedInput
   visits?: Prisma.VisitUncheckedUpdateManyWithoutPatientNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutPatientNestedInput
+  deviceTokens?: Prisma.DeviceTokenUncheckedUpdateManyWithoutPatientNestedInput
 }
 
 export type PatientCreateWithoutVisitsInput = {
@@ -1310,6 +1384,8 @@ export type PatientCreateWithoutVisitsInput = {
   allergies?: Prisma.PatientAllergyCreateNestedManyWithoutPatientInput
   chronicConditions?: Prisma.PatientChronicConditionCreateNestedManyWithoutPatientInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutPatientInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutPatientInput
+  deviceTokens?: Prisma.DeviceTokenCreateNestedManyWithoutPatientInput
 }
 
 export type PatientUncheckedCreateWithoutVisitsInput = {
@@ -1337,6 +1413,8 @@ export type PatientUncheckedCreateWithoutVisitsInput = {
   allergies?: Prisma.PatientAllergyUncheckedCreateNestedManyWithoutPatientInput
   chronicConditions?: Prisma.PatientChronicConditionUncheckedCreateNestedManyWithoutPatientInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutPatientInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutPatientInput
+  deviceTokens?: Prisma.DeviceTokenUncheckedCreateNestedManyWithoutPatientInput
 }
 
 export type PatientCreateOrConnectWithoutVisitsInput = {
@@ -1380,6 +1458,8 @@ export type PatientUpdateWithoutVisitsInput = {
   allergies?: Prisma.PatientAllergyUpdateManyWithoutPatientNestedInput
   chronicConditions?: Prisma.PatientChronicConditionUpdateManyWithoutPatientNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutPatientNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutPatientNestedInput
+  deviceTokens?: Prisma.DeviceTokenUpdateManyWithoutPatientNestedInput
 }
 
 export type PatientUncheckedUpdateWithoutVisitsInput = {
@@ -1407,6 +1487,272 @@ export type PatientUncheckedUpdateWithoutVisitsInput = {
   allergies?: Prisma.PatientAllergyUncheckedUpdateManyWithoutPatientNestedInput
   chronicConditions?: Prisma.PatientChronicConditionUncheckedUpdateManyWithoutPatientNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutPatientNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutPatientNestedInput
+  deviceTokens?: Prisma.DeviceTokenUncheckedUpdateManyWithoutPatientNestedInput
+}
+
+export type PatientCreateWithoutNotificationsInput = {
+  patient_id?: string
+  patient_number: string
+  name: string
+  dob?: Date | string | null
+  gender?: string | null
+  blood_group?: string | null
+  phone_number?: string | null
+  guardian_phone?: string | null
+  address?: string | null
+  emergency_contact_name?: string | null
+  emergency_contact_number?: string | null
+  marital_status?: string | null
+  spouse_name?: string | null
+  caste?: string | null
+  religion?: string | null
+  nationality?: string | null
+  photo_url?: string | null
+  nfc_card_uid?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutPatientInput
+  allergies?: Prisma.PatientAllergyCreateNestedManyWithoutPatientInput
+  chronicConditions?: Prisma.PatientChronicConditionCreateNestedManyWithoutPatientInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutPatientInput
+  visits?: Prisma.VisitCreateNestedManyWithoutPatientInput
+  deviceTokens?: Prisma.DeviceTokenCreateNestedManyWithoutPatientInput
+}
+
+export type PatientUncheckedCreateWithoutNotificationsInput = {
+  patient_id?: string
+  user_id: string
+  patient_number: string
+  name: string
+  dob?: Date | string | null
+  gender?: string | null
+  blood_group?: string | null
+  phone_number?: string | null
+  guardian_phone?: string | null
+  address?: string | null
+  emergency_contact_name?: string | null
+  emergency_contact_number?: string | null
+  marital_status?: string | null
+  spouse_name?: string | null
+  caste?: string | null
+  religion?: string | null
+  nationality?: string | null
+  photo_url?: string | null
+  nfc_card_uid?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  allergies?: Prisma.PatientAllergyUncheckedCreateNestedManyWithoutPatientInput
+  chronicConditions?: Prisma.PatientChronicConditionUncheckedCreateNestedManyWithoutPatientInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutPatientInput
+  visits?: Prisma.VisitUncheckedCreateNestedManyWithoutPatientInput
+  deviceTokens?: Prisma.DeviceTokenUncheckedCreateNestedManyWithoutPatientInput
+}
+
+export type PatientCreateOrConnectWithoutNotificationsInput = {
+  where: Prisma.PatientWhereUniqueInput
+  create: Prisma.XOR<Prisma.PatientCreateWithoutNotificationsInput, Prisma.PatientUncheckedCreateWithoutNotificationsInput>
+}
+
+export type PatientUpsertWithoutNotificationsInput = {
+  update: Prisma.XOR<Prisma.PatientUpdateWithoutNotificationsInput, Prisma.PatientUncheckedUpdateWithoutNotificationsInput>
+  create: Prisma.XOR<Prisma.PatientCreateWithoutNotificationsInput, Prisma.PatientUncheckedCreateWithoutNotificationsInput>
+  where?: Prisma.PatientWhereInput
+}
+
+export type PatientUpdateToOneWithWhereWithoutNotificationsInput = {
+  where?: Prisma.PatientWhereInput
+  data: Prisma.XOR<Prisma.PatientUpdateWithoutNotificationsInput, Prisma.PatientUncheckedUpdateWithoutNotificationsInput>
+}
+
+export type PatientUpdateWithoutNotificationsInput = {
+  patient_id?: Prisma.StringFieldUpdateOperationsInput | string
+  patient_number?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blood_group?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardian_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergency_contact_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergency_contact_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  marital_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spouse_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  caste?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  religion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photo_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nfc_card_uid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutPatientNestedInput
+  allergies?: Prisma.PatientAllergyUpdateManyWithoutPatientNestedInput
+  chronicConditions?: Prisma.PatientChronicConditionUpdateManyWithoutPatientNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutPatientNestedInput
+  visits?: Prisma.VisitUpdateManyWithoutPatientNestedInput
+  deviceTokens?: Prisma.DeviceTokenUpdateManyWithoutPatientNestedInput
+}
+
+export type PatientUncheckedUpdateWithoutNotificationsInput = {
+  patient_id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  patient_number?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blood_group?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardian_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergency_contact_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergency_contact_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  marital_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spouse_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  caste?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  religion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photo_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nfc_card_uid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  allergies?: Prisma.PatientAllergyUncheckedUpdateManyWithoutPatientNestedInput
+  chronicConditions?: Prisma.PatientChronicConditionUncheckedUpdateManyWithoutPatientNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutPatientNestedInput
+  visits?: Prisma.VisitUncheckedUpdateManyWithoutPatientNestedInput
+  deviceTokens?: Prisma.DeviceTokenUncheckedUpdateManyWithoutPatientNestedInput
+}
+
+export type PatientCreateWithoutDeviceTokensInput = {
+  patient_id?: string
+  patient_number: string
+  name: string
+  dob?: Date | string | null
+  gender?: string | null
+  blood_group?: string | null
+  phone_number?: string | null
+  guardian_phone?: string | null
+  address?: string | null
+  emergency_contact_name?: string | null
+  emergency_contact_number?: string | null
+  marital_status?: string | null
+  spouse_name?: string | null
+  caste?: string | null
+  religion?: string | null
+  nationality?: string | null
+  photo_url?: string | null
+  nfc_card_uid?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutPatientInput
+  allergies?: Prisma.PatientAllergyCreateNestedManyWithoutPatientInput
+  chronicConditions?: Prisma.PatientChronicConditionCreateNestedManyWithoutPatientInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutPatientInput
+  visits?: Prisma.VisitCreateNestedManyWithoutPatientInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutPatientInput
+}
+
+export type PatientUncheckedCreateWithoutDeviceTokensInput = {
+  patient_id?: string
+  user_id: string
+  patient_number: string
+  name: string
+  dob?: Date | string | null
+  gender?: string | null
+  blood_group?: string | null
+  phone_number?: string | null
+  guardian_phone?: string | null
+  address?: string | null
+  emergency_contact_name?: string | null
+  emergency_contact_number?: string | null
+  marital_status?: string | null
+  spouse_name?: string | null
+  caste?: string | null
+  religion?: string | null
+  nationality?: string | null
+  photo_url?: string | null
+  nfc_card_uid?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  allergies?: Prisma.PatientAllergyUncheckedCreateNestedManyWithoutPatientInput
+  chronicConditions?: Prisma.PatientChronicConditionUncheckedCreateNestedManyWithoutPatientInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutPatientInput
+  visits?: Prisma.VisitUncheckedCreateNestedManyWithoutPatientInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutPatientInput
+}
+
+export type PatientCreateOrConnectWithoutDeviceTokensInput = {
+  where: Prisma.PatientWhereUniqueInput
+  create: Prisma.XOR<Prisma.PatientCreateWithoutDeviceTokensInput, Prisma.PatientUncheckedCreateWithoutDeviceTokensInput>
+}
+
+export type PatientUpsertWithoutDeviceTokensInput = {
+  update: Prisma.XOR<Prisma.PatientUpdateWithoutDeviceTokensInput, Prisma.PatientUncheckedUpdateWithoutDeviceTokensInput>
+  create: Prisma.XOR<Prisma.PatientCreateWithoutDeviceTokensInput, Prisma.PatientUncheckedCreateWithoutDeviceTokensInput>
+  where?: Prisma.PatientWhereInput
+}
+
+export type PatientUpdateToOneWithWhereWithoutDeviceTokensInput = {
+  where?: Prisma.PatientWhereInput
+  data: Prisma.XOR<Prisma.PatientUpdateWithoutDeviceTokensInput, Prisma.PatientUncheckedUpdateWithoutDeviceTokensInput>
+}
+
+export type PatientUpdateWithoutDeviceTokensInput = {
+  patient_id?: Prisma.StringFieldUpdateOperationsInput | string
+  patient_number?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blood_group?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardian_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergency_contact_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergency_contact_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  marital_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spouse_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  caste?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  religion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photo_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nfc_card_uid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutPatientNestedInput
+  allergies?: Prisma.PatientAllergyUpdateManyWithoutPatientNestedInput
+  chronicConditions?: Prisma.PatientChronicConditionUpdateManyWithoutPatientNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutPatientNestedInput
+  visits?: Prisma.VisitUpdateManyWithoutPatientNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutPatientNestedInput
+}
+
+export type PatientUncheckedUpdateWithoutDeviceTokensInput = {
+  patient_id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  patient_number?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  dob?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blood_group?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardian_phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergency_contact_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergency_contact_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  marital_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spouse_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  caste?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  religion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photo_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nfc_card_uid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  allergies?: Prisma.PatientAllergyUncheckedUpdateManyWithoutPatientNestedInput
+  chronicConditions?: Prisma.PatientChronicConditionUncheckedUpdateManyWithoutPatientNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutPatientNestedInput
+  visits?: Prisma.VisitUncheckedUpdateManyWithoutPatientNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutPatientNestedInput
 }
 
 
@@ -1419,6 +1765,8 @@ export type PatientCountOutputType = {
   chronicConditions: number
   appointments: number
   visits: number
+  notifications: number
+  deviceTokens: number
 }
 
 export type PatientCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1426,6 +1774,8 @@ export type PatientCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   chronicConditions?: boolean | PatientCountOutputTypeCountChronicConditionsArgs
   appointments?: boolean | PatientCountOutputTypeCountAppointmentsArgs
   visits?: boolean | PatientCountOutputTypeCountVisitsArgs
+  notifications?: boolean | PatientCountOutputTypeCountNotificationsArgs
+  deviceTokens?: boolean | PatientCountOutputTypeCountDeviceTokensArgs
 }
 
 /**
@@ -1466,6 +1816,20 @@ export type PatientCountOutputTypeCountVisitsArgs<ExtArgs extends runtime.Types.
   where?: Prisma.VisitWhereInput
 }
 
+/**
+ * PatientCountOutputType without action
+ */
+export type PatientCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.NotificationWhereInput
+}
+
+/**
+ * PatientCountOutputType without action
+ */
+export type PatientCountOutputTypeCountDeviceTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DeviceTokenWhereInput
+}
+
 
 export type PatientSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   patient_id?: boolean
@@ -1494,6 +1858,8 @@ export type PatientSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   chronicConditions?: boolean | Prisma.Patient$chronicConditionsArgs<ExtArgs>
   appointments?: boolean | Prisma.Patient$appointmentsArgs<ExtArgs>
   visits?: boolean | Prisma.Patient$visitsArgs<ExtArgs>
+  notifications?: boolean | Prisma.Patient$notificationsArgs<ExtArgs>
+  deviceTokens?: boolean | Prisma.Patient$deviceTokensArgs<ExtArgs>
   _count?: boolean | Prisma.PatientCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["patient"]>
 
@@ -1578,6 +1944,8 @@ export type PatientInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   chronicConditions?: boolean | Prisma.Patient$chronicConditionsArgs<ExtArgs>
   appointments?: boolean | Prisma.Patient$appointmentsArgs<ExtArgs>
   visits?: boolean | Prisma.Patient$visitsArgs<ExtArgs>
+  notifications?: boolean | Prisma.Patient$notificationsArgs<ExtArgs>
+  deviceTokens?: boolean | Prisma.Patient$deviceTokensArgs<ExtArgs>
   _count?: boolean | Prisma.PatientCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PatientIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1595,6 +1963,8 @@ export type $PatientPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     chronicConditions: Prisma.$PatientChronicConditionPayload<ExtArgs>[]
     appointments: Prisma.$AppointmentPayload<ExtArgs>[]
     visits: Prisma.$VisitPayload<ExtArgs>[]
+    notifications: Prisma.$NotificationPayload<ExtArgs>[]
+    deviceTokens: Prisma.$DeviceTokenPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     patient_id: string
@@ -2017,6 +2387,8 @@ export interface Prisma__PatientClient<T, Null = never, ExtArgs extends runtime.
   chronicConditions<T extends Prisma.Patient$chronicConditionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Patient$chronicConditionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PatientChronicConditionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   appointments<T extends Prisma.Patient$appointmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Patient$appointmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppointmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   visits<T extends Prisma.Patient$visitsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Patient$visitsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VisitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  notifications<T extends Prisma.Patient$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Patient$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  deviceTokens<T extends Prisma.Patient$deviceTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Patient$deviceTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeviceTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2556,6 +2928,54 @@ export type Patient$visitsArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.VisitScalarFieldEnum | Prisma.VisitScalarFieldEnum[]
+}
+
+/**
+ * Patient.notifications
+ */
+export type Patient$notificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Notification
+   */
+  select?: Prisma.NotificationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Notification
+   */
+  omit?: Prisma.NotificationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NotificationInclude<ExtArgs> | null
+  where?: Prisma.NotificationWhereInput
+  orderBy?: Prisma.NotificationOrderByWithRelationInput | Prisma.NotificationOrderByWithRelationInput[]
+  cursor?: Prisma.NotificationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
+}
+
+/**
+ * Patient.deviceTokens
+ */
+export type Patient$deviceTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DeviceToken
+   */
+  select?: Prisma.DeviceTokenSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DeviceToken
+   */
+  omit?: Prisma.DeviceTokenOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DeviceTokenInclude<ExtArgs> | null
+  where?: Prisma.DeviceTokenWhereInput
+  orderBy?: Prisma.DeviceTokenOrderByWithRelationInput | Prisma.DeviceTokenOrderByWithRelationInput[]
+  cursor?: Prisma.DeviceTokenWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DeviceTokenScalarFieldEnum | Prisma.DeviceTokenScalarFieldEnum[]
 }
 
 /**
