@@ -44,7 +44,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       bottomNavigationBar: SafeArea(
         child: Container(
-          height: 64,
+          height: 80,
           margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
@@ -62,7 +62,7 @@ class _MainScreenState extends State<MainScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildNavItem(0, Icons.grid_view_rounded, 'Home'),
-              _buildNavItem(1, Icons.event_note_rounded, 'Schedule'),
+              _buildNavItem(1, Icons.event_note_rounded, 'Appointment'),
               _buildNavItem(2, Icons.medical_services_rounded, 'SOS', isEmergency: true),
               _buildNavItem(3, Icons.description_rounded, 'Records'),
               _buildNavItem(4, Icons.person_rounded, 'Profile'),
@@ -92,15 +92,24 @@ class _MainScreenState extends State<MainScreen> {
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: isSelected ? highlightColor : Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
                 color: isSelected ? baseColor : AppColors.textSecondary.withValues(alpha: 0.75),
                 size: 24,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? baseColor : AppColors.textSecondary.withValues(alpha: 0.75),
               ),
             ),
           ],
