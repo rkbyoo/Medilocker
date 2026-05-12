@@ -1,5 +1,5 @@
 import { prisma } from '../../config/prisma';
-import { UserRole } from '../../../../prisma/generated/client';
+import { UserRole } from '../../generated/prisma';
 
 export class PatientModel {
   /**

@@ -1,6 +1,6 @@
 import { prisma } from '../../config/prisma';
 import { DatabaseUser } from '../../types/global';
-import { UserRole } from '../../../../prisma/generated/client';
+import { UserRole } from '../../generated/prisma';
 
 export class UserModel {
   static async findByEmail(email: string): Promise<DatabaseUser | null> {

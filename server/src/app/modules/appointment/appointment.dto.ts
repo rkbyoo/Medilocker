@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AppointmentStatus } from '../../../../prisma/generated/client';
+import { AppointmentStatus } from '../../generated/prisma';
 
 /**
  * Create Appointment DTO

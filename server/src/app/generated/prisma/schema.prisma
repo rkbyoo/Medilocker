@@ -63,35 +63,35 @@ enum BillSectionType {
 ////////////////////////////////////////////////////
 
 model User {
-  user_id      String   @id @default(uuid()) @db.Uuid
-  full_name    String   @db.VarChar(150)
-  email        String   @unique @db.VarChar(150)
-  phone        String?  @db.VarChar(20)
-  password_hash String  @db.Text
-  role         UserRole
-  created_at   DateTime @default(now())
-  updated_at   DateTime @default(now()) @updatedAt
+  user_id       String   @id @default(uuid()) @db.Uuid
+  full_name     String   @db.VarChar(150)
+  email         String   @unique @db.VarChar(150)
+  phone         String?  @db.VarChar(20)
+  password_hash String   @db.Text
+  role          UserRole
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now()) @updatedAt
 
   // Relations
-  refreshTokens    RefreshToken[]
-  accessLogs       AccessLog[]
-  patient          Patient?
-  hospitalUsers    HospitalUser[]
-  appointmentsAsDoctor Appointment[] @relation("DoctorAppointments")
-  appointmentsAsCreator Appointment[] @relation("AppointmentCreator")
-  visitsAsDoctor   Visit[]
-  prescriptions    Prescription[] @relation("PrescriptionPrescriber")
+  refreshTokens         RefreshToken[]
+  accessLogs            AccessLog[]
+  patient               Patient?
+  hospitalUsers         HospitalUser[]
+  appointmentsAsDoctor  Appointment[]  @relation("DoctorAppointments")
+  appointmentsAsCreator Appointment[]  @relation("AppointmentCreator")
+  visitsAsDoctor        Visit[]
+  prescriptions         Prescription[] @relation("PrescriptionPrescriber")
 
   @@index([email])
   @@map("users")
 }
 
 model Hospital {
-  hospital_id   String   @id @default(uuid()) @db.Uuid
-  name          String   @db.VarChar(200)
-  address       String?  @db.Text
-  contact_number String? @db.VarChar(20)
-  created_at    DateTime @default(now())
+  hospital_id    String   @id @default(uuid()) @db.Uuid
+  name           String   @db.VarChar(200)
+  address        String?  @db.Text
+  contact_number String?  @db.VarChar(20)
+  created_at     DateTime @default(now())
 
   // Relations
   hospitalUsers HospitalUser[] @relation("HospitalUsers")
@@ -102,11 +102,11 @@ model Hospital {
 }
 
 model HospitalUser {
-  hospital_user_id String      @id @default(uuid()) @db.Uuid
-  hospital_id      String      @db.Uuid
-  user_id          String      @db.Uuid
+  hospital_user_id String       @id @default(uuid()) @db.Uuid
+  hospital_id      String       @db.Uuid
+  user_id          String       @db.Uuid
   role_in_hospital HospitalRole
-  created_at       DateTime    @default(now())
+  created_at       DateTime     @default(now())
 
   // Relations
   hospital Hospital @relation("HospitalUsers", fields: [hospital_id], references: [hospital_id], onDelete: Cascade)
@@ -122,50 +122,49 @@ model HospitalUser {
 ////////////////////////////////////////////////////
 
 model Patient {
-  patient_id  String   @id @default(uuid()) @db.Uuid
-  user_id     String   @unique @db.Uuid
-  
+  patient_id String @id @default(uuid()) @db.Uuid
+  user_id    String @unique @db.Uuid
+
   // Patient Identification
   patient_number String @unique @db.VarChar(10) // 10-digit unique patient ID
-  
+
   // Basic Information
-  name        String   @db.VarChar(200)
+  name        String    @db.VarChar(200)
   dob         DateTime? @db.Date
-  gender      String?  @db.VarChar(10)
-  blood_group String?  @db.VarChar(5)
-  
+  gender      String?   @db.VarChar(10)
+  blood_group String?   @db.VarChar(5)
+
   // Contact Information
-  phone_number              String? @db.VarChar(20)
-  guardian_phone            String? @db.VarChar(20)
-  address                   String? @db.Text
-  emergency_contact_name    String? @db.VarChar(200)
-  emergency_contact_number  String? @db.VarChar(20)
-  
+  phone_number             String? @db.VarChar(20)
+  guardian_phone           String? @db.VarChar(20)
+  address                  String? @db.Text
+  emergency_contact_name   String? @db.VarChar(200)
+  emergency_contact_number String? @db.VarChar(20)
+
   // Personal Details
   marital_status String? @db.VarChar(20)
-  spouse_name   String? @db.VarChar(200)
-  caste         String? @db.VarChar(100)
-  religion      String? @db.VarChar(100)
-  nationality   String? @db.VarChar(100)
-  
+  spouse_name    String? @db.VarChar(200)
+  caste          String? @db.VarChar(100)
+  religion       String? @db.VarChar(100)
+  nationality    String? @db.VarChar(100)
+
   // Medical Information
   photo_url String? @db.Text
-  
+
   // NFC Card
   nfc_card_uid String? @unique @db.VarChar(100)
-  
+
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 
   // Relations
-  user                User                    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  allergies           PatientAllergy[]
-  chronicConditions   PatientChronicCondition[]
-  appointments        Appointment[]
-  visits              Visit[]
-  notifications       Notification[]
-  deviceTokens        DeviceToken[]
-
+  user              User                      @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  allergies         PatientAllergy[]
+  chronicConditions PatientChronicCondition[]
+  appointments      Appointment[]
+  visits            Visit[]
+  notifications     Notification[]
+  deviceTokens      DeviceToken[]
 
   @@index([user_id])
   @@index([patient_number])
@@ -215,26 +214,26 @@ model Appointment {
   doctor_id           String            @db.Uuid
   hospital_id         String            @db.Uuid
   department          String            @db.VarChar(100)
-  reason              String?          @db.Text
+  reason              String?           @db.Text
   scheduled_date_time DateTime
   status              AppointmentStatus
   visit_id            String?           @unique @db.Uuid
-  
+
   // Metadata
-  created_by      String    @db.Uuid
-  notes           String?   @db.Text
-  cancelled_at    DateTime? @db.Timestamp
-  cancelled_reason String?  @db.Text
-  
+  created_by       String    @db.Uuid
+  notes            String?   @db.Text
+  cancelled_at     DateTime? @db.Timestamp
+  cancelled_reason String?   @db.Text
+
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 
   // Relations
-  patient   Patient  @relation(fields: [patient_id], references: [patient_id], onDelete: Cascade)
-  doctor    User     @relation("DoctorAppointments", fields: [doctor_id], references: [user_id], onDelete: Cascade)
-  hospital  Hospital @relation(fields: [hospital_id], references: [hospital_id], onDelete: Cascade)
-  creator   User     @relation("AppointmentCreator", fields: [created_by], references: [user_id], onDelete: Cascade)
-  visit     Visit?   @relation("AppointmentVisit", fields: [visit_id], references: [visit_id], onDelete: SetNull)
+  patient  Patient  @relation(fields: [patient_id], references: [patient_id], onDelete: Cascade)
+  doctor   User     @relation("DoctorAppointments", fields: [doctor_id], references: [user_id], onDelete: Cascade)
+  hospital Hospital @relation(fields: [hospital_id], references: [hospital_id], onDelete: Cascade)
+  creator  User     @relation("AppointmentCreator", fields: [created_by], references: [user_id], onDelete: Cascade)
+  visit    Visit?   @relation("AppointmentVisit", fields: [visit_id], references: [visit_id], onDelete: SetNull)
 
   @@index([patient_id])
   @@index([doctor_id])
@@ -250,31 +249,31 @@ model Appointment {
 ////////////////////////////////////////////////////
 
 model Visit {
-  visit_id     String    @id @default(uuid()) @db.Uuid
-  
+  visit_id String @id @default(uuid()) @db.Uuid
+
   // Patient & Doctor Info
-  patient_id   String    @db.Uuid
-  hospital_id  String    @db.Uuid
-  doctor_id    String    @db.Uuid
-  
+  patient_id  String @db.Uuid
+  hospital_id String @db.Uuid
+  doctor_id   String @db.Uuid
+
   // Visit Details
-  visit_date   DateTime
-  visit_type   VisitType
-  
+  visit_date DateTime
+  visit_type VisitType
+
   // Medical Record Fields
-  diagnosis      String?  @db.Text
-  notes          String?  @db.Text
-  advice         String?  @db.Text
+  diagnosis       String?   @db.Text
+  notes           String?   @db.Text
+  advice          String?   @db.Text
   next_visit_date DateTime? @db.Date
-  
+
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 
   // Relations
-  appointment   Appointment? @relation("AppointmentVisit")
-  patient       Patient      @relation(fields: [patient_id], references: [patient_id], onDelete: Cascade)
-  hospital      Hospital     @relation(fields: [hospital_id], references: [hospital_id], onDelete: Cascade)
-  doctor        User         @relation(fields: [doctor_id], references: [user_id], onDelete: Cascade)
+  appointment   Appointment?   @relation("AppointmentVisit")
+  patient       Patient        @relation(fields: [patient_id], references: [patient_id], onDelete: Cascade)
+  hospital      Hospital       @relation(fields: [hospital_id], references: [hospital_id], onDelete: Cascade)
+  doctor        User           @relation(fields: [doctor_id], references: [user_id], onDelete: Cascade)
   prescriptions Prescription[]
   reports       Report[]
   bill          Bill?
@@ -293,13 +292,13 @@ model Visit {
 model Prescription {
   prescription_id   String   @id @default(uuid()) @db.Uuid
   visit_id          String   @db.Uuid
-  prescribed_by      String   @db.Uuid
+  prescribed_by     String   @db.Uuid
   prescription_text String?  @db.Text
   created_at        DateTime @default(now())
 
   // Relations
-  visit      Visit       @relation(fields: [visit_id], references: [visit_id], onDelete: Cascade)
-  prescriber User        @relation("PrescriptionPrescriber", fields: [prescribed_by], references: [user_id], onDelete: Cascade)
+  visit       Visit        @relation(fields: [visit_id], references: [visit_id], onDelete: Cascade)
+  prescriber  User         @relation("PrescriptionPrescriber", fields: [prescribed_by], references: [user_id], onDelete: Cascade)
   medications Medication[]
 
   @@index([visit_id])
@@ -308,13 +307,13 @@ model Prescription {
 }
 
 model Medication {
-  medication_id String   @id @default(uuid()) @db.Uuid
+  medication_id   String  @id @default(uuid()) @db.Uuid
   prescription_id String  @db.Uuid
-  drug_name     String   @db.VarChar(200)
-  dosage        String?  @db.VarChar(100)
-  frequency     String?  @db.VarChar(100)
-  duration      String?  @db.VarChar(100)
-  instructions  String?  @db.Text
+  drug_name       String  @db.VarChar(200)
+  dosage          String? @db.VarChar(100)
+  frequency       String? @db.VarChar(100)
+  duration        String? @db.VarChar(100)
+  instructions    String? @db.Text
 
   // Relations
   prescription Prescription @relation(fields: [prescription_id], references: [prescription_id], onDelete: Cascade)
@@ -357,8 +356,8 @@ model Bill {
   created_at     DateTime      @default(now())
 
   // Relations
-  visit         Visit         @relation(fields: [visit_id], references: [visit_id], onDelete: Cascade)
-  billSections  BillSection[]
+  visit        Visit         @relation(fields: [visit_id], references: [visit_id], onDelete: Cascade)
+  billSections BillSection[]
 
   @@index([visit_id])
   @@index([payment_status])
@@ -373,7 +372,7 @@ model BillSection {
   created_at    DateTime        @default(now())
 
   // Relations
-  bill      Bill        @relation(fields: [bill_id], references: [bill_id], onDelete: Cascade)
+  bill      Bill       @relation(fields: [bill_id], references: [bill_id], onDelete: Cascade)
   billItems BillItem[]
 
   @@index([bill_id])
@@ -381,12 +380,12 @@ model BillSection {
 }
 
 model BillItem {
-  item_id      String   @id @default(uuid()) @db.Uuid
-  section_id   String   @db.Uuid
-  description  String   @db.VarChar(255)
-  quantity    Int      @default(1)
-  unit_price   Decimal  @db.Decimal(10, 2)
-  total_price  Decimal  @db.Decimal(10, 2)
+  item_id     String  @id @default(uuid()) @db.Uuid
+  section_id  String  @db.Uuid
+  description String  @db.VarChar(255)
+  quantity    Int     @default(1)
+  unit_price  Decimal @db.Decimal(10, 2)
+  total_price Decimal @db.Decimal(10, 2)
 
   // Relations
   section BillSection @relation(fields: [section_id], references: [section_id], onDelete: Cascade)
@@ -394,7 +393,6 @@ model BillItem {
   @@index([section_id])
   @@map("bill_items")
 }
-
 
 ////////////////////////////////////////////////////
 // NOTIFICATIONS
@@ -420,7 +418,7 @@ model Notification {
   type            NotificationType
   title           String           @db.VarChar(255)
   body            String           @db.Text
-  data            Json?            // extra payload (appointment_id, etc.)
+  data            Json? // extra payload (appointment_id, etc.)
   is_read         Boolean          @default(false)
   created_at      DateTime         @default(now())
 
@@ -448,7 +446,6 @@ model DeviceToken {
   @@index([patient_id])
   @@map("device_tokens")
 }
-
 
 model AccessLog {
   log_id     BigInt   @id @default(autoincrement())

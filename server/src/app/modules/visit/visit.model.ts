@@ -1,5 +1,5 @@
 import { prisma } from '../../config/prisma';
-import { VisitType, AppointmentStatus } from '../../../../prisma/generated/client';
+import { VisitType, AppointmentStatus } from '../../generated/prisma';
 import type { CreateVisitRequest, UpdateVisitRequest } from './visit.dto';
 
 export class VisitModel {
