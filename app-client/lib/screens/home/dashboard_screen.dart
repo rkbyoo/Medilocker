@@ -56,24 +56,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return name.toLowerCase().startsWith('dr') ? name : 'Dr. $name';
     }
 
-    // 1. Next Appointment / Follow-up Logic (ONLY from visits)
+    // 1. Next Appointment / Follow-up Logic
     DateTime? nextDateTime;
     String nextApptSubtitle = 'No new appointment';
     String nextApptDetail = '';
 
-    // Per user request: Read ONLY from next_visit_date in visit table
-    // Ignore formal appointments table as the app is only for tracking, not scheduling.
+    // Per user request: Read from next_visit_date in visit table
     for (var v in provider.visits) {
       if (v.nextVisitDate != null && v.nextVisitDate!.isNotEmpty) {
         try {
           DateTime nvDate = DateTime.parse(v.nextVisitDate!).toLocal();
-          DateTime nvDay = DateTime(nvDate.year, nvDate.month, nvDate.day);
-
-          // User Instruction: "check if the date/time is greater than now then no need to show it (just show no new appointment)"
-          // We also naturally hide dates that are in the past as they are no longer "next".
-          // So we only show if it is exactly today (or not greater than now).
-          if (!nvDate.isAfter(now) && !nvDay.isBefore(today)) {
-            // Pick the earliest available date that fits the criteria
+          
+          // Logic: Show if it is in the FUTURE (upcoming)
+          if (nvDate.isAfter(now)) {
+            // Pick the earliest upcoming date
             if (nextDateTime == null || nvDate.isBefore(nextDateTime)) {
               nextDateTime = nvDate;
               nextApptSubtitle = v.doctor.fullName.isNotEmpty
@@ -82,9 +78,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               nextApptDetail = DateFormat('MMM d, yyyy').format(nvDate);
             }
           }
-        } catch (e) {
-          // Ignore parse errors
-        }
+        } catch (e) {}
       }
     }
 
@@ -99,7 +93,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String recentVisitDetail = recentVisit != null
         ? DateFormat(
             'MMM d, yyyy',
-          ).format(DateTime.parse(recentVisit.visitDate))
+          ).format(DateTime.parse(recentVisit.visitDate).toLocal())
         : 'No history';
 
     // 3. Pending Bills
