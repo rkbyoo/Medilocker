@@ -1,5 +1,5 @@
 import { prisma } from '../../config/prisma';
-import { PaymentStatus } from '../../generated/prisma';
+import { PaymentStatus } from '@prisma/client';
 
 export class BillService {
   /**

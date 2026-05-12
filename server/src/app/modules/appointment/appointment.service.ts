@@ -1,6 +1,6 @@
 import { AppointmentModel } from './appointment.model';
 import type { CreateAppointmentRequest, UpdateAppointmentRequest, AppointmentQueryParams } from './appointment.dto';
-import { AppointmentStatus } from '../../generated/prisma';
+import { AppointmentStatus } from '@prisma/client';
 
 export class AppointmentService {
   /**

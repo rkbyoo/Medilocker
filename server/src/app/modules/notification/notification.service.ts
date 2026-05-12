@@ -1,5 +1,5 @@
 import { NotificationModel } from './notification.model';
-import { NotificationType } from '../../generated/prisma';
+import { NotificationType } from '@prisma/client';
 
 export class NotificationService {
   // ──────────────────────────────────────────────

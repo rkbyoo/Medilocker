@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { VisitType } from '../../generated/prisma';
+import { VisitType } from '@prisma/client';
 
 /**
  * Create Visit DTO
