@@ -54,10 +54,14 @@ export class AppointmentController {
       }
 
       // Normalize scheduled_date_time format
-      // If format is "2025-12-22T23:26", add seconds
+      // If format is "2025-12-22T23:26", add seconds and default timezone (+05:30 for IST)
+      // This prevents the time from being treated as UTC and shifted by 5.5 hours in the UI
       let scheduled_date_time = data.scheduled_date_time;
       if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(scheduled_date_time)) {
-        scheduled_date_time = scheduled_date_time + ':00';
+        scheduled_date_time = scheduled_date_time + ':00+05:30';
+      } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(scheduled_date_time)) {
+        // If it already has seconds but no timezone
+        scheduled_date_time = scheduled_date_time + '+05:30';
       }
 
       const appointment = await AppointmentService.createAppointment(
@@ -213,6 +217,15 @@ export class AppointmentController {
     try {
       const { id } = req.params;
       const data = req.body as UpdateAppointmentRequest;
+      
+      // Normalize scheduled_date_time if provided
+      if (data.scheduled_date_time) {
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(data.scheduled_date_time)) {
+          data.scheduled_date_time = data.scheduled_date_time + ':00+05:30';
+        } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(data.scheduled_date_time)) {
+          data.scheduled_date_time = data.scheduled_date_time + '+05:30';
+        }
+      }
 
       const appointment = await AppointmentService.updateAppointment(id, data);
       const transformed = AppointmentService.transformAppointment(appointment);
