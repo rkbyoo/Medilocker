@@ -124,7 +124,31 @@ class ApiService {
     return _handleResponse(response);
   }
 
+  static Future<dynamic> patch(
+      String endpoint, Map<String, dynamic> body) async {
+    var headers = await getHeaders();
+    debugPrint('\\n=====================================\\n[REQ] PATCH $endpoint\\nHeaders: $headers\\nBody: ${jsonEncode(body)}\\n=====================================');
+    var response = await http
+        .patch(
+          Uri.parse(endpoint),
+          headers: headers,
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode == 401 && !endpoint.contains('/auth/')) {
+      if (await _attemptRefresh()) {
+        headers = await getHeaders();
+        response = await http.patch(Uri.parse(endpoint), headers: headers, body: jsonEncode(body)).timeout(const Duration(seconds: 15));
+      }
+    }
+
+    debugPrint('\\n=====================================\\n[RES] PATCH $endpoint\\nStatus: ${response.statusCode}\\nBody: ${response.body}\\n=====================================');
+    return _handleResponse(response);
+  }
+
   static Future<dynamic> delete(String endpoint) async {
+
     var headers = await getHeaders();
     debugPrint('\n=====================================\n[REQ] DELETE $endpoint\nHeaders: $headers\n=====================================');
     var response = await http

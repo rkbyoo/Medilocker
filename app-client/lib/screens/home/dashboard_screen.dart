@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/providers/notification_provider.dart';
 import '../../core/providers/patient_provider.dart';
 import 'package:intl/intl.dart';
 import '../appointments/appointments_screen.dart';
+import '../notifications/notifications_screen.dart';
 import '../records/records_screen.dart';
 import '../bills/bills_screen.dart';
 import '../emergency/emergency_screen.dart';
@@ -34,6 +36,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         if (pp.visits.isEmpty) pp.fetchVisits();
         if (pp.bills.isEmpty) pp.fetchBills();
       }
+      // Silently load notification badge count
+      context.read<NotificationProvider>().refreshUnreadCount();
     });
   }
 
@@ -257,12 +261,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Icon(Icons.cloud_off, color: Colors.redAccent, size: 24),
               ),
             ),
-          IconButton(
-            icon: const Icon(
-              Icons.notifications_outlined,
-              color: AppColors.textPrimary,
-            ),
-            onPressed: () {},
+          Consumer<NotificationProvider>(
+            builder: (context, notifProvider, _) {
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications_outlined,
+                      color: AppColors.textPrimary,
+                    ),
+                    onPressed: () {
+                      final np = context.read<NotificationProvider>();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationsScreen(),
+                        ),
+                      ).then((_) {
+                        // Refresh unread count on return
+                        np.refreshUnreadCount();
+                      });
+                    },
+                  ),
+                  if (notifProvider.unreadCount > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        width: 9,
+                        height: 9,
+                        decoration: const BoxDecoration(
+                          color: AppColors.error,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
         ],
       ),

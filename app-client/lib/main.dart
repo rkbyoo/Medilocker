@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/constants/app_colors.dart';
 import 'core/providers/auth_provider.dart';
+import 'core/providers/notification_provider.dart';
 import 'core/providers/patient_provider.dart';
 import 'core/services/api_service.dart';
 import 'screens/auth/login_screen.dart';
@@ -20,6 +21,7 @@ class MyHealthApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => PatientProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: MaterialApp(
         title: 'MediLocker',
