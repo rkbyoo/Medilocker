@@ -49,7 +49,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     // 1. Next Appointment / Follow-up Logic
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
 
     String formatDoc(String name) {
       if (name.isEmpty) return '';
@@ -78,7 +77,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               nextApptDetail = DateFormat('MMM d, yyyy').format(nvDate);
             }
           }
-        } catch (e) {}
+        } catch (e) {
+          // Skip invalid date formats
+        }
       }
     }
 

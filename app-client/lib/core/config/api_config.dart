@@ -1,38 +1,44 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/foundation.dart';
+
 class ApiConfig {
-  /// Set to true to use the hosted cloud server. 
-  /// Set to false to use your local development server.
-  static const bool useCloud = true;
-
-  static const String _cloudUrl = 'http://140.238.163.158:8080/api';
-  
-  /// For Android Emulator, use '10.0.2.2'. 
-  /// For iOS Simulator or Web, use 'localhost'. 
-  /// For Physical Devices, use your computer's LAN IP (e.g., 192.168.x.x).
-  static const String _localUrl = 'http://10.0.2.2:4000/api'; 
-
-  static const String baseUrl = useCloud ? _cloudUrl : _localUrl;
+  static String get baseUrl {
+    final env = dotenv.get('APP_ENV', fallback: 'development');
+    final cloudUrl = dotenv.get('CLOUD_API_URL', fallback: 'http://140.238.163.158:8080/api');
+    final localUrl = dotenv.get('LOCAL_API_URL', fallback: 'http://10.0.2.2:4000/api');
+    
+    final url = env == 'production' ? cloudUrl : localUrl;
+    
+    // Only print in debug mode
+    if (kDebugMode) {
+      debugPrint('[ApiConfig] Environment: $env');
+      debugPrint('[ApiConfig] Using Base URL: $url');
+    }
+    
+    return url;
+  }
 
   // Auth endpoints  → /api/auth/otp/send  |  /api/auth/otp/verify
-  static const sendOtpEndpoint    = '$baseUrl/auth/otp/send';
-  static const verifyOtpEndpoint  = '$baseUrl/auth/otp/verify';
-  static const refreshEndpoint    = '$baseUrl/auth/refresh';
-  static const logoutEndpoint     = '$baseUrl/auth/logout';
+  static String get sendOtpEndpoint    => '$baseUrl/auth/otp/send';
+  static String get verifyOtpEndpoint  => '$baseUrl/auth/otp/verify';
+  static String get refreshEndpoint    => '$baseUrl/auth/refresh';
+  static String get logoutEndpoint     => '$baseUrl/auth/logout';
 
   // Patient endpoints (protected – requires Bearer token)
-  static const profileEndpoint    = '$baseUrl/patients/me';
-  static const allergiesEndpoint  = '$baseUrl/patients/me/allergies';
-  static const conditionsEndpoint = '$baseUrl/patients/me/conditions';
+  static String get profileEndpoint    => '$baseUrl/patients/me';
+  static String get allergiesEndpoint  => '$baseUrl/patients/me/allergies';
+  static String get conditionsEndpoint => '$baseUrl/patients/me/conditions';
 
   // Visits endpoints
-  static const visitsEndpoint     = '$baseUrl/visits';
+  static String get visitsEndpoint     => '$baseUrl/visits';
 
   // Bills endpoints
-  static const billsEndpoint      = '$baseUrl/bills';
+  static String get billsEndpoint      => '$baseUrl/bills';
 
   // Appointments endpoints
-  static const appointmentsEndpoint = '$baseUrl/appointments';
-  static const slotsEndpoint        = '$baseUrl/appointments/slots';
+  static String get appointmentsEndpoint => '$baseUrl/appointments';
+  static String get slotsEndpoint        => '$baseUrl/appointments/slots';
 
   // Notifications endpoints
-  static const notificationsEndpoint = '$baseUrl/notifications';
+  static String get notificationsEndpoint => '$baseUrl/notifications';
 }

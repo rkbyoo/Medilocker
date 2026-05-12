@@ -3,8 +3,16 @@
  * Centralized API base URL and configuration
  */
 
+const getBaseUrl = (): string => {
+  const env = import.meta.env.VITE_APP_ENV || 'development';
+  const cloudUrl = import.meta.env.VITE_CLOUD_API_URL || 'http://140.238.163.158:8080/api';
+  const localUrl = import.meta.env.VITE_LOCAL_API_URL || 'http://localhost:4000/api';
+  
+  return env === 'production' ? cloudUrl : localUrl;
+};
+
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api',
+  BASE_URL: getBaseUrl(),
 } as const;
 
 /**
