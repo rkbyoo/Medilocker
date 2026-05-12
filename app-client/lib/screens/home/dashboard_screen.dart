@@ -56,48 +56,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return name.toLowerCase().startsWith('dr') ? name : 'Dr. $name';
     }
 
+    // 1. Next Appointment / Follow-up Logic (ONLY from visits)
     DateTime? nextDateTime;
-    String nextApptSubtitle = 'No upcoming appointments';
-    String nextApptDetail = 'Schedule one now';
+    String nextApptSubtitle = 'No new appointment';
+    String nextApptDetail = '';
 
-    // Check formal appointments
-    var upcomingAppts = provider.appointments.where((a) {
-      if (a.scheduledDateTime.isEmpty) return false;
-      if (a.status.toLowerCase() == 'completed' ||
-          a.status.toLowerCase() == 'cancelled') {
-        return false;
-      }
-
-      try {
-        return DateTime.parse(a.scheduledDateTime).toLocal().isAfter(now);
-      } catch (e) {
-        // Ignore parse errors
-        return false;
-      }
-    }).toList();
-    upcomingAppts.sort(
-      (a, b) => a.scheduledDateTime.compareTo(b.scheduledDateTime),
-    );
-
-    if (upcomingAppts.isNotEmpty) {
-      final a = upcomingAppts.first;
-      nextDateTime = DateTime.parse(a.scheduledDateTime).toLocal();
-      nextApptSubtitle = a.doctor.fullName.isNotEmpty
-          ? formatDoc(a.doctor.fullName)
-          : 'Upcoming Appointment';
-      nextApptDetail = DateFormat('MMM d, h:mm a').format(nextDateTime);
-    }
-
-    // Include next_visit_date from visits if it's sooner or no appointment exists
+    // Per user request: Read ONLY from next_visit_date in visit table
+    // Ignore formal appointments table as the app is only for tracking, not scheduling.
     for (var v in provider.visits) {
       if (v.nextVisitDate != null && v.nextVisitDate!.isNotEmpty) {
         try {
           DateTime nvDate = DateTime.parse(v.nextVisitDate!).toLocal();
           DateTime nvDay = DateTime(nvDate.year, nvDate.month, nvDate.day);
 
-          // Constraint: keep showing if today, hide if crossed (greater or crossed then no appointments)
-          if (!nvDay.isBefore(today)) {
-            // Pick the earliest available date
+          // User Instruction: "check if the date/time is greater than now then no need to show it (just show no new appointment)"
+          // We also naturally hide dates that are in the past as they are no longer "next".
+          // So we only show if it is exactly today (or not greater than now).
+          if (!nvDate.isAfter(now) && !nvDay.isBefore(today)) {
+            // Pick the earliest available date that fits the criteria
             if (nextDateTime == null || nvDate.isBefore(nextDateTime)) {
               nextDateTime = nvDate;
               nextApptSubtitle = v.doctor.fullName.isNotEmpty
