@@ -61,7 +61,7 @@ export class NotificationService {
       data.patient_id,
       NotificationType.appointment_scheduled,
       'Appointment Scheduled',
-      `Your appointment with Dr. ${data.doctor_name} (${data.department}) is confirmed for ${date} at ${data.hospital_name}.`,
+      `Your appointment with ${data.doctor_name} (${data.department}) is confirmed for ${date} at ${data.hospital_name}.`,
       { appointment_id: data.appointment_id }
     );
   }
@@ -81,7 +81,7 @@ export class NotificationService {
       data.patient_id,
       NotificationType.appointment_confirmed,
       'Appointment Confirmed',
-      `Your appointment with Dr. ${data.doctor_name} on ${date} has been confirmed.`,
+      `Your appointment with ${data.doctor_name} on ${date} has been confirmed.`,
       { appointment_id: data.appointment_id }
     );
   }
@@ -102,7 +102,7 @@ export class NotificationService {
       data.patient_id,
       NotificationType.appointment_cancelled,
       'Appointment Cancelled',
-      `Your appointment with Dr. ${data.doctor_name} on ${date} has been cancelled.${data.reason ? ` Reason: ${data.reason}` : ''}`,
+      `Your appointment with ${data.doctor_name} on ${date} has been cancelled.${data.reason ? ` Reason: ${data.reason}` : ''}`,
       { appointment_id: data.appointment_id }
     );
   }
@@ -116,7 +116,7 @@ export class NotificationService {
       data.patient_id,
       NotificationType.appointment_completed,
       'Visit Completed',
-      `Your consultation with Dr. ${data.doctor_name} has been completed. Check your Medical Records for details.`,
+      `Your consultation with ${data.doctor_name} has been completed. Check your Medical Records for details.`,
       { appointment_id: data.appointment_id }
     );
   }
@@ -131,7 +131,7 @@ export class NotificationService {
       data.patient_id,
       NotificationType.visit_recorded,
       'Visit Record Added',
-      `A new visit record by Dr. ${data.doctor_name} has been added to your health history.${data.diagnosis ? ` Diagnosis: ${data.diagnosis}` : ''}`,
+      `A new visit record by ${data.doctor_name} has been added to your health history.${data.diagnosis ? ` Diagnosis: ${data.diagnosis}` : ''}`,
       { visit_id: data.visit_id }
     );
   }
@@ -146,7 +146,7 @@ export class NotificationService {
       data.patient_id,
       NotificationType.prescription_ready,
       'Prescription Available',
-      `Dr. ${data.doctor_name} has issued a new prescription. View it in your Medical Records.`,
+      `${data.doctor_name} has issued a new prescription. View it in your Medical Records.`,
       { prescription_id: data.prescription_id, visit_id: data.visit_id }
     );
   }
