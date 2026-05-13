@@ -69,6 +69,10 @@ dependencies:
   add_2_calendar: ^3.0.1
   maps_launcher: ^3.0.0+1
   
+  # Firebase
+  firebase_core: ^3.0.0
+  firebase_messaging: ^15.0.0
+
   # Notifications (optional - can be added later)
   # flutter_local_notifications: ^17.2.3
 

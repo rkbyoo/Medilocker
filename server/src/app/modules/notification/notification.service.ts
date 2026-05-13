@@ -1,7 +1,45 @@
 import { NotificationModel } from './notification.model';
 import { NotificationType } from '@prisma/client';
+import { PushNotificationService } from './push.service';
 
 export class NotificationService {
+  // ──────────────────────────────────────────────
+  // CORE LOGIC
+  // ──────────────────────────────────────────────
+
+  /**
+   * Internal method to save notification to DB AND send push
+   */
+  private static async sendNotification(
+    patientId: string,
+    type: NotificationType,
+    title: string,
+    body: string,
+    data?: any
+  ) {
+    try {
+      // 1. Save to Database
+      const notification = await NotificationModel.create({
+        patient_id: patientId,
+        type,
+        title,
+        body,
+        data
+      });
+
+      // 2. Send Real-time Push (Async)
+      PushNotificationService.sendToPatient(patientId, title, body, {
+        type,
+        ...data,
+        notification_id: notification.notification_id
+      }).catch(err => console.error('[NotificationService] Push failed:', err));
+
+      return notification;
+    } catch (error) {
+      console.error('[NotificationService] Failed to create notification:', error);
+    }
+  }
+
   // ──────────────────────────────────────────────
   // Notification creation helpers (called from other services)
   // ──────────────────────────────────────────────
@@ -19,13 +57,13 @@ export class NotificationService {
       timeStyle: 'short',
       timeZone: 'Asia/Kolkata',
     });
-    return NotificationModel.create({
-      patient_id: data.patient_id,
-      type: NotificationType.appointment_scheduled,
-      title: '📅 Appointment Scheduled',
-      body: `Your appointment with Dr. ${data.doctor_name} (${data.department}) is confirmed for ${date} at ${data.hospital_name}.`,
-      data: { appointment_id: data.appointment_id },
-    });
+    return this.sendNotification(
+      data.patient_id,
+      NotificationType.appointment_scheduled,
+      '📅 Appointment Scheduled',
+      `Your appointment with Dr. ${data.doctor_name} (${data.department}) is confirmed for ${date} at ${data.hospital_name}.`,
+      { appointment_id: data.appointment_id }
+    );
   }
 
   static async notifyAppointmentConfirmed(data: {
@@ -39,13 +77,13 @@ export class NotificationService {
       timeStyle: 'short',
       timeZone: 'Asia/Kolkata',
     });
-    return NotificationModel.create({
-      patient_id: data.patient_id,
-      type: NotificationType.appointment_confirmed,
-      title: '✅ Appointment Confirmed',
-      body: `Your appointment with Dr. ${data.doctor_name} on ${date} has been confirmed.`,
-      data: { appointment_id: data.appointment_id },
-    });
+    return this.sendNotification(
+      data.patient_id,
+      NotificationType.appointment_confirmed,
+      '✅ Appointment Confirmed',
+      `Your appointment with Dr. ${data.doctor_name} on ${date} has been confirmed.`,
+      { appointment_id: data.appointment_id }
+    );
   }
 
   static async notifyAppointmentCancelled(data: {
@@ -60,13 +98,13 @@ export class NotificationService {
       timeStyle: 'short',
       timeZone: 'Asia/Kolkata',
     });
-    return NotificationModel.create({
-      patient_id: data.patient_id,
-      type: NotificationType.appointment_cancelled,
-      title: '❌ Appointment Cancelled',
-      body: `Your appointment with Dr. ${data.doctor_name} on ${date} has been cancelled.${data.reason ? ` Reason: ${data.reason}` : ''}`,
-      data: { appointment_id: data.appointment_id },
-    });
+    return this.sendNotification(
+      data.patient_id,
+      NotificationType.appointment_cancelled,
+      '❌ Appointment Cancelled',
+      `Your appointment with Dr. ${data.doctor_name} on ${date} has been cancelled.${data.reason ? ` Reason: ${data.reason}` : ''}`,
+      { appointment_id: data.appointment_id }
+    );
   }
 
   static async notifyAppointmentCompleted(data: {
@@ -74,13 +112,13 @@ export class NotificationService {
     doctor_name: string;
     appointment_id: string;
   }) {
-    return NotificationModel.create({
-      patient_id: data.patient_id,
-      type: NotificationType.appointment_completed,
-      title: '🩺 Visit Completed',
-      body: `Your consultation with Dr. ${data.doctor_name} has been completed. Check your Medical Records for details.`,
-      data: { appointment_id: data.appointment_id },
-    });
+    return this.sendNotification(
+      data.patient_id,
+      NotificationType.appointment_completed,
+      '🩺 Visit Completed',
+      `Your consultation with Dr. ${data.doctor_name} has been completed. Check your Medical Records for details.`,
+      { appointment_id: data.appointment_id }
+    );
   }
 
   static async notifyVisitRecorded(data: {
@@ -89,13 +127,13 @@ export class NotificationService {
     visit_id: string;
     diagnosis?: string;
   }) {
-    return NotificationModel.create({
-      patient_id: data.patient_id,
-      type: NotificationType.visit_recorded,
-      title: '📋 Visit Record Added',
-      body: `A new visit record by Dr. ${data.doctor_name} has been added to your health history.${data.diagnosis ? ` Diagnosis: ${data.diagnosis}` : ''}`,
-      data: { visit_id: data.visit_id },
-    });
+    return this.sendNotification(
+      data.patient_id,
+      NotificationType.visit_recorded,
+      '📋 Visit Record Added',
+      `A new visit record by Dr. ${data.doctor_name} has been added to your health history.${data.diagnosis ? ` Diagnosis: ${data.diagnosis}` : ''}`,
+      { visit_id: data.visit_id }
+    );
   }
 
   static async notifyPrescriptionReady(data: {
@@ -104,13 +142,13 @@ export class NotificationService {
     prescription_id: string;
     visit_id: string;
   }) {
-    return NotificationModel.create({
-      patient_id: data.patient_id,
-      type: NotificationType.prescription_ready,
-      title: '💊 Prescription Available',
-      body: `Dr. ${data.doctor_name} has issued a new prescription. View it in your Medical Records.`,
-      data: { prescription_id: data.prescription_id, visit_id: data.visit_id },
-    });
+    return this.sendNotification(
+      data.patient_id,
+      NotificationType.prescription_ready,
+      '💊 Prescription Available',
+      `Dr. ${data.doctor_name} has issued a new prescription. View it in your Medical Records.`,
+      { prescription_id: data.prescription_id, visit_id: data.visit_id }
+    );
   }
 
   static async notifyBillGenerated(data: {
@@ -119,13 +157,13 @@ export class NotificationService {
     total_amount: number;
     visit_id: string;
   }) {
-    return NotificationModel.create({
-      patient_id: data.patient_id,
-      type: NotificationType.bill_generated,
-      title: '🧾 New Bill Generated',
-      body: `A new bill of ₹${data.total_amount.toFixed(2)} has been generated. Please review and complete payment.`,
-      data: { bill_id: data.bill_id, visit_id: data.visit_id },
-    });
+    return this.sendNotification(
+      data.patient_id,
+      NotificationType.bill_generated,
+      '🧾 New Bill Generated',
+      `A new bill of ₹${data.total_amount.toFixed(2)} has been generated. Please review and complete payment.`,
+      { bill_id: data.bill_id, visit_id: data.visit_id }
+    );
   }
 
   static async notifyBillPaid(data: {
@@ -133,13 +171,13 @@ export class NotificationService {
     bill_id: string;
     total_amount: number;
   }) {
-    return NotificationModel.create({
-      patient_id: data.patient_id,
-      type: NotificationType.bill_paid,
-      title: '✅ Payment Confirmed',
-      body: `Payment of ₹${data.total_amount.toFixed(2)} received. Thank you!`,
-      data: { bill_id: data.bill_id },
-    });
+    return this.sendNotification(
+      data.patient_id,
+      NotificationType.bill_paid,
+      '✅ Payment Confirmed',
+      `Payment of ₹${data.total_amount.toFixed(2)} received. Thank you!`,
+      { bill_id: data.bill_id }
+    );
   }
 
   static async notifyReportUploaded(data: {
@@ -148,13 +186,13 @@ export class NotificationService {
     report_id: string;
     visit_id: string;
   }) {
-    return NotificationModel.create({
-      patient_id: data.patient_id,
-      type: NotificationType.report_uploaded,
-      title: '📄 Report Available',
-      body: `A new ${data.report_type} report has been uploaded to your Medical Records.`,
-      data: { report_id: data.report_id, visit_id: data.visit_id },
-    });
+    return this.sendNotification(
+      data.patient_id,
+      NotificationType.report_uploaded,
+      '📄 Report Available',
+      `A new ${data.report_type} report has been uploaded to your Medical Records.`,
+      { report_id: data.report_id, visit_id: data.visit_id }
+    );
   }
 
   // ──────────────────────────────────────────────

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:medilocker/core/services/auth_service.dart';
 import 'package:medilocker/core/services/api_service.dart';
 import 'patient_provider.dart';
+import 'package:medilocker/core/services/push_notification_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -25,6 +26,9 @@ class AuthProvider with ChangeNotifier {
     _isCheckingAuth = true;
     notifyListeners();
     _isAuthenticated = await _authService.isLoggedIn();
+    if (_isAuthenticated) {
+      PushNotificationService.registerDevice();
+    }
     _isCheckingAuth = false;
     notifyListeners();
   }
@@ -69,6 +73,7 @@ class AuthProvider with ChangeNotifier {
       await _authService.verifyOtp(phoneNumber, patientNumber, otp);
       _isAuthenticated = true;
       patientProvider?.fetchProfile();
+      PushNotificationService.registerDevice();
       _isLoading = false;
       notifyListeners();
       return true;

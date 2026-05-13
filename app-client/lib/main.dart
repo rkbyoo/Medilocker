@@ -10,9 +10,21 @@ import 'screens/home/main_screen.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'core/services/push_notification_service.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  
+  // Initialize Firebase
+  try {
+    await Firebase.initializeApp();
+    await PushNotificationService.initialize();
+  } catch (e) {
+    debugPrint('[Main] Firebase initialization skipped: $e');
+  }
+  
   runApp(const MyHealthApp());
 }
 
@@ -104,12 +116,20 @@ class _AuthWrapperState extends State<AuthWrapper> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = context.read<AuthProvider>();
       final patientProvider = context.read<PatientProvider>();
+      final notificationProvider = context.read<NotificationProvider>();
+      
       authProvider.checkAuthStatus();
 
       // Auto-logout on 401 Unauthorized globally
       ApiService.onUnauthenticated = () {
         authProvider.logout(patientProvider: patientProvider);
       };
+
+      // Listen for real-time notifications to update the red dot
+      PushNotificationService.onMessage.listen((message) {
+        debugPrint('[AuthWrapper] Real-time notification received: ${message.notification?.title}');
+        notificationProvider.refreshUnreadCount();
+      });
     });
   }
 

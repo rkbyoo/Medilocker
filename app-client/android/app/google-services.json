@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1009461820067",
+    "project_id": "medilocker-85811",
+    "storage_bucket": "medilocker-85811.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1009461820067:android:64b5290270c0ba01c61d16",
+        "android_client_info": {
+          "package_name": "com.example.master_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRFDP5Rwj8aBlms8iSqGR1lRpj2SXxwVU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
