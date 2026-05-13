@@ -38,15 +38,11 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: SafeArea(
         child: Container(
-          height: 80,
-          margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          margin: const EdgeInsets.fromLTRB(24, 0, 24, 18),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(32),
@@ -63,7 +59,12 @@ class _MainScreenState extends State<MainScreen> {
             children: [
               _buildNavItem(0, Icons.grid_view_rounded, 'Home'),
               _buildNavItem(1, Icons.event_note_rounded, 'Appointment'),
-              _buildNavItem(2, Icons.medical_services_rounded, 'SOS', isEmergency: true),
+              _buildNavItem(
+                2,
+                Icons.medical_services_rounded,
+                'SOS',
+                isEmergency: true,
+              ),
               _buildNavItem(3, Icons.description_rounded, 'Records'),
               _buildNavItem(4, Icons.person_rounded, 'Profile'),
             ],
@@ -73,12 +74,17 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label, {bool isEmergency = false}) {
+  Widget _buildNavItem(
+    int index,
+    IconData icon,
+    String label, {
+    bool isEmergency = false,
+  }) {
     final isSelected = _currentIndex == index;
     final baseColor = isEmergency ? AppColors.emergency : AppColors.primary;
-    
+
     // Sophisticated selection color: Subtle Indigo for standard, Red for emergency
-    final highlightColor = isEmergency 
+    final highlightColor = isEmergency
         ? AppColors.emergency.withValues(alpha: 0.1)
         : AppColors.primary.withValues(alpha: 0.08);
 
@@ -92,24 +98,28 @@ class _MainScreenState extends State<MainScreen> {
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.fromLTRB(8, 6, 8, 2),
               decoration: BoxDecoration(
                 color: isSelected ? highlightColor : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
-                color: isSelected ? baseColor : AppColors.textSecondary.withValues(alpha: 0.75),
+                color: isSelected
+                    ? baseColor
+                    : AppColors.textSecondary.withValues(alpha: 0.75),
                 size: 24,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 0),
             Text(
               label,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? baseColor : AppColors.textSecondary.withValues(alpha: 0.75),
+                color: isSelected
+                    ? baseColor
+                    : AppColors.textSecondary.withValues(alpha: 0.75),
               ),
             ),
           ],

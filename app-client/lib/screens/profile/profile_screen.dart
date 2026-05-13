@@ -30,6 +30,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
+      isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -49,6 +51,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
+      isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -81,27 +85,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
+      isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => SettingsDetailSheet(
+      builder: (sheetContext) => SettingsDetailSheet(
         title: 'HELP & SUPPORT',
         items: [
           SettingNavigation(
             title: 'Contact Medical Support',
             icon: Icons.support_agent_rounded,
+            detail: 'For urgent medical queries, call our 24/7 helpline:\n\n📞 1800-MED-HELP\n\nOr email: support@medicard.health',
           ),
           SettingNavigation(
             title: 'FAQs',
             icon: Icons.question_answer_outlined,
+            detail: 'Q: How do I book an appointment?\nA: Go to the Appointments tab and tap "+".\n\nQ: How do I access my records?\nA: Tap Records in the bottom navigation.\n\nQ: Is my data secure?\nA: Yes, all data is encrypted end-to-end.',
           ),
           SettingNavigation(
             title: 'App Feedback',
             icon: Icons.rate_review_outlined,
+            detail: 'We value your feedback! Rate us on the Play Store or App Store, or email us at:\n\n📧 feedback@medicard.health',
           ),
           SettingNavigation(
             title: 'Terms of Service',
             icon: Icons.description_outlined,
+            detail: 'By using MediCard, you agree to our Terms of Service and Privacy Policy. Your health data is stored securely and never shared with third parties without your explicit consent.\n\nLast updated: May 2025.',
           ),
         ],
       ),
@@ -650,11 +660,14 @@ class SettingNavigation extends StatelessWidget {
   final String title;
   final IconData icon;
   final bool isDestructive;
+  final String? detail;
+
   const SettingNavigation({
     super.key,
     required this.title,
     required this.icon,
     this.isDestructive = false,
+    this.detail,
   });
 
   @override
@@ -673,12 +686,62 @@ class SettingNavigation extends StatelessWidget {
           color: isDestructive ? Colors.red : AppColors.textPrimary,
         ),
       ),
-      trailing: const Icon(Icons.chevron_right_rounded),
+      trailing: Icon(
+        Icons.chevron_right_rounded,
+        color: isDestructive
+            ? Colors.red.withValues(alpha: 0.4)
+            : const Color(0xFFCBD5E1),
+      ),
       onTap: () {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Navigating to $title...')));
+        if (detail != null) {
+          showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: [
+                  Icon(icon,
+                      size: 20,
+                      color: isDestructive
+                          ? Colors.red
+                          : AppColors.textPrimary),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              content: Text(
+                detail!,
+                style: const TextStyle(
+                  fontSize: 13,
+                  height: 1.6,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Got it',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          Navigator.pop(context);
+        }
       },
     );
   }

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'core/constants/app_colors.dart';
 import 'core/providers/auth_provider.dart';
 import 'core/providers/notification_provider.dart';
+import 'core/providers/notification_preferences_provider.dart';
 import 'core/providers/patient_provider.dart';
 import 'core/services/api_service.dart';
 import 'screens/auth/login_screen.dart';
@@ -17,7 +18,7 @@ import 'core/services/push_notification_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  
+
   // Initialize Firebase
   try {
     await Firebase.initializeApp();
@@ -25,14 +26,15 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('[Main] Firebase initialization skipped: $e');
   }
-  
+
   runApp(const MyHealthApp());
 }
 
 class MyHealthApp extends StatelessWidget {
   const MyHealthApp({super.key});
 
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +43,7 @@ class MyHealthApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => PatientProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationPreferencesProvider()),
       ],
       child: MaterialApp(
         title: 'MediLocker',
@@ -121,7 +124,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
       final authProvider = context.read<AuthProvider>();
       final patientProvider = context.read<PatientProvider>();
       final notificationProvider = context.read<NotificationProvider>();
-      
+
       authProvider.checkAuthStatus();
 
       // Auto-logout on 401 Unauthorized globally
@@ -131,13 +134,17 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
       // Listen for real-time notifications to update the red dot
       PushNotificationService.onMessage.listen((message) {
-        debugPrint('[AuthWrapper] Real-time notification received: ${message.notification?.title}');
+        debugPrint(
+          '[AuthWrapper] Real-time notification received: ${message.notification?.title}',
+        );
         notificationProvider.refreshUnreadCount();
       });
 
       // Listen for notification taps
       PushNotificationService.onTap.listen((message) {
-        debugPrint('[AuthWrapper] Notification tapped: ${message.notification?.title}');
+        debugPrint(
+          '[AuthWrapper] Notification tapped: ${message.notification?.title}',
+        );
         _navigateToNotifications();
       });
     });
