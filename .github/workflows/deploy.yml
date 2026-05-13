@@ -3,7 +3,7 @@ name: Deploy to server
 on:
   push:
     branches:
-      - main
+      - backend-dev
 
 jobs:
   deploy:
@@ -19,6 +19,6 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd ~/finalYearProject/server
-            git pull origin main
+            git pull origin backend-dev
             npm install --production
             pm2 reload all --update-env
