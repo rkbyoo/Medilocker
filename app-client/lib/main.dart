@@ -7,6 +7,7 @@ import 'core/providers/patient_provider.dart';
 import 'core/services/api_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/main_screen.dart';
+import 'screens/notifications/notifications_screen.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -30,6 +31,8 @@ Future<void> main() async {
 
 class MyHealthApp extends StatelessWidget {
   const MyHealthApp({super.key});
+
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +99,7 @@ class MyHealthApp extends StatelessWidget {
           ),
           useMaterial3: true,
         ),
+        navigatorKey: MyHealthApp.navigatorKey,
         home: const AuthWrapper(),
       ),
     );
@@ -130,7 +134,37 @@ class _AuthWrapperState extends State<AuthWrapper> {
         debugPrint('[AuthWrapper] Real-time notification received: ${message.notification?.title}');
         notificationProvider.refreshUnreadCount();
       });
+
+      // Listen for notification taps
+      PushNotificationService.onTap.listen((message) {
+        debugPrint('[AuthWrapper] Notification tapped: ${message.notification?.title}');
+        _navigateToNotifications();
+      });
     });
+  }
+
+  void _navigateToNotifications() {
+    final context = MyHealthApp.navigatorKey.currentContext;
+    if (context != null) {
+      // Check if we are already on the notifications screen
+      bool isNotificationsAlreadyOpen = false;
+      Navigator.popUntil(context, (route) {
+        if (route.settings.name == '/notifications') {
+          isNotificationsAlreadyOpen = true;
+        }
+        return true;
+      });
+
+      if (!isNotificationsAlreadyOpen) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            settings: const RouteSettings(name: '/notifications'),
+            builder: (_) => const NotificationsScreen(),
+          ),
+        );
+      }
+    }
   }
 
   @override

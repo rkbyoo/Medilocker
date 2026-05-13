@@ -24,33 +24,38 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        centerTitle: false,
+        titleSpacing: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: const Text(
           'Notifications',
           style: TextStyle(
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
+            fontSize: 22,
+            letterSpacing: -0.5,
             color: AppColors.textPrimary,
           ),
         ),
         actions: [
           Consumer<NotificationProvider>(
             builder: (context, provider, _) {
-              if (provider.notifications.isEmpty) return const SizedBox();
+              if (provider.unreadCount == 0) return const SizedBox();
               return TextButton(
-                onPressed: provider.unreadCount > 0
-                    ? () => provider.markAllRead()
-                    : null,
-                child: Text(
+                onPressed: () => provider.markAllRead(),
+                child: const Text(
                   'Mark all read',
                   style: TextStyle(
-                    color: provider.unreadCount > 0
-                        ? AppColors.primary
-                        : AppColors.textSecondary,
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w600,
-                    fontSize: 13,
+                    fontSize: 14,
                   ),
                 ),
               );
@@ -62,18 +67,24 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       body: Consumer<NotificationProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading && !provider.hasLoaded) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator.adaptive());
           }
 
           if (provider.notifications.isEmpty) {
             return _buildEmpty();
           }
 
-          return RefreshIndicator(
+          return RefreshIndicator.adaptive(
             onRefresh: () => provider.fetchNotifications(),
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+            child: ListView.separated(
+              padding: const EdgeInsets.only(top: 12, bottom: 32),
               itemCount: provider.notifications.length,
+              separatorBuilder: (context, index) => const Divider(
+                height: 1,
+                indent: 72,
+                endIndent: 24,
+                color: Color(0xFFF1F5F9),
+              ),
               itemBuilder: (context, index) {
                 final n = provider.notifications[index];
                 return _NotificationTile(
@@ -89,49 +100,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildEmpty() {
-    return RefreshIndicator(
-      onRefresh: () =>
-          context.read<NotificationProvider>().fetchNotifications(),
-      child: ListView(
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.65,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.08),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.notifications_none_rounded,
-                    size: 40,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'All caught up!',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'No notifications yet.\nActivity updates will appear here.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
-                ),
-              ],
+          Icon(
+            Icons.notifications_none_rounded,
+            size: 64,
+            color: AppColors.textSecondary.withValues(alpha: 0.2),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Quiet for now',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'We\'ll notify you when there\'s something new.',
+            style: TextStyle(
+              color: AppColors.textSecondary.withValues(alpha: 0.6),
+              fontSize: 14,
             ),
           ),
         ],
@@ -139,7 +131,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 }
-
 
 class _NotificationTile extends StatelessWidget {
   final AppNotification notification;
@@ -154,45 +145,25 @@ class _NotificationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final info = _typeInfo(notification.type);
 
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: notification.isRead
-              ? Colors.white
-              : info.color.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: notification.isRead
-                ? AppColors.divider
-                : info.color.withValues(alpha: 0.25),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        color: notification.isRead ? Colors.transparent : AppColors.primary.withValues(alpha: 0.02),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Icon badge
+            // Minimalist Icon
             Container(
-              width: 42,
-              height: 42,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                color: info.color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+                color: info.color.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
               ),
               child: Icon(info.icon, color: info.color, size: 22),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 16),
 
             // Content
             Expanded(
@@ -205,20 +176,19 @@ class _NotificationTile extends StatelessWidget {
                         child: Text(
                           notification.title,
                           style: TextStyle(
-                            fontWeight: notification.isRead
-                                ? FontWeight.w500
-                                : FontWeight.w700,
-                            fontSize: 14,
+                            fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w700,
+                            fontSize: 15,
                             color: AppColors.textPrimary,
+                            letterSpacing: -0.2,
                           ),
                         ),
                       ),
                       if (!notification.isRead)
                         Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: info.color,
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -227,18 +197,19 @@ class _NotificationTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     notification.body,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary.withValues(alpha: 0.8),
                       height: 1.4,
+                      fontWeight: notification.isRead ? FontWeight.w400 : FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     _formatTime(notification.createdAt),
                     style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary.withValues(alpha: 0.6),
+                      fontSize: 12,
+                      color: AppColors.textSecondary.withValues(alpha: 0.4),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -256,37 +227,27 @@ class _NotificationTile extends StatelessWidget {
     final diff = now.difference(dt);
 
     if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m';
+    if (diff.inHours < 24) return '${diff.inHours}h';
     if (diff.inDays == 1) return 'Yesterday';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
-    return DateFormat('MMM d, yyyy').format(dt);
+    if (diff.inDays < 7) return '${diff.inDays}d';
+    return DateFormat('MMM d').format(dt);
   }
 
   _TypeInfo _typeInfo(String type) {
     switch (type) {
       case 'appointment_scheduled':
-        return _TypeInfo(Icons.event_available_rounded, AppColors.primary);
       case 'appointment_confirmed':
-        return _TypeInfo(Icons.check_circle_rounded, AppColors.success);
+        return _TypeInfo(Icons.calendar_today_rounded, AppColors.primary);
       case 'appointment_cancelled':
-        return _TypeInfo(Icons.cancel_rounded, AppColors.error);
-      case 'appointment_reminder':
-        return _TypeInfo(Icons.alarm_rounded, AppColors.warning);
-      case 'appointment_completed':
-        return _TypeInfo(Icons.medical_services_rounded, AppColors.success);
-      case 'visit_recorded':
-        return _TypeInfo(Icons.assignment_turned_in_rounded, AppColors.success);
+        return _TypeInfo(Icons.event_busy_rounded, AppColors.error);
       case 'prescription_ready':
-        return _TypeInfo(Icons.medication_rounded, const Color(0xFF7C3AED));
-      case 'bill_generated':
-        return _TypeInfo(Icons.receipt_long_rounded, AppColors.warning);
-      case 'bill_paid':
-        return _TypeInfo(Icons.payments_rounded, AppColors.success);
-      case 'report_uploaded':
-        return _TypeInfo(Icons.description_rounded, AppColors.primary);
+        return _TypeInfo(Icons.medication_rounded, const Color(0xFF8B5CF6));
+      case 'visit_recorded':
+      case 'appointment_completed':
+        return _TypeInfo(Icons.assignment_rounded, AppColors.success);
       default:
-        return _TypeInfo(Icons.notifications_rounded, AppColors.primary);
+        return _TypeInfo(Icons.notifications_active_rounded, AppColors.primary);
     }
   }
 }
