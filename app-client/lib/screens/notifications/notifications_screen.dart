@@ -47,13 +47,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         actions: [
           Consumer<NotificationProvider>(
             builder: (context, provider, _) {
-              if (provider.unreadCount == 0) return const SizedBox();
+              if (provider.notifications.isEmpty) return const SizedBox();
+              
+              final hasUnread = provider.unreadCount > 0;
               return TextButton(
-                onPressed: () => provider.markAllRead(),
-                child: const Text(
+                onPressed: hasUnread ? () => provider.markAllRead() : null,
+                child: Text(
                   'Mark all read',
                   style: TextStyle(
-                    color: AppColors.primary,
+                    color: hasUnread ? AppColors.primary : AppColors.textSecondary.withValues(alpha: 0.4),
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
