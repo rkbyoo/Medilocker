@@ -76,6 +76,8 @@ export class PushNotificationService {
           priority: 'high',
           notification: {
             channelId: 'medilocker_notifications',
+            icon: 'ic_launcher',
+            color: '#2563eb',
           }
         },
         apns: {
