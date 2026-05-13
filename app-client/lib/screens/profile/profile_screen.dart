@@ -277,7 +277,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       .toList() ??
                                   [],
                             ),
-                            const SizedBox(height: 24),
+                            const Divider(height: 1, color: AppColors.divider),
                             _buildMedicalSection(
                               'CHRONIC CONDITIONS',
                               patient?.chronicConditions
@@ -501,58 +501,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildMedicalSection(String title, List<String> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary.withValues(alpha: 0.7),
-            letterSpacing: 0.2,
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (items.isEmpty || items.every((i) => i.contains('No ')))
-          const Text(
-            'Not Specified',
+    final String valueText = items.isEmpty || items.every((i) => i.contains('No '))
+        ? 'Not Specified'
+        : items.join(', ');
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Color(0xFFCBD5E1),
+              color: AppColors.textSecondary.withValues(alpha: 0.8),
             ),
-          )
-        else
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: items
-                .map(
-                  (item) => Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: AppColors.textPrimary.withValues(alpha: 0.1),
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      item,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
           ),
-      ],
+          const SizedBox(width: 16),
+          Flexible(
+            child: Text(
+              valueText,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: valueText == 'Not Specified'
+                    ? const Color(0xFFCBD5E1)
+                    : AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
