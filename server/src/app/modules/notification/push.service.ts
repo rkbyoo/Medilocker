@@ -98,7 +98,7 @@ export class PushNotificationService {
       // 4. Cleanup invalid tokens
       if (response.failureCount > 0) {
         const failedTokens: string[] = [];
-        response.responses.forEach((resp, idx) => {
+        response.responses.forEach((resp: admin.messaging.SendResponse, idx: number) => {
           if (!resp.success) {
             const code = resp.error?.code;
             if (code === 'messaging/invalid-registration-token' || code === 'messaging/registration-token-not-registered') {
