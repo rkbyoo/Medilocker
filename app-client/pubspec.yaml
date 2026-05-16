@@ -136,11 +136,11 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/medilocker_icon.png"
+  image_path: "assets/icon/medilocker_icon.webp"
   adaptive_icon_background: "#2563eb"
-  adaptive_icon_foreground: "assets/icon/medilocker_icon.png"
+  adaptive_icon_foreground: "assets/icon/medilocker_icon.webp"
   web:
     generate: true
-    image_path: "assets/icon/medilocker_icon.png"
+    image_path: "assets/icon/medilocker_icon.webp"
     background_color: "#2563eb"
     theme_color: "#2563eb"
