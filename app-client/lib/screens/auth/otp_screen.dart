@@ -156,37 +156,45 @@ class _OtpScreenState extends State<OtpScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Image.asset(
-                          'assets/icon/medilocker_icon.webp',
-                          width: 48,
-                          height: 48,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'Verification Code',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.textPrimary,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        RichText(
-                          textAlign: TextAlign.center,
-                          text: TextSpan(
-                            style: const TextStyle(
-                              color: Color(0x9964748B), // AppColors.textSecondary with 0.6 alpha
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
+                        RepaintBoundary(
+                          child: Column(
                             children: [
-                              const TextSpan(text: 'Code sent to '),
-                              TextSpan(
-                                text: '+91 ${widget.phoneNumber}',
-                                style: const TextStyle(
+                              Image.asset(
+                                'assets/icon/medilocker_icon.webp',
+                                width: 48,
+                                height: 48,
+                                cacheWidth: 96,
+                                cacheHeight: 96,
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Verification Code',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w900,
                                   color: AppColors.textPrimary,
-                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(
+                                  style: const TextStyle(
+                                    color: Color(0x9964748B), // AppColors.textSecondary with 0.6 alpha
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  children: [
+                                    const TextSpan(text: 'Code sent to '),
+                                    TextSpan(
+                                      text: '+91 ${widget.phoneNumber}',
+                                      style: const TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -231,87 +239,89 @@ class _OtpScreenState extends State<OtpScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        GestureDetector(
-                          onTap: () {
-                            if (_secondsRemainingNotifier.value > 0) {
-                              _focusNode.requestFocus();
-                            }
-                          },
-                          child: AutofillGroup(
-                            child: SizedBox(
-                              width: double.infinity,
-                              height: 52,
-                              child: Stack(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: List.generate(6, (index) {
-                                      final char =
-                                          _otpController.text.length > index
-                                          ? _otpController.text[index]
-                                          : '';
-                                      final isFocused =
-                                          _otpController.text.length == index &&
-                                          _focusNode.hasFocus;
-                                      return Container(
-                                        width: 42,
-                                        height: 52,
-                                        alignment: Alignment.center,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFF8FAFC),
-                                          borderRadius: BorderRadius.circular(
-                                            10,
+                        RepaintBoundary(
+                          child: GestureDetector(
+                            onTap: () {
+                              if (_secondsRemainingNotifier.value > 0) {
+                                _focusNode.requestFocus();
+                              }
+                            },
+                            child: AutofillGroup(
+                              child: SizedBox(
+                                width: double.infinity,
+                                height: 52,
+                                child: Stack(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: List.generate(6, (index) {
+                                        final char =
+                                            _otpController.text.length > index
+                                            ? _otpController.text[index]
+                                            : '';
+                                        final isFocused =
+                                            _otpController.text.length == index &&
+                                            _focusNode.hasFocus;
+                                        return Container(
+                                          width: 42,
+                                          height: 52,
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFF8FAFC),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            border: Border.all(
+                                              color: isFocused
+                                                  ? AppColors.primary
+                                                  : const Color(0xFFE2E8F0),
+                                              width: isFocused ? 2 : 1,
+                                            ),
                                           ),
-                                          border: Border.all(
-                                            color: isFocused
-                                                ? AppColors.primary
-                                                : const Color(0xFFE2E8F0),
-                                            width: isFocused ? 2 : 1,
+                                          child: Text(
+                                            char,
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textPrimary,
+                                            ),
                                           ),
-                                        ),
-                                        child: Text(
-                                          char,
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.textPrimary,
-                                          ),
-                                        ),
-                                      );
-                                    }),
-                                  ),
-                                  Positioned.fill(
-                                    child: TextFormField(
-                                      controller: _otpController,
-                                      focusNode: _focusNode,
-                                      enabled: true, // Keep enabled for better UX
-                                      autofocus: true,
-                                      keyboardType: TextInputType.number,
-                                      maxLength: 6,
-                                      autofillHints: const [
-                                        AutofillHints.oneTimeCode,
-                                      ],
-                                      style: const TextStyle(
-                                        color: Colors.transparent,
-                                        fontSize: 24,
-                                      ),
-                                      cursorColor: Colors.transparent,
-                                      decoration: const InputDecoration(
-                                        counterText: "",
-                                        filled: false,
-                                        border: InputBorder.none,
-                                        enabledBorder: InputBorder.none,
-                                        focusedBorder: InputBorder.none,
-                                        errorStyle: TextStyle(height: 0),
-                                      ),
-                                      onChanged: (val) {
-                                        setState(() {});
-                                        if (val.length == 6) _verifyOtp();
-                                      },
+                                        );
+                                      }),
                                     ),
-                                  ),
-                                ],
+                                    Positioned.fill(
+                                      child: TextFormField(
+                                        controller: _otpController,
+                                        focusNode: _focusNode,
+                                        enabled: true, // Keep enabled for better UX
+                                        autofocus: true,
+                                        keyboardType: TextInputType.number,
+                                        maxLength: 6,
+                                        autofillHints: const [
+                                          AutofillHints.oneTimeCode,
+                                        ],
+                                        style: const TextStyle(
+                                          color: Colors.transparent,
+                                          fontSize: 24,
+                                        ),
+                                        cursorColor: Colors.transparent,
+                                        decoration: const InputDecoration(
+                                          counterText: "",
+                                          filled: false,
+                                          border: InputBorder.none,
+                                          enabledBorder: InputBorder.none,
+                                          focusedBorder: InputBorder.none,
+                                          errorStyle: TextStyle(height: 0),
+                                        ),
+                                        onChanged: (val) {
+                                          setState(() {});
+                                          if (val.length == 6) _verifyOtp();
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -338,14 +348,15 @@ class _OtpScreenState extends State<OtpScreen> {
                       SizedBox(
                         width: double.infinity,
                         height: 52,
-                        child: Consumer<AuthProvider>(
-                          builder: (context, authProvider, _) {
+                        child: Selector<AuthProvider, bool>(
+                          selector: (context, provider) => provider.isLoading,
+                          builder: (context, isLoading, _) {
                             return ValueListenableBuilder<int>(
                               valueListenable: _secondsRemainingNotifier,
                               builder: (context, seconds, _) {
                                 return ElevatedButton(
                                   onPressed:
-                                      (authProvider.isLoading || seconds == 0)
+                                      (isLoading || seconds == 0)
                                       ? null
                                       : _verifyOtp,
                                   style: ElevatedButton.styleFrom(
@@ -356,7 +367,7 @@ class _OtpScreenState extends State<OtpScreen> {
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                   ),
-                                  child: authProvider.isLoading
+                                  child: isLoading
                                       ? const SizedBox(
                                           height: 24,
                                           width: 24,

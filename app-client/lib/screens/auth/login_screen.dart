@@ -140,29 +140,37 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Image.asset(
-                          'assets/icon/medilocker_icon.webp',
-                          width: 58,
-                          height: 58,
-                          fit: BoxFit.contain,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Patient Login',
-                          style: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.textPrimary,
-                                letterSpacing: -0.5,
+                        RepaintBoundary(
+                          child: Column(
+                            children: [
+                              Image.asset(
+                                'assets/icon/medilocker_icon.webp',
+                                width: 58,
+                                height: 58,
+                                cacheWidth: 116, // 2x for retina display
+                                cacheHeight: 116,
+                                fit: BoxFit.contain,
                               ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Enter your credentials to access portal',
-                          style: TextStyle(
-                            color: Color(0x9964748B), // AppColors.textSecondary with 0.6 alpha
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                              const SizedBox(height: 12),
+                              Text(
+                                'Patient Login',
+                                style: Theme.of(context).textTheme.headlineSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.textPrimary,
+                                      letterSpacing: -0.5,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Enter your credentials to access portal',
+                                style: TextStyle(
+                                  color: Color(0x9964748B),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -177,34 +185,36 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           padding: const EdgeInsets.all(24),
-                          child: Column(
-                            children: [
-                              _buildHorizontalField(
-                                controller: _phoneController,
-                                label: 'PHONE NO.',
-                                hint: '9876543210',
-                                prefix: '+91 ',
-                                keyboardType: TextInputType.phone,
-                                focusNode: _phoneFocus,
-                                onChanged: _onInputChanged,
-                              ),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 16),
-                                child: Divider(
-                                  height: 1,
-                                  thickness: 0.5,
-                                  color: Color(0xFFE2E8F0),
+                          child: RepaintBoundary(
+                            child: Column(
+                              children: [
+                                _buildHorizontalField(
+                                  controller: _phoneController,
+                                  label: 'PHONE NO.',
+                                  hint: '9876543210',
+                                  prefix: '+91 ',
+                                  keyboardType: TextInputType.phone,
+                                  focusNode: _phoneFocus,
+                                  onChanged: _onInputChanged,
                                 ),
-                              ),
-                              _buildHorizontalField(
-                                controller: _patientNumberController,
-                                label: 'PATIENT ID',
-                                hint: '0123456789',
-                                keyboardType: TextInputType.number,
-                                focusNode: _patientFocus,
-                                onChanged: _onInputChanged,
-                              ),
-                            ],
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 16),
+                                  child: Divider(
+                                    height: 1,
+                                    thickness: 0.5,
+                                    color: Color(0xFFE2E8F0),
+                                  ),
+                                ),
+                                _buildHorizontalField(
+                                  controller: _patientNumberController,
+                                  label: 'PATIENT ID',
+                                  hint: '0123456789',
+                                  keyboardType: TextInputType.number,
+                                  focusNode: _patientFocus,
+                                  onChanged: _onInputChanged,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -248,10 +258,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: double.infinity,
                       height: 52,
-                      child: Consumer<AuthProvider>(
-                        builder: (context, authProvider, _) {
+                      child: Selector<AuthProvider, bool>(
+                        selector: (context, provider) => provider.isLoading,
+                        builder: (context, isLoading, _) {
                           return ElevatedButton(
-                            onPressed: (authProvider.isLoading || !_isValid)
+                            onPressed: (isLoading || !_isValid)
                                 ? null
                                 : _sendOtp,
                             style: ElevatedButton.styleFrom(
@@ -262,7 +273,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            child: authProvider.isLoading
+                            child: isLoading
                                 ? const SizedBox(
                                     height: 24,
                                     width: 24,
