@@ -68,13 +68,21 @@ class _OtpScreenState extends State<OtpScreen> {
 
   Future<void> _verifyOtp() async {
     if (_secondsRemaining == 0) {
-      CustomNotification.show(context, 'Code has expired. Please resend.', isSuccess: false);
+      CustomNotification.show(
+        context,
+        'Code has expired. Please resend.',
+        isSuccess: false,
+      );
       return;
     }
 
     final otp = _otpController.text;
     if (otp.length != 6) {
-      CustomNotification.show(context, 'Please enter the 6-digit code', isSuccess: false);
+      CustomNotification.show(
+        context,
+        'Please enter the 6-digit code',
+        isSuccess: false,
+      );
       return;
     }
 
@@ -112,7 +120,11 @@ class _OtpScreenState extends State<OtpScreen> {
         _startTimer();
         CustomNotification.show(context, 'OTP resent successfully');
       } else {
-        CustomNotification.show(context, 'Failed to resend OTP', isSuccess: false);
+        CustomNotification.show(
+          context,
+          'Failed to resend OTP',
+          isSuccess: false,
+        );
       }
     }
   }
@@ -129,7 +141,11 @@ class _OtpScreenState extends State<OtpScreen> {
               top: 10,
               left: 20,
               child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.textPrimary,
+                  size: 20,
+                ),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
@@ -142,7 +158,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Image.asset(
-                          'assets/icon/medilocker_icon.png',
+                          'assets/icon/medilocker_icon.webp',
                           width: 48,
                           height: 48,
                         ),
@@ -161,7 +177,9 @@ class _OtpScreenState extends State<OtpScreen> {
                           textAlign: TextAlign.center,
                           text: TextSpan(
                             style: TextStyle(
-                              color: AppColors.textSecondary.withValues(alpha: 0.6),
+                              color: AppColors.textSecondary.withValues(
+                                alpha: 0.6,
+                              ),
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
                             ),
@@ -181,10 +199,14 @@ class _OtpScreenState extends State<OtpScreen> {
                         TextButton(
                           style: TextButton.styleFrom(
                             minimumSize: Size.zero,
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          onPressed: () => Navigator.pop(context, 'wrong_number'),
+                          onPressed: () =>
+                              Navigator.pop(context, 'wrong_number'),
                           child: const Text(
                             'Not your number?',
                             style: TextStyle(
@@ -200,7 +222,9 @@ class _OtpScreenState extends State<OtpScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: _secondsRemaining < 60 ? Colors.red.shade400 : AppColors.primary,
+                            color: _secondsRemaining < 60
+                                ? Colors.red.shade400
+                                : AppColors.primary,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -218,23 +242,29 @@ class _OtpScreenState extends State<OtpScreen> {
                               child: Stack(
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: List.generate(6, (index) {
-                                      final char = _otpController.text.length > index
+                                      final char =
+                                          _otpController.text.length > index
                                           ? _otpController.text[index]
                                           : '';
-                                      final isFocused = _otpController.text.length == index && _focusNode.hasFocus;
+                                      final isFocused =
+                                          _otpController.text.length == index &&
+                                          _focusNode.hasFocus;
                                       return Container(
                                         width: 42,
                                         height: 52,
                                         alignment: Alignment.center,
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFF8FAFC),
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                           border: Border.all(
-                                            color: isFocused 
-                                              ? AppColors.primary 
-                                              : const Color(0xFFE2E8F0),
+                                            color: isFocused
+                                                ? AppColors.primary
+                                                : const Color(0xFFE2E8F0),
                                             width: isFocused ? 2 : 1,
                                           ),
                                         ),
@@ -257,8 +287,13 @@ class _OtpScreenState extends State<OtpScreen> {
                                       autofocus: true,
                                       keyboardType: TextInputType.number,
                                       maxLength: 6,
-                                      autofillHints: const [AutofillHints.oneTimeCode],
-                                      style: const TextStyle(color: Colors.transparent, fontSize: 24),
+                                      autofillHints: const [
+                                        AutofillHints.oneTimeCode,
+                                      ],
+                                      style: const TextStyle(
+                                        color: Colors.transparent,
+                                        fontSize: 24,
+                                      ),
                                       cursorColor: Colors.transparent,
                                       decoration: const InputDecoration(
                                         counterText: "",
@@ -304,7 +339,11 @@ class _OtpScreenState extends State<OtpScreen> {
                         child: Consumer<AuthProvider>(
                           builder: (context, authProvider, _) {
                             return ElevatedButton(
-                              onPressed: (authProvider.isLoading || _secondsRemaining == 0) ? null : _verifyOtp,
+                              onPressed:
+                                  (authProvider.isLoading ||
+                                      _secondsRemaining == 0)
+                                  ? null
+                                  : _verifyOtp,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 foregroundColor: Colors.white,
@@ -340,22 +379,32 @@ class _OtpScreenState extends State<OtpScreen> {
                           Text(
                             "Didn't receive code?",
                             style: TextStyle(
-                              color: AppColors.textSecondary.withValues(alpha: 0.6),
+                              color: AppColors.textSecondary.withValues(
+                                alpha: 0.6,
+                              ),
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           TextButton(
                             style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                            onPressed: _secondsRemaining < 240 ? _resendOtp : null,
+                            onPressed: _secondsRemaining < 240
+                                ? _resendOtp
+                                : null,
                             child: Text(
                               'Resend OTP',
                               style: TextStyle(
-                                color: _secondsRemaining < 240 ? AppColors.primary : AppColors.textSecondary.withValues(alpha: 0.3),
+                                color: _secondsRemaining < 240
+                                    ? AppColors.primary
+                                    : AppColors.textSecondary.withValues(
+                                        alpha: 0.3,
+                                      ),
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),

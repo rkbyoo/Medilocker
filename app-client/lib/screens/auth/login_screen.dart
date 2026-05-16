@@ -111,8 +111,14 @@ class _LoginScreenState extends State<LoginScreen> {
   bool get _showWarning {
     final pLen = _phoneController.text.length;
     final iLen = _patientNumberController.text.length;
-    final pHasError = pLen > 0 && pLen < 10 && (!_phoneFocus.hasFocus || _userHasStoppedTyping);
-    final iHasError = iLen > 0 && iLen < 10 && (!_patientFocus.hasFocus || _userHasStoppedTyping);
+    final pHasError =
+        pLen > 0 &&
+        pLen < 10 &&
+        (!_phoneFocus.hasFocus || _userHasStoppedTyping);
+    final iHasError =
+        iLen > 0 &&
+        iLen < 10 &&
+        (!_patientFocus.hasFocus || _userHasStoppedTyping);
     return pHasError || iHasError;
   }
 
@@ -135,25 +141,28 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Image.asset(
-                          'assets/icon/medilocker_icon.png',
-                          width: 56,
-                          height: 56,
+                          'assets/icon/medilocker_icon.webp',
+                          width: 58,
+                          height: 58,
                           fit: BoxFit.contain,
                         ),
                         const SizedBox(height: 12),
                         Text(
                           'Patient Login',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.textPrimary,
-                            letterSpacing: -0.5,
-                          ),
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.textPrimary,
+                                letterSpacing: -0.5,
+                              ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Enter your credentials to access portal',
                           style: TextStyle(
-                            color: AppColors.textSecondary.withValues(alpha: 0.6),
+                            color: AppColors.textSecondary.withValues(
+                              alpha: 0.6,
+                            ),
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -226,17 +235,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Minimalist warning
                     SizedBox(
                       height: 22,
-                      child: _showWarning 
-                        ? Text(
-                            'Input must be 10 digits',
-                            style: TextStyle(
-                              color: Colors.red.shade400,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.3,
-                            ),
-                          )
-                        : const SizedBox.shrink(),
+                      child: _showWarning
+                          ? Text(
+                              'Input must be 10 digits',
+                              style: TextStyle(
+                                color: Colors.red.shade400,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.3,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
                     ),
                     SizedBox(
                       width: double.infinity,
@@ -244,7 +253,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Consumer<AuthProvider>(
                         builder: (context, authProvider, _) {
                           return ElevatedButton(
-                            onPressed: (authProvider.isLoading || !_isValid) ? null : _sendOtp,
+                            onPressed: (authProvider.isLoading || !_isValid)
+                                ? null
+                                : _sendOtp,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
