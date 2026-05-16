@@ -24,7 +24,7 @@ class OtpScreen extends StatefulWidget {
 class _OtpScreenState extends State<OtpScreen> {
   final _otpController = TextEditingController();
   final _focusNode = FocusNode();
-  int _secondsRemaining = 300;
+  final ValueNotifier<int> _secondsRemainingNotifier = ValueNotifier<int>(300);
   Timer? _timer;
 
   @override
@@ -38,16 +38,14 @@ class _OtpScreenState extends State<OtpScreen> {
 
   void _startTimer() {
     _timer?.cancel();
-    _secondsRemaining = 300;
+    _secondsRemainingNotifier.value = 300;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
-        setState(() {
-          if (_secondsRemaining > 0) {
-            _secondsRemaining--;
-          } else {
-            _timer?.cancel();
-          }
-        });
+        if (_secondsRemainingNotifier.value > 0) {
+          _secondsRemainingNotifier.value--;
+        } else {
+          _timer?.cancel();
+        }
       }
     });
   }
@@ -57,6 +55,7 @@ class _OtpScreenState extends State<OtpScreen> {
     _otpController.dispose();
     _focusNode.dispose();
     _timer?.cancel();
+    _secondsRemainingNotifier.dispose();
     super.dispose();
   }
 
@@ -67,7 +66,7 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 
   Future<void> _verifyOtp() async {
-    if (_secondsRemaining == 0) {
+    if (_secondsRemainingNotifier.value == 0) {
       CustomNotification.show(
         context,
         'Code has expired. Please resend.',
@@ -176,10 +175,8 @@ class _OtpScreenState extends State<OtpScreen> {
                         RichText(
                           textAlign: TextAlign.center,
                           text: TextSpan(
-                            style: TextStyle(
-                              color: AppColors.textSecondary.withValues(
-                                alpha: 0.6,
-                              ),
+                            style: const TextStyle(
+                              color: Color(0x9964748B), // AppColors.textSecondary with 0.6 alpha
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
                             ),
@@ -216,22 +213,27 @@ class _OtpScreenState extends State<OtpScreen> {
                             ),
                           ),
                         ),
-                        // Timer
-                        Text(
-                          _formatTime(_secondsRemaining),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: _secondsRemaining < 60
-                                ? Colors.red.shade400
-                                : AppColors.primary,
-                          ),
+                        // Optimized Timer Display
+                        ValueListenableBuilder<int>(
+                          valueListenable: _secondsRemainingNotifier,
+                          builder: (context, seconds, _) {
+                            return Text(
+                              _formatTime(seconds),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: seconds < 60
+                                    ? const Color(0xFFEF4444) // red.shade400
+                                    : AppColors.primary,
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(height: 16),
 
                         GestureDetector(
                           onTap: () {
-                            if (_secondsRemaining > 0) {
+                            if (_secondsRemainingNotifier.value > 0) {
                               _focusNode.requestFocus();
                             }
                           },
@@ -283,7 +285,7 @@ class _OtpScreenState extends State<OtpScreen> {
                                     child: TextFormField(
                                       controller: _otpController,
                                       focusNode: _focusNode,
-                                      enabled: _secondsRemaining > 0,
+                                      enabled: true, // Keep enabled for better UX
                                       autofocus: true,
                                       keyboardType: TextInputType.number,
                                       maxLength: 6,
@@ -338,36 +340,40 @@ class _OtpScreenState extends State<OtpScreen> {
                         height: 52,
                         child: Consumer<AuthProvider>(
                           builder: (context, authProvider, _) {
-                            return ElevatedButton(
-                              onPressed:
-                                  (authProvider.isLoading ||
-                                      _secondsRemaining == 0)
-                                  ? null
-                                  : _verifyOtp,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: authProvider.isLoading
-                                  ? const SizedBox(
-                                      height: 24,
-                                      width: 24,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Verify Now',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                            return ValueListenableBuilder<int>(
+                              valueListenable: _secondsRemainingNotifier,
+                              builder: (context, seconds, _) {
+                                return ElevatedButton(
+                                  onPressed:
+                                      (authProvider.isLoading || seconds == 0)
+                                      ? null
+                                      : _verifyOtp,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
+                                  ),
+                                  child: authProvider.isLoading
+                                      ? const SizedBox(
+                                          height: 24,
+                                          width: 24,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Text(
+                                          'Verify Now',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                );
+                              },
                             );
                           },
                         ),
@@ -376,39 +382,39 @@ class _OtpScreenState extends State<OtpScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
+                          const Text(
                             "Didn't receive code?",
                             style: TextStyle(
-                              color: AppColors.textSecondary.withValues(
-                                alpha: 0.6,
-                              ),
+                              color: Color(0x9964748B), // AppColors.textSecondary with 0.6 alpha
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                              ),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            onPressed: _secondsRemaining < 240
-                                ? _resendOtp
-                                : null,
-                            child: Text(
-                              'Resend OTP',
-                              style: TextStyle(
-                                color: _secondsRemaining < 240
-                                    ? AppColors.primary
-                                    : AppColors.textSecondary.withValues(
-                                        alpha: 0.3,
-                                      ),
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                          ValueListenableBuilder<int>(
+                            valueListenable: _secondsRemainingNotifier,
+                            builder: (context, seconds, _) {
+                              final canResend = seconds < 240;
+                              return TextButton(
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                onPressed: canResend ? _resendOtp : null,
+                                child: Text(
+                                  'Resend OTP',
+                                  style: TextStyle(
+                                    color: canResend
+                                        ? AppColors.primary
+                                        : const Color(0x4D64748B), // 0.3 alpha
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),

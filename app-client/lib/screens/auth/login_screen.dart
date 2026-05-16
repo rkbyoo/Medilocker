@@ -157,12 +157,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
+                        const Text(
                           'Enter your credentials to access portal',
                           style: TextStyle(
-                            color: AppColors.textSecondary.withValues(
-                              alpha: 0.6,
-                            ),
+                            color: Color(0x9964748B), // AppColors.textSecondary with 0.6 alpha
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -236,10 +234,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       height: 22,
                       child: _showWarning
-                          ? Text(
+                          ? const Text(
                               'Input must be 10 digits',
                               style: TextStyle(
-                                color: Colors.red.shade400,
+                                color: Color(0xFFEF4444), // red.shade400
                                 fontSize: 10,
                                 fontWeight: FontWeight.w500,
                                 letterSpacing: 0.3,
@@ -287,10 +285,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 0),
                     TextButton(
                       onPressed: () {},
-                      child: Text(
+                      child: const Text(
                         "Don't have your Patient ID?",
                         style: TextStyle(
-                          color: AppColors.textSecondary.withValues(alpha: 0.5),
+                          color: Color(0x8064748B), // AppColors.textSecondary with 0.5 alpha
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
