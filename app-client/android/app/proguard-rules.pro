@@ -13,3 +13,9 @@
 # Keep GMS/Firebase if used
 -keep class com.google.android.gms.** { *; }
 -keep class com.google.firebase.** { *; }
+
+# Fix R8 errors for missing Play Core classes (common in Flutter)
+-dontwarn com.google.android.play.core.**
+-dontwarn com.google.android.gms.tasks.**
+-dontwarn com.google.android.gms.common.**
+
