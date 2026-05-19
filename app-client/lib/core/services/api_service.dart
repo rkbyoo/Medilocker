@@ -74,7 +74,7 @@ class ApiService {
     }
     
     debugPrint('\n=====================================\n[RES] GET $endpoint\nStatus: ${response.statusCode}\nBody: ${response.body}\n=====================================');
-    return _handleResponse(response);
+    return _handleResponse(response, endpoint);
   }
 
   static Future<dynamic> post(
@@ -98,7 +98,7 @@ class ApiService {
         
     debugPrint(
         '\n=====================================\n[RES] POST $endpoint\nStatus: ${response.statusCode}\nBody: ${response.body}\n=====================================');
-    return _handleResponse(response);
+    return _handleResponse(response, endpoint);
   }
 
   static Future<dynamic> put(
@@ -121,7 +121,7 @@ class ApiService {
     }
         
     debugPrint('\n=====================================\n[RES] PUT $endpoint\nStatus: ${response.statusCode}\nBody: ${response.body}\n=====================================');
-    return _handleResponse(response);
+    return _handleResponse(response, endpoint);
   }
 
   static Future<dynamic> patch(
@@ -144,7 +144,7 @@ class ApiService {
     }
 
     debugPrint('\\n=====================================\\n[RES] PATCH $endpoint\\nStatus: ${response.statusCode}\\nBody: ${response.body}\\n=====================================');
-    return _handleResponse(response);
+    return _handleResponse(response, endpoint);
   }
 
   static Future<dynamic> delete(String endpoint) async {
@@ -163,17 +163,12 @@ class ApiService {
     }
         
     debugPrint('\n=====================================\n[RES] DELETE $endpoint\nStatus: ${response.statusCode}\nBody: ${response.body}\n=====================================');
-    return _handleResponse(response);
+    return _handleResponse(response, endpoint);
   }
 
-  static dynamic _handleResponse(http.Response response) {
+  static dynamic _handleResponse(http.Response response, [String? endpoint]) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return jsonDecode(response.body);
-    }
-
-    if (response.statusCode == 401) {
-      onUnauthenticated?.call();
-      throw ApiException(401, "Session expired. Please log in again.");
     }
 
     // Try to extract a human-readable message from the JSON body
@@ -185,6 +180,23 @@ class ApiService {
           response.body;
     } catch (_) {
       // body wasn't JSON – keep the raw string
+    }
+
+    if (response.statusCode == 401) {
+      bool isLoginOrOtp = endpoint != null && 
+        (endpoint.contains('/auth/login') || endpoint.contains('/auth/send-otp') || endpoint.contains('/auth/verify-otp'));
+      
+      if (!isLoginOrOtp) {
+        onUnauthenticated?.call();
+      }
+      // Use the server message if it's available and not just the raw HTML/body, otherwise fallback to session expired
+      if (serverMessage.isNotEmpty && !serverMessage.startsWith('<')) {
+        throw ApiException(401, serverMessage);
+      }
+      if (isLoginOrOtp) {
+        throw ApiException(401, "Authentication failed. Please check your credentials.");
+      }
+      throw ApiException(401, "Session expired. Please log in again.");
     }
 
     throw ApiException(response.statusCode, serverMessage);

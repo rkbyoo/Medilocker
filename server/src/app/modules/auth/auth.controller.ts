@@ -120,7 +120,9 @@ export class AuthController {
       return sendSuccess(res, 'OTP sent successfully');
     } catch (error: any) {
       console.error('Send OTP error:', error);
-      return sendError(res, 'Failed to send OTP', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+      const statusCode = error?.status && typeof error.status === 'number' ? error.status : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+      const errorMessage = error?.message || 'Failed to send OTP';
+      return sendError(res, errorMessage, statusCode);
     }
   }
 
@@ -172,7 +174,9 @@ export class AuthController {
       });
     } catch (error: any) {
       console.error('Verify OTP error:', error);
-      return sendError(res, 'OTP verification failed', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+      const statusCode = error?.status && typeof error.status === 'number' ? error.status : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+      const errorMessage = error?.message || 'OTP verification failed';
+      return sendError(res, errorMessage, statusCode);
     }
   }
 }
