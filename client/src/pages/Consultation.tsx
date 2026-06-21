@@ -116,23 +116,30 @@ const Consultation = () => {
 
         // Find today's scheduled appointment for this patient and doctor
         // This will be used to link the visit to the appointment
-        const todayAppointments = await appointmentsApi.getTodaysAppointments(currentUser.user_id);
-        const matchingAppointment = todayAppointments.find(
-          apt => {
-            // Match by patient_number (preferred) or patient_id
-            return apt.patientNumber === foundPatient.patientNumber || 
-                   apt.patientId === foundPatient.patientNumber ||
-                   apt.patientId === (foundPatient as any).patientId ||
-                   apt.patientId === foundPatient.id;
+        try {
+          const todayAppointments = await appointmentsApi.getTodaysAppointments(currentUser.user_id);
+          console.log('Today appointments for doctor:', currentUser.user_id, todayAppointments);
+          const matchingAppointment = todayAppointments.find(
+            apt => {
+              // Match by patient_number (preferred) or patient_id (UUID)
+              const patNum = foundPatient.patientNumber;
+              const patUUID = (foundPatient as any).patientId;
+              return (patNum && apt.patientNumber === patNum) || 
+                     (patUUID && apt.patientId === patUUID) ||
+                     apt.patientId === foundPatient.id;
+            }
+          );
+          if (matchingAppointment) {
+            // Use appointment_id (UUID) from backend, fallback to id
+            const aptId = matchingAppointment.appointment_id || matchingAppointment.id;
+            setAppointmentId(aptId);
+            console.log('Found matching appointment:', aptId, 'for patient:', foundPatient.patientNumber);
+          } else {
+            console.warn('No matching appointment found for patient:', patientIdentifier, 
+              'in appointments:', todayAppointments.map(a => ({ id: a.id, patNum: a.patientNumber, patId: a.patientId })));
           }
-        );
-        if (matchingAppointment) {
-          // Use appointment_id (UUID) from backend, fallback to id
-          const aptId = (matchingAppointment as any).appointment_id || matchingAppointment.id;
-          setAppointmentId(aptId);
-          console.log('Found matching appointment:', aptId);
-        } else {
-          console.log('No matching appointment found for patient:', patientIdentifier);
+        } catch (aptError) {
+          console.error('Error fetching today appointments:', aptError);
         }
       } catch (error) {
           console.error('Error loading patient data:', error);
@@ -218,15 +225,15 @@ const Consultation = () => {
         toast.success('Consultation saved successfully!');
 
         // Invalidate appointments queries to refresh the dashboard
-        // Invalidate all appointment-related queries to ensure dashboard refreshes
-        queryClient.invalidateQueries({ queryKey: ['appointments'] });
-        
-        // Also invalidate visits/medical history for this patient
-        queryClient.invalidateQueries({ queryKey: ['visits'] });
+        // Await invalidation to ensure dashboard shows fresh data on navigation
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['appointments'] }),
+          queryClient.invalidateQueries({ queryKey: ['visits'] }),
+        ]);
 
         setTimeout(() => {
           navigate('/doctor');
-        }, 1500);
+        }, 1000);
       } else {
         toast.error(response.error || 'Failed to save consultation');
       }

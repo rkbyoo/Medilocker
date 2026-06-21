@@ -64,14 +64,41 @@ export class AppointmentService {
   }
 
   /**
+   * Get IST date boundaries for a given date
+   * Uses UTC offsets to ensure correct IST day boundaries regardless of server timezone
+   */
+  private static getISTDayBounds(date: Date): { start: Date; end: Date } {
+    // IST is UTC+05:30
+    const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+    
+    // Get current time in IST by adding offset to UTC
+    const istTime = new Date(date.getTime() + IST_OFFSET_MS);
+    
+    // Get IST date components
+    const year = istTime.getUTCFullYear();
+    const month = istTime.getUTCMonth();
+    const day = istTime.getUTCDate();
+    
+    // Create IST start of day (00:00:00 IST) in UTC
+    const startOfDayIST = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
+    const startUTC = new Date(startOfDayIST.getTime() - IST_OFFSET_MS);
+    
+    // Create IST end of day (23:59:59.999 IST) in UTC
+    const endOfDayIST = new Date(Date.UTC(year, month, day, 23, 59, 59, 999));
+    const endUTC = new Date(endOfDayIST.getTime() - IST_OFFSET_MS);
+    
+    return { start: startUTC, end: endUTC };
+  }
+
+  /**
    * Get today's appointments for a doctor
    */
   static async getTodaysAppointments(doctor_id: string) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const { start, end } = this.getISTDayBounds(new Date());
     
     return await AppointmentModel.findByDoctorId(doctor_id, {
-      date: today,
+      date_from: start,
+      date_to: end,
       status: AppointmentStatus.scheduled,
     });
   }
@@ -82,10 +109,11 @@ export class AppointmentService {
   static async getTomorrowsAppointments(doctor_id: string) {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
+    const { start, end } = this.getISTDayBounds(tomorrow);
     
     return await AppointmentModel.findByDoctorId(doctor_id, {
-      date: tomorrow,
+      date_from: start,
+      date_to: end,
       status: AppointmentStatus.scheduled,
     });
   }

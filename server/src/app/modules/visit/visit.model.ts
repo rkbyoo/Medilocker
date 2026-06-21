@@ -63,6 +63,43 @@ export class VisitModel {
             visit_id: visit.visit_id,
           },
         });
+      } else {
+        // Fallback: If no appointment_id was provided, try to find a matching
+        // scheduled appointment for this patient+doctor today and mark it completed.
+        // This handles cases where the frontend fails to match the appointment.
+        const today = new Date();
+        const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+        const istTime = new Date(today.getTime() + IST_OFFSET_MS);
+        const year = istTime.getUTCFullYear();
+        const month = istTime.getUTCMonth();
+        const day = istTime.getUTCDate();
+        const startOfDayIST = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
+        const startUTC = new Date(startOfDayIST.getTime() - IST_OFFSET_MS);
+        const endOfDayIST = new Date(Date.UTC(year, month, day, 23, 59, 59, 999));
+        const endUTC = new Date(endOfDayIST.getTime() - IST_OFFSET_MS);
+
+        const matchingAppointment = await tx.appointment.findFirst({
+          where: {
+            patient_id: data.patient_id,
+            doctor_id: data.doctor_id,
+            status: AppointmentStatus.scheduled,
+            scheduled_date_time: {
+              gte: startUTC,
+              lte: endUTC,
+            },
+          },
+          orderBy: { scheduled_date_time: 'asc' },
+        });
+
+        if (matchingAppointment) {
+          await tx.appointment.update({
+            where: { appointment_id: matchingAppointment.appointment_id },
+            data: {
+              status: AppointmentStatus.completed,
+              visit_id: visit.visit_id,
+            },
+          });
+        }
       }
 
       return visit;

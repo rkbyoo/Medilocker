@@ -61,7 +61,7 @@ const LoginSimple: React.FC = () => {
             <Stethoscope className="w-8 h-8 text-primary-foreground" />
           </div>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Medical Management System
+            Smart Patient Healthcard System
           </CardTitle>
           <CardDescription>Sign in to access your dashboard</CardDescription>
         </CardHeader>

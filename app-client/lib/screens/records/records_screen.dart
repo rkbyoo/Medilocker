@@ -5,6 +5,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/providers/patient_provider.dart';
 import '../../core/models/visit.dart';
 import 'prescription_detail_screen.dart';
+import 'visit_detail_screen.dart';
 
 class RecordsScreen extends StatefulWidget {
   const RecordsScreen({super.key});
@@ -302,7 +303,15 @@ class _RecordsScreenState extends State<RecordsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildClinicalCard(context, visit),
+                GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => VisitDetailScreen(visit: visit),
+                    ),
+                  ),
+                  child: _buildClinicalCard(context, visit),
+                ),
                 const SizedBox(height: 32),
               ],
             ),

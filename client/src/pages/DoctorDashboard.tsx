@@ -2,28 +2,32 @@
  * Doctor Dashboard - Clean Professional Layout
  */
 
-import React from "react";
+import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Clock, User, Calendar } from "lucide-react";
+import { LogOut, Clock, User, Calendar, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { authApi, appointmentsApi } from "@/api";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 
 const DoctorDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const currentUser = authApi.getCurrentUser();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Fetch today's appointments
+  // Fetch today's appointments (auto-refresh every 30s)
   const { data: todaysAppointments = [], isLoading: isLoadingToday } = useQuery(
     {
       queryKey: ["appointments", "today", currentUser?.id],
       queryFn: () =>
         appointmentsApi.getTodaysAppointments(currentUser?.id || ""),
       enabled: !!currentUser?.id,
+      staleTime: 0,
+      refetchInterval: 30 * 1000, // Auto-refresh every 30 seconds
     }
   );
 
@@ -49,6 +53,19 @@ const DoctorDashboard: React.FC = () => {
     navigate("/");
   };
 
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      toast.success("Appointments refreshed");
+    } catch {
+      toast.error("Failed to refresh appointments");
+    } finally {
+      // Keep the spin animation for at least 600ms for visual feedback
+      setTimeout(() => setIsRefreshing(false), 600);
+    }
+  }, [queryClient]);
+
   const formatTime = appointmentsApi.formatAppointmentTime;
 
   return (
@@ -73,14 +90,26 @@ const DoctorDashboard: React.FC = () => {
               </>
             )}
           </div>
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            className="text-white hover:bg-white/20 font-medium"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="text-white hover:bg-white/20 font-medium"
+              title="Refresh appointments"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className="text-white hover:bg-white/20 font-medium"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 
