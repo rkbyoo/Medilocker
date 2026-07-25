@@ -1,4 +1,4 @@
-# 🏥 MediLocker — NFC Based Smart Patient Health Card System
+#  MediLocker (NFC Based Smart Patient Health Card System)
 
 > A full-stack, multi-platform healthcare management system featuring an **Electron desktop app** for hospital staff, a **Flutter mobile app** for patients, and a **Node.js central server** — all connected to a shared PostgreSQL database.
 
