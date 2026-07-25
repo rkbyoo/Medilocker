@@ -36,9 +36,9 @@ The system is built as a **monorepo** containing three distinct but interconnect
 
 | Component | Technology | Audience | Purpose |
 |---|---|---|---|
-| **Central Server** | Node.js + Express + PostgreSQL | Internal | The single source of truth for all data. Exposes a REST API consumed by both clients. |
-| **Desktop App** | Electron + React | Hospital Staff (Receptionists, Doctors) | Register patients, schedule appointments, conduct consultations. |
-| **Mobile App (MediLocker)** | Flutter + Dart | Patients | View medical records, appointments, prescriptions, and bills. |
+| **Central Server** | Node.js + Express + PostgreSQL | Internal | The single source of truth for all data. Exposes a REST API, handles FCM push notifications, and Twilio OTP. |
+| **Desktop App** | Electron + React | Doctors & Hospital Staff (Receptionists) | NFC card check-in, patient registration, appointment scheduling, and doctor consultations. |
+| **Mobile App (MediLocker)** | Flutter + Dart | Patients | Access clinical records, consultation history, prescriptions, appointment records, and receive real-time medical push notifications. |
 
 ---
 
@@ -88,9 +88,11 @@ Here is the complete lifecycle of a patient interaction with the system:
 6. The receptionist hands the patient their card (with NFC UID) and patient number.
 
 ### Step 2: Patient Account & Mobile App Access
-1. During registration, a user account (`UserRole: patient`) is created on the server with a temporary password.
-2. The patient downloads the **MediLocker Flutter app** and logs in using their email and password.
-3. Upon first login, the app registers the device's **FCM token** with the server so the patient can receive push notifications.
+1. During registration, a user account (`UserRole: patient`) is created on the server with their phone number.
+2. The patient downloads the **MediLocker Flutter app** and logs in using **OTP (One-Time Password)**.
+3. Twilio sends an OTP SMS to the patient's registered phone number. On the **free tier**, only Twilio-verified/registered phone numbers can receive OTPs.
+4. After OTP verification, the server issues a JWT session token stored securely on the device.
+5. Upon first login, the app registers the device's **FCM token** with the server so the patient can receive push notifications.
 
 ### Step 3: Appointment Scheduling (Receptionist → Desktop App)
 1. The receptionist schedules an appointment, selecting the doctor, department, date/time, and reason.
@@ -98,9 +100,10 @@ Here is the complete lifecycle of a patient interaction with the system:
 3. The server's **Notification Service** triggers a **Firebase Cloud Messaging (FCM)** push notification: *"Your appointment with Dr. X is confirmed for [date]."*
 4. The patient sees this notification on their MediLocker app in real time.
 
-### Step 4: Patient Check-In (NFC Scan)
-1. When the patient arrives on the appointment day, the receptionist can scan their **NFC card**.
-2. The Desktop App (via Electron IPC) reads the card UID from the serial port, instantly looks up the patient, and opens their profile — no manual search needed.
+### Step 4: Patient Check-In (NFC / RFID Card Scan)
+1. When the patient arrives on the appointment day, the receptionist can scan their **NFC/RFID card**.
+2. The hardware is an **Arduino** microcontroller with a **PN532 NFC/RFID sensor module** connected via USB. The Arduino reads the card's UID and sends it over the serial port.
+3. The Desktop App (via Electron IPC) reads the UID from the serial port, instantly looks up the patient in the database, and opens their profile — no manual searching needed.
 
 ### Step 5: Consultation (Doctor → Desktop App)
 1. The doctor logs into the Desktop App and opens their **Doctor Dashboard**.
@@ -117,11 +120,13 @@ Here is the complete lifecycle of a patient interaction with the system:
    - Sends a push notification to the patient: *"Your visit is complete. Your prescription is now available."*
 
 ### Step 6: Patient Reviews Records (Flutter Mobile App)
-1. The patient opens MediLocker and sees a notification badge.
-2. In the **Records** screen, they can see the full visit summary: diagnosis, doctor's notes, advice.
-3. In the **Appointments** screen, their appointment is now marked as "Completed."
-4. The prescription is viewable and can be downloaded as a **PDF** directly in the app.
-5. Bills generated during the visit are visible in the **Bills** screen.
+1. The patient opens MediLocker and sees a push notification and a badge on the notifications tab.
+2. In the **Clinical Records** screen, they can view the full visit summary: diagnosis, doctor's notes, and advice.
+3. They can see their **previous consultations by the doctor** — a complete history of every visit, sorted by date.
+4. In the **Prescriptions** section of each consultation, all medications (drug name, dosage, frequency, duration) are listed and viewable.
+5. In the **Appointments** screen, their appointment is now marked as "Completed."
+6. The prescription is viewable and can be downloaded as a **PDF** directly in the app — making it easy to show at a pharmacy.
+7. Bills generated during the visit are visible in the **Bills** screen with itemized sections.
 
 ---
 

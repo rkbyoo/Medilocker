@@ -30,12 +30,14 @@
 
 **MediLocker** is the patient-facing mobile application for the **MediLocker — NFC Based Smart Patient Health Card System**. It gives patients a secure, always-accessible view of their medical world:
 
-- View upcoming and past appointments
-- Read full visit records (diagnosis, notes, advice)
-- View and download prescriptions as PDF
+- Access clinical records and full consultation history by doctor
+- View prescriptions (medications, dosage, frequency) from each consultation
+- View and download prescriptions as PDF — handy for pharmacies
+- Track appointment records (upcoming and past, with status)
+- Receive real-time push notifications for medical events (appointment confirmed, prescription ready, etc.)
 - See bills and payment status
-- Receive real-time push notifications for every hospital action
 - Generate a QR code for quick reception check-in
+- Log in securely using phone OTP (Twilio)
 - Access emergency contacts without logging in
 
 The app is built with **Flutter**, allowing a single Dart codebase to produce native-quality apps for both Android and iOS.
@@ -301,12 +303,16 @@ class ApiConfig {
 
 ## Authentication & Secure Storage
 
-### Login Flow
-1. User enters email and password on `LoginScreen`.
-2. `AuthProvider.login()` calls `AuthService.login()`.
-3. On success, the JWT access token is stored in `FlutterSecureStorage`.
-4. `AuthProvider` sets `_user` and calls `notifyListeners()`.
-5. GoRouter's redirect guard sees `isAuthenticated = true` and navigates to `/home`.
+### Login Flow (OTP via Twilio)
+1. Patient enters their **registered phone number** on `LoginScreen`.
+2. The app calls the server's auth endpoint which triggers **Twilio** to send an OTP SMS.
+3. Patient enters the OTP in the app.
+4. The server validates the OTP, then issues a JWT access token.
+5. The JWT token is stored in `FlutterSecureStorage`.
+6. `AuthProvider` sets `_user` and calls `notifyListeners()`.
+7. GoRouter's redirect guard sees `isAuthenticated = true` and navigates to `/home`.
+
+> **⚠️ Twilio Free Tier Note:** On Twilio's free tier, OTP SMS can only be sent to phone numbers that have been **pre-verified** in the Twilio console. All patient phone numbers used in development/testing must be added to the Twilio verified caller IDs list. This restriction is lifted on a paid Twilio plan.
 
 ### Token Storage
 ```dart
@@ -460,9 +466,11 @@ The root scaffold with a **bottom navigation bar** with four tabs:
 - 🔔 Notifications
 
 ### `login_screen.dart`
-- Email and password text fields.
-- "Forgot password?" placeholder.
-- On login, calls `AuthProvider.login()`.
+- Phone number input field.
+- On submit, triggers the **Twilio OTP** flow via the server API.
+- A second screen accepts the 6-digit OTP SMS code.
+- On valid OTP, the server issues a JWT and the user is navigated to the home screen.
+- **Note:** On Twilio free tier, the phone number must be pre-registered in the Twilio dashboard to receive OTP.
 
 ### Home Screen
 Dashboard summary showing:

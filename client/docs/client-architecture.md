@@ -278,7 +278,7 @@ import { patientsApi, appointmentsApi, visitsApi } from '@/api';
 This is the most distinctive feature of the desktop app. Here is how it works end-to-end:
 
 ### Hardware
-A standard **NFC reader module** (e.g., RC522 or PN532) is connected to an **Arduino** (or CH340-based clone). The Arduino reads NFC card UIDs and sends them over **USB serial port** at **115200 baud rate**, one UID per line (e.g., `A3F20B1C\r\n`).
+A **PN532 NFC/RFID sensor module** is wired to an **Arduino** microcontroller. The Arduino firmware reads the NFC card's UID when a card is tapped and transmits it over **USB serial** at **115200 baud rate**, one UID per line (e.g., `A3F20B1C\r\n`). The Arduino connects to the hospital PC as a standard USB serial device (appearing as a COM port on Windows or `/dev/ttyUSB0` on Linux).
 
 ### Electron Main Process
 On startup, Electron:
