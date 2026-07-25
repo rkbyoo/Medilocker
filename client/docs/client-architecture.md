@@ -396,16 +396,16 @@ pnpm --filter client electron:build
 ```
 
 Output is in `client/dist-electron/`:
-- **Windows:** `Medical Management System Setup.exe` (NSIS installer)
-- **Mac:** `Medical Management System.dmg`
-- **Linux:** `Medical Management System.AppImage`
+- **Windows:** `MediLocker Setup.exe` (NSIS installer)
+- **Mac:** `MediLocker.dmg`
+- **Linux:** `MediLocker.AppImage`
 
 The `package.json` `build` key configures `electron-builder`:
 ```json
 {
   "build": {
     "appId": "com.medical.management",
-    "productName": "Medical Management System",
+    "productName": "MediLocker",
     "win": { "target": "nsis" },
     "mac": { "target": "dmg" },
     "linux": { "target": "AppImage" }

@@ -1,4 +1,4 @@
-# 🏥 Hospital Management System
+# 🏥 MediLocker — NFC Based Smart Patient Health Card System
 
 > A full-stack, multi-platform healthcare management system featuring an **Electron desktop app** for hospital staff, a **Flutter mobile app** for patients, and a **Node.js central server** — all connected to a shared PostgreSQL database.
 
@@ -30,7 +30,7 @@
 
 ## 🌐 Project Overview
 
-The Hospital Management System is a **final year project** that digitizes the complete patient journey in a hospital — from a patient walking in at reception, getting an appointment, undergoing a consultation, receiving a prescription, to reviewing their visit history from their phone.
+**MediLocker** is a **final year project** — an NFC-based smart patient health card system that digitizes the complete patient journey in a hospital — from a patient walking in at reception, getting an appointment, undergoing a consultation, receiving a prescription, to reviewing their visit history from their phone.
 
 The system is built as a **monorepo** containing three distinct but interconnected applications:
 
@@ -796,5 +796,5 @@ See [LICENSE](./server/LICENSE) for details.
 
 <div align="center">
   <strong>Built with ❤️ as a Final Year Project</strong><br/>
-  <em>A full-stack, multi-platform hospital management system</em>
+  <em>MediLocker — NFC Based Smart Patient Health Card System</em>
 </div>

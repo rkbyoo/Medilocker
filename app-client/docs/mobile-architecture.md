@@ -28,7 +28,7 @@
 
 ## Overview
 
-**MediLocker** is the patient-facing mobile application for the Hospital Management System. It gives patients a secure, always-accessible view of their medical world:
+**MediLocker** is the patient-facing mobile application for the **MediLocker — NFC Based Smart Patient Health Card System**. It gives patients a secure, always-accessible view of their medical world:
 
 - View upcoming and past appointments
 - Read full visit records (diagnosis, notes, advice)
