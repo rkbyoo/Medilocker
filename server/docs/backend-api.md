@@ -1,22 +1,24 @@
 # Backend API Documentation
 
 ## Overview
-FastAPI-based backend service providing RESTful APIs for the JECSmart Patient Health Card System.
+Node.js + Express backend service providing RESTful APIs for the **MediLocker — NFC Based Smart Patient Health Card System**.
 
 ## Technology Stack
-- **Framework**: FastAPI (Python)
-- **Database**: PostgreSQL
-- **File Storage**: AWS S3 / Azure Blob Storage
-- **Authentication**: JWT/OAuth2
-- **Documentation**: OpenAPI/Swagger
-- **Deployment**: Docker + Kubernetes
+- **Runtime**: Node.js 20 + TypeScript
+- **Framework**: Express.js 4
+- **Database**: PostgreSQL 14+ (via Prisma ORM v7)
+- **Authentication**: JWT (`jsonwebtoken`) + `bcryptjs`
+- **Validation**: Zod
+- **Push Notifications**: Firebase Admin SDK (FCM)
+- **SMS**: Twilio
+- **ORM**: Prisma v7
 
 ## API Architecture
 
 ### Base URL
 ```
-Production: https://api.jecsmart.com
-Development: http://localhost:8000
+Production: https://<your-server-domain>/api
+Development: http://localhost:4000/api
 ```
 
 ### Authentication
@@ -27,178 +29,167 @@ Authorization: Bearer <access_token>
 
 ## Core Modules
 
-### Authentication API
-```python
-@router.post("/auth/register")
-async def register_user(user_data: UserCreate) -> UserResponse:
-    """Register a new user"""
-    
-@router.post("/auth/login")
-async def login(credentials: LoginRequest) -> TokenResponse:
-    """Authenticate user and return tokens"""
-    
-@router.post("/auth/refresh")
-async def refresh_token(refresh_data: RefreshRequest) -> TokenResponse:
-    """Refresh access token"""
+The server follows a **feature-based module pattern**. Each feature is self-contained with its own controller, service, routes, and model:
+
 ```
+server/src/app/modules/
+├── auth/          → Login, register, refresh token, logout
+├── patient/       → Patient CRUD, NFC lookup, search
+├── appointment/   → Scheduling, status updates, doctor schedule views
+├── visit/         → Medical encounters, diagnoses, prescriptions
+├── notification/  → FCM push notifications, device token management
+├── bill/          → Billing, bill sections, payment status
+└── user/          → Hospital staff user management
+```
+
+### Key Design Patterns
+- **Controller → Service → Prisma**: Every route handler delegates business logic to a service function, which talks to the database via Prisma. Controllers only handle HTTP request/response parsing.
+- **Zod Validation Middleware**: All incoming request bodies are validated against strict Zod schemas before reaching the controller.
+- **JWT Middleware**: A reusable `auth.middleware.ts` extracts and verifies the JWT from the `Authorization` header. It injects the decoded user into `req.user` for downstream use.
+- **Centralized Error Handling**: An `error.middleware.ts` catches all unhandled errors and formats them into consistent JSON error responses.
+
+### Authentication API
+
+```typescript
+// POST /api/auth/login
+// Validates credentials (bcryptjs password check)
+// Returns: { accessToken (15min), refreshToken (7d) }
+
+// POST /api/auth/refresh
+// Validates the refreshToken from DB
+// Returns: new { accessToken }
+```
+
+The refresh token is stored in the `refresh_tokens` table for server-side invalidation on logout.
 
 ### Patient Management API
-```python
-@router.get("/patients/{patient_id}")
-async def get_patient(patient_id: str) -> PatientResponse:
-    """Get patient details"""
-    
-@router.put("/patients/{patient_id}")
-async def update_patient(patient_id: str, data: PatientUpdate) -> PatientResponse:
-    """Update patient information"""
-    
-@router.get("/patients/{patient_id}/medical-history")
-async def get_medical_history(patient_id: str) -> List[MedicalRecord]:
-    """Get patient medical history"""
+
+```typescript
+// POST /api/patients         → Register a new patient
+// GET  /api/patients/:id     → Get patient by ID, patient number, or NFC UID
+// PUT  /api/patients/:id     → Update patient info
+// GET  /api/patients?q=...   → Search by name, patient number, or NFC UID
 ```
 
-### Prescription API
-```python
-@router.post("/prescriptions")
-async def create_prescription(prescription: PrescriptionCreate) -> PrescriptionResponse:
-    """Create new prescription"""
-    
-@router.get("/prescriptions/{prescription_id}")
-async def get_prescription(prescription_id: str) -> PrescriptionResponse:
-    """Get prescription details"""
-    
-@router.get("/patients/{patient_id}/prescriptions")
-async def get_patient_prescriptions(patient_id: str) -> List[PrescriptionResponse]:
-    """Get all prescriptions for a patient"""
+### Appointment API
+
+```typescript
+// POST  /api/appointments                          → Create an appointment
+// GET   /api/appointments                          → List appointments (with filters)
+// GET   /api/appointments/:id                      → Get appointment detail
+// GET   /api/appointments/doctor/:id/today         → Doctor's appointments for today
+// GET   /api/appointments/doctor/:id/tomorrow      → Doctor's appointments for tomorrow
+// PUT   /api/appointments/:id                      → Update appointment
+// PATCH /api/appointments/:id/cancel               → Cancel an appointment
 ```
 
-### Medical Records API
-```python
-@router.post("/medical-records")
-async def create_medical_record(record: MedicalRecordCreate) -> MedicalRecordResponse:
-    """Create new medical record"""
-    
-@router.get("/medical-records/{record_id}")
-async def get_medical_record(record_id: str) -> MedicalRecordResponse:
-    """Get medical record details"""
-    
-@router.post("/medical-records/{record_id}/attachments")
-async def upload_attachment(record_id: str, file: UploadFile) -> AttachmentResponse:
-    """Upload medical record attachment"""
+### Visit (Consultation) API
+
+```typescript
+// POST /api/visits                → Create a visit (consultation record + prescription)
+// GET  /api/visits/:id            → Get visit details
+// GET  /api/visits?patient_id=    → Get all visits for a patient
+// PUT  /api/visits/:id            → Update a visit
+```
+
+### Notification API
+
+```typescript
+// POST  /api/notifications/device-token   → Register a device's FCM token
+// GET   /api/notifications                → Get patient's notification list
+// PATCH /api/notifications/:id/read       → Mark a notification as read
 ```
 
 ## Data Models
 
-### User Model
-```python
-class User(BaseModel):
-    user_id: UUID
-    full_name: str
-    email: EmailStr
-    phone: Optional[str]
-    role: UserRole
-    created_at: datetime
-    updated_at: datetime
-```
-
-### Patient Model
-```python
-class Patient(BaseModel):
-    patient_id: UUID
-    user_id: UUID
-    date_of_birth: date
-    blood_group: str
-    emergency_contact: str
-    allergies: List[str]
-    chronic_conditions: List[str]
-    insurance_info: Optional[InsuranceInfo]
-```
-
-### Prescription Model
-```python
-class Prescription(BaseModel):
-    prescription_id: UUID
-    patient_id: UUID
-    doctor_id: UUID
-    medications: List[Medication]
-    diagnosis: str
-    instructions: str
-    created_at: datetime
-    valid_until: date
-```
-
-## File Storage Integration
-
-### Upload Medical Files
-```python
-@router.post("/files/upload")
-async def upload_file(
-    file: UploadFile,
-    patient_id: str,
-    file_type: FileType
-) -> FileUploadResponse:
-    """Upload medical files to S3/Blob storage"""
-```
-
-### Download Medical Files
-```python
-@router.get("/files/{file_id}")
-async def download_file(file_id: str) -> FileResponse:
-    """Download medical files with secure access"""
-```
-
-## Database Schema
-
-### Core Tables
-- `users` - User authentication and basic info
-- `patients` - Patient-specific medical data
-- `doctors` - Doctor profiles and specializations
-- `prescriptions` - Prescription records
-- `medical_records` - Medical history and reports
-- `appointments` - Appointment scheduling
-- `files` - File metadata and storage references
-
-## Security Features
-- JWT-based authentication
-- Role-based access control (RBAC)
-- Input validation with Pydantic
-- SQL injection prevention
-- Rate limiting
-- CORS configuration
-- HTTPS enforcement
-
-## API Documentation
-- Interactive Swagger UI: `/docs`
-- ReDoc documentation: `/redoc`
-- OpenAPI JSON: `/openapi.json`
-
-## Error Handling
-```python
-class APIException(Exception):
-    def __init__(self, status_code: int, detail: str):
-        self.status_code = status_code
-        self.detail = detail
-
-# Standard error responses
-{
-    "error": {
-        "code": "VALIDATION_ERROR",
-        "message": "Invalid input data",
-        "details": {...}
-    }
+### User Model (TypeScript)
+```typescript
+interface User {
+  user_id: string;      // UUID
+  full_name: string;
+  email: string;
+  phone?: string;
+  password_hash: string;
+  role: 'patient' | 'hospital_staff' | 'admin';
+  created_at: Date;
+  updated_at: Date;
 }
 ```
 
+### Patient Model (TypeScript)
+```typescript
+interface Patient {
+  patient_id: string;        // UUID
+  user_id: string;           // FK → users
+  patient_number: string;    // Auto-generated 10-digit unique number
+  nfc_card_uid?: string;     // Optional, linked to physical NFC card
+  date_of_birth: Date;
+  gender: string;
+  blood_group: string;
+  phone_number: string;
+  address?: string;
+  created_at: Date;
+}
+```
+
+### Prescription Model (TypeScript)
+```typescript
+interface Prescription {
+  prescription_id: string;   // UUID
+  visit_id: string;          // FK → visits
+  doctor_id: string;         // FK → hospital_users
+  medications: Medication[];
+  created_at: Date;
+}
+
+interface Medication {
+  medication_id: string;
+  prescription_id: string;
+  drug_name: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+}
+```
+
+## Security Features
+- JWT-based authentication (access + refresh tokens)
+- Role-based access control (RBAC)
+- Input validation with **Zod**
+- SQL injection prevention via **Prisma ORM** (parameterized queries)
+- Password hashing with **bcryptjs** (10 salt rounds)
+- CORS configuration via `cors` package
+- HTTPS enforcement (via reverse proxy in production)
+
+## Error Handling
+
+All errors follow a consistent JSON response format:
+
+```typescript
+// Standard error response
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": { ... }  // optional field-level details
+}
+```
+
+HTTP status codes:
+- `400` — Bad Request / Validation Error
+- `401` — Unauthorized (missing or invalid token)
+- `403` — Forbidden (insufficient role)
+- `404` — Resource Not Found
+- `500` — Internal Server Error
+
 ## Performance Features
-- Database connection pooling
-- Redis caching for frequent queries
-- Async/await for non-blocking operations
-- Background tasks for heavy operations
-- Database query optimization
+- Database connection pooling via `pg` + Prisma
+- Async/await for non-blocking I/O throughout Express route handlers
+- Indexed columns for frequent lookups (`nfc_card_uid`, `patient_number`, `email`)
 
 ## Monitoring and Logging
-- Structured logging with correlation IDs
-- Health check endpoints
-- Metrics collection (Prometheus)
-- Error tracking (Sentry)
-- Performance monitoring
+- Console logging via Node.js built-in utilities
+- Request logging middleware
+- Firebase Admin SDK for push notification delivery tracking
+- Access logs stored in the `access_logs` table for audit trails
+
+> 📖 A Postman collection is available at `server/postman_collection.json` for testing all endpoints.
